@@ -1,5 +1,5 @@
 /*
- *  RuleForeignSlaveXmlRpc.java
+ *  RuleForeignSlave.java
  *  Creato il Nov 26, 2017, 4:11:03 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -18,18 +18,17 @@ import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.SyncSetupErrorException;
 import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractRule;
-import it.infomed.sync.common.plugin.DeleteStrategyNothing;
 import it.infomed.sync.common.plugin.SyncAgentPlugin;
 import it.infomed.sync.common.plugin.SyncPluginFactory;
+import it.infomed.sync.db.Database;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.okStr;
+import org.jdom2.Element;
 
 /**
  * Plugin di sincronizzazione per Diamante via XML-RPC.
@@ -37,11 +36,11 @@ import org.commonlib5.utils.Pair;
  *
  * @author Nicola De Nisco
  */
-public class RuleForeignSlaveXmlRpc extends AbstractRule
+public class RuleForeignSlave extends AbstractRule
 {
-  protected String nomeRegola, delStrategyName;
-  protected ArrayList<String> arBlocchi = new ArrayList<>();
+  protected Element rule, delStrategyElement;
   protected HashMap<String, SyncAgentPlugin> agentMap = new HashMap<>();
+  protected ArrayList<String> arBlocchi = new ArrayList<>();
 
   @Override
   public void configure(Configuration cfg)
@@ -56,44 +55,50 @@ public class RuleForeignSlaveXmlRpc extends AbstractRule
   }
 
   @Override
-  public void setConfig(String nomeRegola, Map context)
+  public void setXML(String location, Element rule)
      throws Exception
   {
-    this.nomeRegola = nomeRegola;
-    arBlocchi.clear();
-    agentMap.clear();
+    this.rule = rule;
+    databaseName = okStr(rule.getAttributeValue("database-name"), Database.getDefaultDB());
 
     // legge eventuale delete strategy
-    if((delStrategyName = (String) context.get("delete-strategy-name")) == null)
+    if((delStrategyElement = Utils.getChildTestName(rule, "delete-strategy")) == null)
     {
-      delStrategy = new DeleteStrategyNothing();
+      delStrategy = SyncPluginFactory.getInstance().buildDeleteStrategy(getRole(), "generic");
     }
     else
     {
-      delStrategy = SyncPluginFactory.getInstance().buildDeleteStrategy(getRole(), delStrategyName);
-      delStrategy.setConfig(delStrategyName, (Map) context.get("delete-strategy-data"));
+      String name = delStrategyElement.getAttributeValue("name");
+      delStrategy = SyncPluginFactory.getInstance().buildDeleteStrategy(getRole(), name);
     }
 
     // legge eventuale filtro sql
-    setFilter(Utils.parseFilterKeyData(context));
+    setFilter(Utils.parseFilterKeyData(rule));
 
-    Vector vData = (Vector) context.get("data-blocks");
-    context.remove("data-blocks");
+    createDataBlocks(location);
+  }
 
-    for(int i = 0; i < vData.size(); i++)
+  protected void createDataBlocks(String location)
+     throws Exception
+  {
+    Element blocks = rule.getChild("data-blocks");
+    List<Element> lsData = blocks.getChildren("data");
+
+    for(Element data : lsData)
     {
-      Hashtable ht = (Hashtable) vData.get(i);
-      String nomeBlocco = (String) ht.get("name");
-      String nomeAgent = (String) ht.get("agent");
+      if(checkTrueFalse(data.getAttributeValue("ignore"), false))
+        continue;
+
+      String nomeBlocco = data.getAttributeValue("name");
+      String nomeAgent = data.getAttributeValue("agent");
 
       if(agentMap.containsKey(nomeBlocco))
         throw new SyncSetupErrorException(String.format("Data block %s duplicato nel file XML.", nomeBlocco));
 
       SyncAgentPlugin agent = SyncPluginFactory.getInstance().buildAgent(getRole(), nomeAgent);
       agent.setParentRule(this);
-      agent.setConfig(nomeAgent, ht);
+      agent.setXML(location, data);
       agentMap.put(nomeBlocco, agent);
-      arBlocchi.add(nomeBlocco);
     }
   }
 

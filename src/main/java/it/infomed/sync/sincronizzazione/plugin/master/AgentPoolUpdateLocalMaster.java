@@ -32,26 +32,20 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class AgentPoolUpdateLocalMaster extends AgentSharedGenericLocalMaster
+public class AgentPoolUpdateLocalMaster extends AgentSharedGenericMaster
 {
-  protected Element poolLocal, tblForeign;
-  protected String tableNameForeign, poolName, poolData;
+  protected Element poolLocal;
+  protected String poolName, poolData;
 
   @Override
   public void setXML(String location, Element data)
      throws Exception
   {
-    super.setXML(data);
+    super.setXML(location, data);
 
     Element tables = data.getChild("tables");
     if(tables == null)
       throw new SyncSetupErrorException(0, "tables");
-
-    if((tblForeign = tables.getChild("foreign")) == null)
-      throw new SyncSetupErrorException(0, "tables/foreign");
-
-    if((tableNameForeign = okStrNull(tblForeign.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "tables/foreign:name");
 
     if((poolLocal = tables.getChild("pool-local")) == null)
       throw new SyncSetupErrorException(0, "tables/pool-local");
@@ -61,15 +55,6 @@ public class AgentPoolUpdateLocalMaster extends AgentSharedGenericLocalMaster
 
     if((poolData = okStrNull(poolLocal.getAttributeValue("data"))) == null)
       throw new SyncSetupErrorException(0, "tables/pool-local:data");
-  }
-
-  @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    super.populateConfigForeign(context);
-    context.put("foreign-table-name", tblForeign.getAttributeValue("name"));
-    context.put("foreign-table-database", tblForeign.getAttributeValue("database"));
   }
 
   @Override
@@ -90,9 +75,9 @@ public class AgentPoolUpdateLocalMaster extends AgentSharedGenericLocalMaster
 
     // NOTA IMPORTANTE: il timestamp ultimo aggiornamento non viene passato
     // in quanto è responsabilità del pool stabilire quali record devono essere aggiornati
-    compilaBloccoMaster(arLocalKeys, parametri, lsRecs,
+    compilaBloccoMaster(arKeys, parametri, lsRecs,
        null, // vedi nota
-       timeStampLocal == null ? null : timeStampLocal.first,
+       timeStamp == null ? null : timeStamp.first,
        v, context);
   }
 
@@ -102,18 +87,18 @@ public class AgentPoolUpdateLocalMaster extends AgentSharedGenericLocalMaster
   {
     VectorRpc v = new VectorRpc();
     context.put("records-data", v);
-    boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arLocalKeys.isEmpty());
+    boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
 
     // estrae i soli campi significativi
     List<FieldLinkInfoBean> arRealFields = arFields.stream()
-       .filter((f) -> f.localField != null && isOkStr(f.localField.first))
+       .filter((f) -> f.field != null && isOkStr(f.field.first))
        .collect(Collectors.toList());
 
     SyncPoolPlugin pool = getParentRule().getPool(poolName);
     if(pool == null)
       die("Missing data pool for name " + poolName);
 
-    List<Record> lsRecs = pool.getDatiAggiorna(dataBlockName, poolData, arLocalKeys,
+    List<Record> lsRecs = pool.getDatiAggiorna(dataBlockName, poolData, arKeys,
        fetchAllData ? null : parametri, arFields, (Map<String, String>) context.get("extraFilter"));
     if(lsRecs.isEmpty())
       return;

@@ -46,14 +46,6 @@ public class AdapterMaxLengthForeign extends AbstractAdapter
     commonSetup();
   }
 
-  @Override
-  public void setConfig(String nomeAdapter, Map data)
-     throws Exception
-  {
-    setup = data;
-    commonSetup();
-  }
-
   protected void commonSetup()
   {
     for(Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) setup.entrySet())

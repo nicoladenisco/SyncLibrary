@@ -44,22 +44,6 @@ public class SequenceUpdateValidatorForeign extends AbstractValidator
   }
 
   @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    context.put("field", field);
-    context.put("sequence", sequence);
-  }
-
-  @Override
-  public void setConfig(String nomeAdapter, Map vData)
-     throws Exception
-  {
-    field = okStr(vData.get("field"));
-    sequence = okStr(vData.get("sequence"));
-  }
-
-  @Override
   public void masterFineValidazione(String tableName, String dbName,
      List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception

@@ -1,5 +1,5 @@
 /*
- *  RecordFilterValidatorForeignSlave.java
+ *  RecordFilterValidatorSlave.java
  *  Creato il 29-ott-2021, 10.23.13
  *
  *  Copyright (C) 2021 Informatica Medica s.r.l.
@@ -14,27 +14,28 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.slave;
 
-import it.infomed.sync.SU;
 import it.infomed.sync.common.FieldFilterBean;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
+import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractValidator;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.commonlib5.utils.StringOper;
 import org.commonlib5.xmlrpc.HashtableRpc;
+import org.jdom2.Element;
 
 /**
  * Filtra record in ingresso in base a valori predefiniti.
  *
  * @author Nicola De Nisco
  */
-public class RecordFilterValidatorForeignSlave extends AbstractValidator
+public class RecordFilterValidatorSlave extends AbstractValidator
 {
-  private HashtableRpc setup;
+  private Element data;
   private List<FieldFilterBean> arFiltri = new ArrayList<>();
+  private HashtableRpc setup;
 
   @Override
   public String getRole()
@@ -43,10 +44,11 @@ public class RecordFilterValidatorForeignSlave extends AbstractValidator
   }
 
   @Override
-  public void setConfig(String nomeValidator, Map data)
+  public void setXML(String location, Element data)
      throws Exception
   {
-    this.setup = new HashtableRpc(data);
+    this.data = data;
+    setup = Utils.parseParams(data);
 
     String tmp;
     if((tmp = setup.getAsString("num")) == null)
@@ -60,7 +62,7 @@ public class RecordFilterValidatorForeignSlave extends AbstractValidator
       if((tmp = setup.getAsString("value")) == null)
         return;
 
-      fb.values.addAll(StringOper.string2List(tmp, ",", true));
+      fb.values.addAll(string2List(tmp, ",", true));
 
       if(fb.values.isEmpty())
         return;
@@ -83,7 +85,7 @@ public class RecordFilterValidatorForeignSlave extends AbstractValidator
         if((tmp = setup.getAsString(pref + "value")) == null)
           continue;
 
-        fb.values.addAll(StringOper.string2List(tmp, ",", true));
+        fb.values.addAll(string2List(tmp, ",", true));
 
         if(fb.values.isEmpty())
           continue;
@@ -114,7 +116,7 @@ public class RecordFilterValidatorForeignSlave extends AbstractValidator
     for(FieldFilterBean fb : arFiltri)
     {
       FieldLinkInfoBean fieldInfo = arFields.stream()
-         .filter((ff) -> SU.isEqu(fb.fieldName, ff.foreignField.first))
+         .filter((ff) -> isEqu(fb.fieldName, ff.field.first))
          .findFirst().orElse(null);
 
       if(fieldInfo == null)
@@ -123,7 +125,7 @@ public class RecordFilterValidatorForeignSlave extends AbstractValidator
         continue;
       }
 
-      if(!fb.testRecord(record, fieldInfo.foreignField.second, true))
+      if(!fb.testRecord(record, fieldInfo.field.second, true))
       {
         // record bloccato dal filtro
         return 1;

@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.Pair;
+import org.jdom2.Element;
 
 /**
  * Interfaccia per le funzioni di comunicazione con Applicazione.
@@ -40,14 +41,14 @@ public interface SyncClientInterface
      throws Exception;
 
   /**
-   * Scarica la strategia di aggiornamento.
-   * Ovvero l'elenco dei blocchi che verranno aggiornati.
+   * Scarica la strategia di aggiornamento.Ovvero l'elenco dei blocchi che verranno aggiornati.
    * Non viene effettuata ricerca: il nomeRegola determina la strategia.
    * @param nomeRegola nome della regola richiesta
    * @param context contesto da popolare con i risultati
+   * @return elemento XML con il setup della regola
    * @throws Exception
    */
-  void acquisiciStrategia(String nomeRegola, SyncContext context)
+  Element acquisiciStrategia(String nomeRegola, SyncContext context)
      throws Exception;
 
   /**

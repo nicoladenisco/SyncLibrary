@@ -1,5 +1,5 @@
 /*
- *  DeleteBeforeUpdateValidatorForeignSlave.java
+ *  DeleteBeforeUpdateValidatorSlave.java
  *  Creato il May 20, 2020, 7:31:13 PM
  *
  *  Copyright (C) 2020 Informatica Medica s.r.l.
@@ -33,7 +33,7 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class DeleteBeforeUpdateValidatorForeignSlave extends AbstractValidator
+public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
 {
   protected String filter;
 
@@ -42,20 +42,6 @@ public class DeleteBeforeUpdateValidatorForeignSlave extends AbstractValidator
      throws Exception
   {
     filter = data.getAttributeValue("filter");
-  }
-
-  @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    context.put("filter", filter);
-  }
-
-  @Override
-  public void setConfig(String nomeAdapter, Map vData)
-     throws Exception
-  {
-    filter = okStr(vData.get("filter"));
   }
 
   @Override

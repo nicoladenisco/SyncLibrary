@@ -86,7 +86,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
       return;
 
     int[] arallid = lsRecs.stream()
-       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.localField.first).asInt()))
+       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.field.first).asInt()))
        .filter((i) -> i != 0)
        .sorted()
        .distinct()
@@ -132,7 +132,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
       return;
 
     int[] arallid = lsRecs.stream()
-       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.localField.first).asInt()))
+       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.field.first).asInt()))
        .filter((i) -> i != 0)
        .sorted()
        .distinct()
@@ -158,9 +158,9 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
     // sostrituisce il valore nel record da int (ID) a stringa (CODICE)
     for(Record r : lsRecs)
     {
-      int id = r.getValue(field.localField.first).asInt();
+      int id = r.getValue(field.field.first).asInt();
       if(id != 0)
-        r.setValue(field.localField.first, mapSharedId.getOrDefault(id, ""));
+        r.setValue(field.field.first, mapSharedId.getOrDefault(id, ""));
     }
   }
 

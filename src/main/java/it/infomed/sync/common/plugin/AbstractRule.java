@@ -30,6 +30,13 @@ public class AbstractRule extends AbstractPlugin
 {
   protected SyncDeletePlugin delStrategy;
   protected FilterKeyData filter;
+  protected String databaseName;
+
+  @Override
+  public String getDatabaseName()
+  {
+    return databaseName;
+  }
 
   @Override
   public SyncDeletePlugin getDelStrategy()

@@ -43,14 +43,6 @@ public class AdapterNotNullForeign extends AbstractAdapter
     commonSetup();
   }
 
-  @Override
-  public void setConfig(String nomeAdapter, Map data)
-     throws Exception
-  {
-    setup = data;
-    commonSetup();
-  }
-
   protected void commonSetup()
   {
     nullValue = okStr(setup.get("nullval"));

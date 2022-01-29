@@ -69,7 +69,7 @@ public class CustomDataPoolLocalMaster extends AbstractDataPool
     worker = (SyncPoolPlugin) cls.newInstance();
     worker.setParentRule(parentRule);
     worker.configure(cfg);
-    worker.setXML(data);
+    worker.setXML(location, data);
   }
 
   @Override

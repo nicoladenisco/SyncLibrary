@@ -61,9 +61,9 @@ public class AdapterGetUUIDForeign extends AbstractAdapter
       UUID uuid = UUID.randomUUID();
       String randomUUIDString = uuid.toString();
       String sSQL
-         = "SELECT " + f.localField.first
+         = "SELECT " + f.field.first
          + "  FROM " + tableName
-         + " WHERE " + f.localField.first + " = '" + randomUUIDString + "'";
+         + " WHERE " + f.field.first + " = '" + randomUUIDString + "'";
       List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true);
       if(lsRecs.isEmpty())
         return randomUUIDString;
@@ -79,9 +79,9 @@ public class AdapterGetUUIDForeign extends AbstractAdapter
       UUID uuid = UUID.randomUUID();
       String randomUUIDString = uuid.toString();
       String sSQL
-         = "SELECT " + f.localField.first
+         = "SELECT " + f.field.first
          + "  FROM " + tableName
-         + " WHERE " + f.localField.first + " = '" + randomUUIDString + "'";
+         + " WHERE " + f.field.first + " = '" + randomUUIDString + "'";
       List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true, con);
       if(lsRecs.isEmpty())
         return randomUUIDString;

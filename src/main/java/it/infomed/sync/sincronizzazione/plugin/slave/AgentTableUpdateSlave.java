@@ -1,5 +1,5 @@
 /*
- *  AgentTableUpdateForeignSlave.java
+ *  AgentTableUpdateSlave.java
  *  Creato il Nov 24, 2017, 7:16:45 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -23,25 +23,39 @@ import it.infomed.sync.db.DbPeer;
 import java.util.*;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
+import org.jdom2.Element;
 
 /**
  * Adapter di sincronizzazione orientato alle tabelle.
  *
  * @author Nicola De Nisco
  */
-public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
+public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 {
-  protected String tableNameForeign, databaseNameForeign;
+  protected Element tblElement;
+  protected String tableName, databaseName;
   protected Schema tableSchema;
 
   @Override
-  public void setConfig(String nomeAgent, Map vData)
+  public void setXML(String location, Element data)
      throws Exception
   {
-    super.setConfig(nomeAgent, vData);
+    super.setXML(location, data);
 
-    tableNameForeign = (String) vData.get("foreign-table-name");
-    databaseNameForeign = (String) vData.get("foreign-table-database");
+    Element tables = data.getChild("tables");
+    if(tables == null)
+      throw new SyncSetupErrorException(0, "tables");
+
+    if((tblElement = tables.getChild(location)) == null)
+      throw new SyncSetupErrorException(0, "tables/" + location);
+
+    if((tableName = okStrNull(tblElement.getAttributeValue("name"))) == null)
+      throw new SyncSetupErrorException(0, "tables/" + location + ":name");
+
+    databaseName = okStr(data.getAttributeValue("database-name"), getParentRule().getDatabaseName());
+
+    if(correctTableName == null)
+      correctTableName = tableName;
 
     caricaTipiColonne();
   }
@@ -56,10 +70,10 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
   public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
      throws Exception
   {
-    String fkeys = join(arForeignKeys.keySet().iterator(), ",", null);
+    String fkeys = join(arKeys.keySet().iterator(), ",", null);
 
     String fwhere = "";
-    for(Map.Entry<String, String> entry : arForeignKeys.entrySet())
+    for(Map.Entry<String, String> entry : arKeys.entrySet())
     {
       String nome = entry.getKey();
       String tipo = entry.getValue();
@@ -78,19 +92,17 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
     if(lsRecs.isEmpty())
       return;
 
-    for(int i = 0; i < arForeignKeys.size(); i++)
+    for(int i = 0; i < arKeys.size(); i++)
     {
-      FieldLinkInfoBean f = findField(arForeignKeys.getKeyByIndex(i));
-      if(f.foreignAdapter != null)
-        f.foreignAdapter.slaveSharedFetchData(tableNameForeign, databaseNameForeign, lsRecs, f, context);
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
       if(f.adapter != null)
-        f.adapter.slaveSharedFetchData(tableNameForeign, databaseNameForeign, lsRecs, f, context);
+        f.adapter.slaveSharedFetchData(tableName, databaseName, lsRecs, f, context);
     }
 
     if(haveTs())
-      compilaBloccoSlave(arForeignKeys, parametri, lsRecs, oldTimestamp, timeStampForeign, mapTimeStamps);
+      compilaBloccoSlave(arKeys, parametri, lsRecs, oldTimestamp, timeStamp, mapTimeStamps);
     else
-      compilaBloccoSlave(arForeignKeys, parametri, lsRecs, null, null, null);
+      compilaBloccoSlave(arKeys, parametri, lsRecs, null, null, null);
   }
 
   protected List<Record> queryWithTimestamp(String fkeys, String fwhere, Date oldTimestamp)
@@ -98,25 +110,25 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
   {
     String sSQL;
 
-    switch(timeStampForeign.first)
+    switch(timeStamp.first)
     {
       case "AUTO":
-        caricaTimestamps(tableNameForeign);
+        caricaTimestamps(tableName);
       case "NONE":
         sSQL
            = "SELECT " + fkeys
-           + "  FROM " + tableNameForeign
+           + "  FROM " + tableName
            + " WHERE " + fwhere;
         break;
 
       default:
         sSQL
-           = "SELECT " + timeStampForeign.first + "," + fkeys
-           + " FROM " + tableNameForeign
+           = "SELECT " + timeStamp.first + "," + fkeys
+           + " FROM " + tableName
            + " WHERE " + fwhere;
 
         if(oldTimestamp != null)
-          sSQL += " AND (" + timeStampForeign.first + " > '" + DateTime.formatIsoFull(oldTimestamp) + "')";
+          sSQL += " AND (" + timeStamp.first + " > '" + DateTime.formatIsoFull(oldTimestamp) + "')";
 
         break;
     }
@@ -133,11 +145,11 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
         Calendar cal = new GregorianCalendar();
         cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
         Date firstDate = cal.getTime();
-        sSQL += " AND (" + timeStampForeign.first + " >= '" + DateTime.formatIsoFull(firstDate) + "')";
+        sSQL += " AND (" + timeStamp.first + " >= '" + DateTime.formatIsoFull(firstDate) + "')";
       }
     }
 
-    return DbPeer.executeQuery(sSQL, databaseNameForeign);
+    return DbPeer.executeQuery(sSQL, databaseName);
   }
 
   protected List<Record> queryWithoutTimestamp(String fkeys, String fwhere)
@@ -145,7 +157,7 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
   {
     String sSQL
        = "SELECT " + fkeys
-       + "  FROM " + tableNameForeign
+       + "  FROM " + tableName
        + " WHERE " + fwhere;
 
     if(filter != null)
@@ -155,7 +167,7 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
         sSQL += " AND (" + sql + ")";
     }
 
-    return DbPeer.executeQuery(sSQL, databaseNameForeign);
+    return DbPeer.executeQuery(sSQL, databaseName);
   }
 
   @Override
@@ -164,7 +176,7 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
   {
     Vector v = (Vector) context.getNotNull("records-data");
     if(!v.isEmpty())
-      salvaTuttiRecords(tableNameForeign, databaseNameForeign, tableSchema, v, context);
+      salvaTuttiRecords(tableName, databaseName, tableSchema, v, context);
   }
 
   @Override
@@ -212,26 +224,24 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
     if(!delete.isEmpty())
     {
       convertiChiavi(delete, context);
-      delStrategy.cancellaRecordsPerDelete(unknow, arForeignKeys, context);
+      delStrategy.cancellaRecordsPerDelete(unknow, arKeys, context);
     }
 
     if(!unknow.isEmpty())
     {
       convertiChiavi(unknow, context);
-      delStrategy.cancellaRecordsPerUnknow(unknow, arForeignKeys, context);
+      delStrategy.cancellaRecordsPerUnknow(unknow, arKeys, context);
     }
   }
 
   protected void convertiChiavi(List<String> lsKeys, SyncContext context)
      throws Exception
   {
-    for(int i = 0; i < arForeignKeys.size(); i++)
+    for(int i = 0; i < arKeys.size(); i++)
     {
-      FieldLinkInfoBean f = findField(arForeignKeys.getKeyByIndex(i));
-      if(f.foreignAdapter != null)
-        f.foreignAdapter.slaveSharedConvertKeys(tableNameForeign, databaseNameForeign, lsKeys, f, i, context);
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
       if(f.adapter != null)
-        f.adapter.slaveSharedConvertKeys(tableNameForeign, databaseNameForeign, lsKeys, f, i, context);
+        f.adapter.slaveSharedConvertKeys(tableName, databaseName, lsKeys, f, i, context);
     }
   }
 
@@ -242,24 +252,24 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
   protected void caricaTipiColonne()
      throws Exception
   {
-    tableSchema = Database.schemaTable(databaseNameForeign, tableNameForeign);
+    tableSchema = Database.schemaTable(databaseName, tableName);
 
     if(tableSchema == null)
       throw new SyncSetupErrorException(String.format(
-         "Tabella %s non trovata nel database %s.", tableNameForeign, databaseNameForeign));
+         "Tabella %s non trovata nel database %s.", tableName, databaseName));
 
-    if(timeStampForeign != null && !isOkStr(timeStampForeign.second) && isEquNocase(timeStampForeign.first, "AUTO"))
-      timeStampForeign.second = findInSchema(timeStampForeign.first).type();
+    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
+      timeStamp.second = findInSchema(timeStamp.first).type();
 
     for(FieldLinkInfoBean f : arFields)
     {
-      if(!isOkStr(f.foreignField.second))
+      if(!isOkStr(f.field.second))
       {
-        f.foreignField.second = findInSchema(f.foreignField.first).type();
+        f.field.second = findInSchema(f.field.first).type();
       }
     }
 
-    for(Pair<String, String> f : arForeignKeys.getAsList())
+    for(Pair<String, String> f : arKeys.getAsList())
     {
       if(!isOkStr(f.second))
       {
@@ -268,7 +278,7 @@ public class AgentTableUpdateForeignSlave extends AgentSharedGenericForeignSlave
     }
 
     if(delStrategy != null)
-      delStrategy.caricaTipiColonne(databaseNameForeign, tableNameForeign);
+      delStrategy.caricaTipiColonne(databaseName, tableName);
   }
 
   protected Column findInSchema(String nomeColonna)

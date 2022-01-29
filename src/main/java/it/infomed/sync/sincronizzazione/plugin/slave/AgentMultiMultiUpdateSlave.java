@@ -1,5 +1,5 @@
 /*
- *  AgentMultiMultiUpdateForeignSlave.java
+ *  AgentMultiMultiUpdateSlave.java
  *  Creato il 9-lug-2021, 17.05.15
  *
  *  Copyright (C) 2021 Informatica Medica s.r.l.
@@ -31,18 +31,18 @@ import java.util.Vector;
  * La delete strategy viene ignorata.
  * @author Nicola De Nisco
  */
-public class AgentMultiMultiUpdateForeignSlave extends AgentCopyUpdateForeignSlave
+public class AgentMultiMultiUpdateSlave extends AgentCopyUpdateSlave
 {
   @Override
   public void aggiornaBlocco(List<String> parametri, SyncContext context)
      throws Exception
   {
     // cancella il contenuto attuale della tabella
-    String delSQL = "DELETE FROM " + tableNameForeign;
-    DbPeer.executeStatement(delSQL, databaseNameForeign);
+    String delSQL = "DELETE FROM " + tableName;
+    DbPeer.executeStatement(delSQL, databaseName);
 
     Vector v = (Vector) context.getNotNull("records-data");
     if(!v.isEmpty())
-      salvaTuttiRecords(tableNameForeign, databaseNameForeign, tableSchema, v, context);
+      salvaTuttiRecords(tableName, databaseName, tableSchema, v, context);
   }
 }

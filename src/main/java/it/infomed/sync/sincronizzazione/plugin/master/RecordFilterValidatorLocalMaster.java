@@ -23,8 +23,6 @@ import it.infomed.sync.common.plugin.AbstractValidator;
 import static it.infomed.sync.common.plugin.SyncPlugin.ROLE_MASTER;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.StringOper;
 import org.commonlib5.xmlrpc.HashtableRpc;
@@ -106,27 +104,6 @@ public class RecordFilterValidatorLocalMaster extends AbstractValidator
   }
 
   @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    if(arFiltri.isEmpty())
-      return;
-
-    Vector v = new Vector();
-
-    for(FieldFilterBean ff : arFiltri)
-    {
-      HashtableRpc hr = new HashtableRpc();
-      hr.put("field", ff.fieldName);
-      hr.put("cmp", ff.cmp);
-      hr.put("values", ff.values);
-      v.add(hr);
-    }
-
-    context.put("filters", v);
-  }
-
-  @Override
   public void masterPreparaValidazione(String uniqueName, String dbName,
      List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
@@ -147,7 +124,7 @@ public class RecordFilterValidatorLocalMaster extends AbstractValidator
     for(FieldFilterBean fb : arFiltri)
     {
       FieldLinkInfoBean fieldInfo = arFields.stream()
-         .filter((ff) -> isEqu(fb.fieldName, ff.foreignField.first))
+         .filter((ff) -> isEqu(fb.fieldName, ff.field.first))
          .findFirst().orElse(null);
 
       if(fieldInfo == null)
@@ -156,7 +133,7 @@ public class RecordFilterValidatorLocalMaster extends AbstractValidator
         continue;
       }
 
-      if(!fb.testRecord(r, fieldInfo.foreignField.second, true))
+      if(!fb.testRecord(r, fieldInfo.field.second, true))
       {
         // record bloccato dal filtro
         return 1;

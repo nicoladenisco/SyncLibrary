@@ -26,7 +26,6 @@ import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DbPeer;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.Pair;
@@ -175,78 +174,6 @@ public class DeleteStrategyGeneric extends AbstractDelete
       }
     }
 
-  }
-
-  @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    context.put("delete", subpopulate(tipoDelete, sqlUpdateDeleteStatement, sqlGenericDeleteStatement, new HashMap()));
-    context.put("unknow", subpopulate(tipoUnknow, sqlUpdateUnknowStatement, sqlGenericUnknowStatement, new HashMap()));
-  }
-
-  private Map subpopulate(String tipo, List<DeleteField> sqlUpdate, List<String> sqlGeneric, Map context)
-  {
-    ArrayList arUpdate = new ArrayList();
-    for(DeleteField df : sqlUpdate)
-      arUpdate.add(subpopulate(df, new HashMap()));
-
-    context.put("tipo", tipo);
-    context.put("update", arUpdate);
-    context.put("generic", sqlGeneric);
-
-    return context;
-  }
-
-  private Map subpopulate(DeleteField df, Map dfMap)
-  {
-    dfMap.put("field", df.field.first);
-    dfMap.put("valueNormal", df.valueNormal);
-    dfMap.put("valueDelete", df.valueDelete);
-    return dfMap;
-  }
-
-  @Override
-  public void setConfig(String nomeAdapter, Map vData)
-     throws Exception
-  {
-    Map md = (Map) vData.get("delete");
-    if(md != null)
-    {
-      tipoDelete = (String) md.get("tipo");
-      List arUpdate = (List) md.get("update");
-      if(arUpdate != null && !arUpdate.isEmpty())
-        for(Object o : arUpdate)
-          sqlUpdateDeleteStatement.add(subparse((Map) o, new DeleteField()));
-
-      List arGeneric = (List) md.get("generic");
-      if(arGeneric != null && !arGeneric.isEmpty())
-        for(Object o : arGeneric)
-          sqlGenericDeleteStatement.add(okStr(o));
-    }
-
-    Map mu = (Map) vData.get("unknow");
-    if(mu != null)
-    {
-      tipoUnknow = (String) mu.get("tipo");
-      List arUpdate = (List) mu.get("update");
-      if(arUpdate != null && !arUpdate.isEmpty())
-        for(Object o : arUpdate)
-          sqlUpdateUnknowStatement.add(subparse((Map) o, new DeleteField()));
-
-      List arGeneric = (List) mu.get("generic");
-      if(arGeneric != null && !arGeneric.isEmpty())
-        for(Object o : arGeneric)
-          sqlGenericUnknowStatement.add(okStr(o));
-    }
-  }
-
-  private DeleteField subparse(Map map, DeleteField df)
-  {
-    df.field = new Pair<>((String) map.get("field"), "");
-    df.valueNormal = (String) map.get("valueNormal");
-    df.valueDelete = (String) map.get("valueDelete");
-    return df;
   }
 
   @Override

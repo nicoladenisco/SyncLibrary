@@ -1,5 +1,5 @@
 /*
- *  RuleLocalMasterXmlRpc.java
+ *  RuleLocalMaster.java
  *  Creato il Nov 24, 2017, 7:13:57 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -21,14 +21,12 @@ import it.infomed.sync.common.plugin.AbstractRule;
 import it.infomed.sync.common.plugin.SyncAgentPlugin;
 import it.infomed.sync.common.plugin.SyncPluginFactory;
 import it.infomed.sync.common.plugin.SyncPoolPlugin;
+import it.infomed.sync.db.Database;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.Pair;
-import org.commonlib5.xmlrpc.HashtableRpc;
-import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 
 /**
@@ -37,7 +35,7 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class RuleLocalMasterXmlRpc extends AbstractRule
+public class RuleLocalMaster extends AbstractRule
 {
   protected Element rule, delStrategyElement;
   protected HashMap<String, SyncPoolPlugin> poolMap = new HashMap<>();
@@ -60,6 +58,7 @@ public class RuleLocalMasterXmlRpc extends AbstractRule
      throws Exception
   {
     this.rule = rule;
+    databaseName = okStr(rule.getAttributeValue("database-name"), Database.getDefaultDB());
 
     // legge eventuale delete strategy
     if((delStrategyElement = Utils.getChildTestName(rule, "delete-strategy")) == null)
@@ -75,11 +74,11 @@ public class RuleLocalMasterXmlRpc extends AbstractRule
     // legge eventuale filtro sql
     setFilter(Utils.parseFilterKeyData(rule));
 
-    createDataPools();
-    createDataBlocks();
+    createDataPools(location);
+    createDataBlocks(location);
   }
 
-  protected void createDataPools()
+  protected void createDataPools(String location)
      throws Exception
   {
     Element pools = rule.getChild("data-pools");
@@ -110,7 +109,7 @@ public class RuleLocalMasterXmlRpc extends AbstractRule
     }
   }
 
-  protected void createDataBlocks()
+  protected void createDataBlocks(String location)
      throws Exception
   {
     Element blocks = rule.getChild("data-blocks");
@@ -132,52 +131,6 @@ public class RuleLocalMasterXmlRpc extends AbstractRule
       agent.setXML(location, data);
       agentMap.put(nomeBlocco, agent);
     }
-  }
-
-  @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    Element blocks = rule.getChild("data-blocks");
-    List<Element> lsData = blocks.getChildren("data");
-    VectorRpc vData = new VectorRpc();
-
-    for(Element data : lsData)
-    {
-      if(checkTrueFalse(data.getAttributeValue("ignore"), false))
-        continue;
-
-      String nomeBlocco = data.getAttributeValue("name");
-      String nomeAgent = data.getAttributeValue("agent");
-
-      SyncAgentPlugin agent = agentMap.get(nomeBlocco);
-      ASSERT(agent != null, "agent != null");
-
-      HashtableRpc hr = new HashtableRpc();
-      hr.put("name", nomeBlocco);
-      hr.put("agent", nomeAgent);
-      vData.add(hr);
-
-      agent.populateConfigForeign(hr);
-    }
-
-    context.put("rule-name", rule.getAttributeValue("name"));
-    context.put("rule-type", rule.getAttributeValue("type"));
-    context.put("your-role", ROLE_SLAVE);
-    context.put("data-blocks", vData);
-
-    if(delStrategyElement != null)
-    {
-      String name = delStrategyElement.getAttributeValue("name");
-      HashMap params = new HashMap();
-      delStrategy.populateConfigForeign(params);
-
-      context.put("delete-strategy-name", name);
-      context.put("delete-strategy-data", params);
-    }
-
-    if(filter != null)
-      Utils.formatFilterKeyData(filter, context);
   }
 
   @Override

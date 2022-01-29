@@ -28,25 +28,20 @@ public class FieldLinkInfoBean
 {
   public boolean shared, primary, identityOff, truncZeroes;
   //
-  public Pair<String, String> localField, foreignField;
+  public Pair<String, String> field;
+  public String shareFieldName;
   //
-  public String foreignAdapterName, adapterName;
-  public SyncAdapterPlugin foreignAdapter, localAdapter, adapter;
-  public Element foreignAdapterElement, localAdapterElement, adapterElement;
+  public String adapterName;
+  public SyncAdapterPlugin adapter;
+  public Element adapterElement;
   //
-  public String foreignFieldValidatorName;
-  public SyncValidatorPlugin foreignFieldValidator;
-  public Element foreignFieldValidatorElement;
+  public String fieldValidatorName;
+  public SyncValidatorPlugin fieldValidator;
+  public Element fieldValidatorElement;
 
   @Override
   public String toString()
   {
-    if(localField == null)
-      return "foreignField:" + foreignField;
-
-    if(foreignField == null)
-      return "localField:" + localField;
-
-    return "FieldLinkInfoBean{" + "localField:" + localField + ", foreignField:" + foreignField + '}';
+    return "FieldLinkInfoBean{" + "field=" + field + '}';
   }
 }

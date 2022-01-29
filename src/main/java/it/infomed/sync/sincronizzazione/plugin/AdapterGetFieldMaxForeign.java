@@ -34,12 +34,6 @@ public class AdapterGetFieldMaxForeign extends AbstractAdapter
   protected String tableName, dbName;
 
   @Override
-  public void setConfig(String nomeAdapter, Map vData)
-     throws Exception
-  {
-  }
-
-  @Override
   public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
@@ -75,7 +69,7 @@ public class AdapterGetFieldMaxForeign extends AbstractAdapter
   public Object masterValidaValore(String key, Record r, Value v, FieldLinkInfoBean f)
      throws Exception
   {
-    String sSQL = "SELECT MAX(" + f.foreignField.first + ") FROM " + tableName;
+    String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
     List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true);
     return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
   }
@@ -84,7 +78,7 @@ public class AdapterGetFieldMaxForeign extends AbstractAdapter
   public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
-    String sSQL = "SELECT MAX(" + f.foreignField.first + ") FROM " + tableName;
+    String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
     List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true, con);
     return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
   }

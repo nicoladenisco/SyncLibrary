@@ -27,24 +27,24 @@ import java.util.Map;
  * Adapter per cancellazione logica Diamante.
  * @author Nicola De Nisco
  */
-public class AdapterDelFieldForeign extends AbstractAdapter
+public class AdapterDelField extends AbstractAdapter
 {
   protected String tableName, dbName;
 
-  protected static final Map delFieldForeigns = new HashMap();
+  protected static final Map delFields = new HashMap();
   protected static final Object DEL_VALUE = 1;
 
   static
   {
-    delFieldForeigns.put("ANNULLATO", 10);
+    delFields.put("ANNULLATO", 10);
   }
 
   @Override
   public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
-    String delVal = okStr(delFieldForeigns.get(f.foreignField.first.toUpperCase()));
-    return delVal != null && isEquNocase(record.get(f.foreignField.first), delVal) ? DEL_VALUE : null;
+    String delVal = okStr(delFields.get(f.field.first.toUpperCase()));
+    return delVal != null && isEquNocase(record.get(f.field.first), delVal) ? DEL_VALUE : null;
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- *  AgentCopyUpdateForeignSlave.java
+ *  AgentCopyUpdateSlave.java
  *  Creato il 9-lug-2021, 18.51.40
  *
  *  Copyright (C) 2021 Informatica Medica s.r.l.
@@ -14,18 +14,14 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.slave;
 
-import com.workingdogs.village.Column;
-import com.workingdogs.village.Schema;
-import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
-import it.infomed.sync.common.SyncSetupErrorException;
-import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DbPeer;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 import org.commonlib5.utils.Pair;
+import org.jdom2.Element;
 
 /**
  * Adapter di copia completa tabelle.
@@ -33,30 +29,37 @@ import org.commonlib5.utils.Pair;
  * dopo aver cancellato tutti records locali inserisce quelli ricevuti.
  * La delete strategy viene ignorata.
  * Se presenti prima del salvataggio records vengono eseguite una serie
- * di statement SQL, generlmente per cancellare il contenuto in modo selettivo.
+ * di statement SQL, generalmente per cancellare il contenuto in modo selettivo.
  * Se non sono presenti una DELETE FROM nome_tabella viene eseguita in alternativa.
+ * <pre>
+ *    [sql-statements]
+ *      [statement]....[/statement]
+ *    [/sql-statements]
+ * </pre>
  * @author Nicola De Nisco
  */
-public class AgentCopyUpdateForeignSlave extends AgentSharedGenericForeignSlave
+public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
 {
-  protected String tableNameForeign, databaseNameForeign;
-  protected Schema tableSchema;
-  protected List statements;
+  protected Element sqlStatements;
+  protected final List<String> statements = new ArrayList<>();
 
   @Override
-  public void setConfig(String nomeAgent, Map vData)
+  public void setXML(String location, Element data)
      throws Exception
   {
-    super.setConfig(nomeAgent, vData);
+    super.setXML(location, data);
 
-    tableNameForeign = (String) vData.get("foreign-table-name");
-    databaseNameForeign = (String) vData.get("foreign-table-database");
+    sqlStatements = data.getChild("sql-statements");
+    List<Element> lsStatements = sqlStatements.getChildren("statement");
+    for(Element estat : lsStatements)
+    {
+      String sql = okStrNull(estat.getText());
+      if(sql != null)
+        statements.add(sql);
+    }
 
-    // statements da eseguire al momento della cancellazione
-    statements = (List) vData.get("sql-statements");
-
-    caricaTipiColonne();
     delStrategy = null;
+    caricaTipiColonne();
   }
 
   @Override
@@ -109,8 +112,8 @@ public class AgentCopyUpdateForeignSlave extends AgentSharedGenericForeignSlave
     if(statements == null || statements.isEmpty())
     {
       // cancella il contenuto attuale della tabella
-      String delSQL = "DELETE FROM " + tableNameForeign;
-      DbPeer.executeStatement(delSQL, databaseNameForeign);
+      String delSQL = "DELETE FROM " + tableName;
+      DbPeer.executeStatement(delSQL, databaseName);
     }
     else
     {
@@ -118,51 +121,12 @@ public class AgentCopyUpdateForeignSlave extends AgentSharedGenericForeignSlave
       {
         String sSQL = okStrNull(sql);
         if(sSQL != null)
-          DbPeer.executeStatement(sSQL, databaseNameForeign);
+          DbPeer.executeStatement(sSQL, databaseName);
       }
     }
 
     Vector v = (Vector) context.getNotNull("records-data");
     if(!v.isEmpty())
-      salvaTuttiRecords(tableNameForeign, databaseNameForeign, tableSchema, v, context);
-  }
-
-  /**
-   * Determina i tipi colonne utilizzando le informazioni di runtime del database.
-   * @throws Exception
-   */
-  protected void caricaTipiColonne()
-     throws Exception
-  {
-    tableSchema = Database.schemaTable(databaseNameForeign, tableNameForeign);
-
-    if(tableSchema == null)
-      throw new SyncSetupErrorException(String.format(
-         "Tabella %s non trovata nel database %s.", tableNameForeign, databaseNameForeign));
-
-    if(timeStampForeign != null && !isOkStr(timeStampForeign.second) && isEquNocase(timeStampForeign.first, "AUTO"))
-      timeStampForeign.second = findInSchema(timeStampForeign.first).type();
-
-    for(FieldLinkInfoBean f : arFields)
-    {
-      if(!isOkStr(f.foreignField.second))
-      {
-        f.foreignField.second = findInSchema(f.foreignField.first).type();
-      }
-    }
-
-    for(Pair<String, String> f : arForeignKeys.getAsList())
-    {
-      if(!isOkStr(f.second))
-      {
-        f.second = findInSchema(f.first).type();
-      }
-    }
-  }
-
-  protected Column findInSchema(String nomeColonna)
-     throws Exception
-  {
-    return findInSchema(tableSchema, nomeColonna);
+      salvaTuttiRecords(tableName, databaseName, tableSchema, v, context);
   }
 }

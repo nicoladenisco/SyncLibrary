@@ -1,5 +1,5 @@
 /*
- *  AgentGenericForeignSlave.java
+ *  AgentGenericSlave.java
  *  Creato il Nov 24, 2017, 8:22:01 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -16,7 +16,6 @@ package it.infomed.sync.sincronizzazione.plugin.slave;
 
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Schema;
-import it.infomed.sync.SU;
 import it.infomed.sync.common.*;
 import it.infomed.sync.common.plugin.AbstractAgent;
 import it.infomed.sync.common.plugin.SyncDeletePlugin;
@@ -33,22 +32,29 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.checkTrueFalse;
+import static org.commonlib5.utils.StringOper.okStr;
+import static org.commonlib5.utils.StringOper.okStrNull;
+import org.jdom2.Element;
 
 /**
  * Classe base degli Agent.
  *
  * @author Nicola De Nisco
  */
-abstract public class AgentGenericForeignSlave extends AbstractAgent
+abstract public class AgentGenericSlave extends AbstractAgent
 {
+  protected Element data;
   protected ArrayList<FieldLinkInfoBean> arFields = new ArrayList<>();
-  protected String foreignRecordValidatorName, foreignTableValidatorName, delStrategyName;
-  protected SyncValidatorPlugin foreignRecordValidator, foreignTableValidator;
-  protected static final Map<String, Map<String, Integer>> cachePrimaryKeys = new HashMap<>();
-  protected static final Map<String, Map<String, Integer>> cacheNotEmptyFields = new HashMap<>();
+  protected Element recordValidatorElement, tableValidatorElement, delStrategyElement;
+  protected SyncValidatorPlugin recordValidator, tableValidator;
   protected String dataBlockName;
+  // ----------- questi servono solo per lo slave abbinato ----------
   protected String ignoreInEmptyFields;
   protected boolean isolateRecord, isolateAllRecords;
+
+  protected static final Map<String, Map<String, Integer>> cachePrimaryKeys = new HashMap<>();
+  protected static final Map<String, Map<String, Integer>> cacheNotEmptyFields = new HashMap<>();
 
   @Override
   public void configure(Configuration cfg)
@@ -63,79 +69,124 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
   }
 
   @Override
-  public void setConfig(String nomeAgent, Map vData)
+  public void setXML(String location, Element data)
      throws Exception
   {
-    if((dataBlockName = okStrNull(vData.get("name"))) == null)
+    this.data = data;
+
+    if((dataBlockName = okStrNull(data.getAttributeValue("name"))) == null)
       throw new SyncSetupErrorException(0, "name");
 
-    List fields = (List) vData.get("fields");
-    for(int i = 0; i < fields.size(); i++)
+    Element fields, validators;
+
+    if((fields = data.getChild("fields")) == null)
+      throw new SyncSetupErrorException(0, "fields");
+
+    List<Element> lsFields = fields.getChildren("field");
+    for(Element ef : lsFields)
+      arFields.add(populateField(ef, new FieldLinkInfoBean(), location));
+
+    if((validators = data.getChild("validators")) != null)
     {
-      Map mf = (Map) fields.get(i);
-      FieldLinkInfoBean f = new FieldLinkInfoBean();
-      arFields.add(f);
+      // i validatori non sono obbligatori
+      recordValidatorElement = Utils.getChildTestName(validators, location + "-record-validator");
+      tableValidatorElement = Utils.getChildTestName(validators, location + "-table-validator");
 
-      f.foreignField = Utils.parseNameTypeThrow((Map) mf.get("field"), "fields:field");
-      f.shared = checkTrueFalse(mf.get("shared"), false);
-      f.primary = checkTrueFalse(mf.get("primary"), false);
-      f.identityOff = checkTrueFalse(mf.get("identityOff"), false);
-      f.truncZeroes = checkTrueFalse(mf.get("truncZeroes"), false);
-
-      if((f.foreignAdapterName = (String) mf.get("foreign-adapter")) != null)
+      // carica eventuali validator
+      if(recordValidatorElement != null)
       {
-        f.foreignAdapter = SyncPluginFactory.getInstance().buildAdapter(getRole(), f.foreignAdapterName);
-        f.foreignAdapter.setParentAgent(this);
-        f.foreignAdapter.setConfig(f.foreignAdapterName, (Map) mf.get("foreign-adapter-data"));
+        recordValidator = SyncPluginFactory.getInstance().buildValidator(getRole(),
+           okStr(recordValidatorElement.getAttribute("name").getValue()));
+        recordValidator.setParentAgent(this);
+        recordValidator.setXML(location, recordValidatorElement);
       }
 
-      if((f.adapterName = (String) mf.get("adapter")) != null)
+      if(tableValidatorElement != null)
       {
-        f.adapter = SyncPluginFactory.getInstance().buildAdapter(getRole(), f.adapterName);
-        f.adapter.setParentAgent(this);
-        f.adapter.setConfig(f.adapterName, (Map) mf.get("adapter-data"));
+        tableValidator = SyncPluginFactory.getInstance().buildValidator(getRole(),
+           okStr(tableValidatorElement.getAttribute("name").getValue()));
+        tableValidator.setParentAgent(this);
+        tableValidator.setXML(location, tableValidatorElement);
       }
-
-      if((f.foreignFieldValidatorName = (String) mf.get("foreign-field-validator")) != null)
-      {
-        f.foreignFieldValidator = SyncPluginFactory.getInstance().buildValidator(getRole(), f.foreignFieldValidatorName);
-        f.foreignFieldValidator.setParentAgent(this);
-        f.foreignFieldValidator.setConfig(f.foreignFieldValidatorName, (Map) mf.get("foreign-field-validator-data"));
-      }
-    }
-
-    if((foreignRecordValidatorName = (String) vData.get("record-validator")) != null)
-    {
-      foreignRecordValidator = SyncPluginFactory.getInstance().buildValidator(getRole(), foreignRecordValidatorName);
-      foreignRecordValidator.setParentAgent(this);
-      foreignRecordValidator.setConfig(foreignRecordValidatorName, (Map) vData.get("record-validator-data"));
-    }
-
-    if((foreignTableValidatorName = (String) vData.get("table-validator")) != null)
-    {
-      foreignTableValidator = SyncPluginFactory.getInstance().buildValidator(getRole(), foreignTableValidatorName);
-      foreignTableValidator.setParentAgent(this);
-      foreignTableValidator.setConfig(foreignTableValidatorName, (Map) vData.get("table-validator-data"));
     }
 
     // legge eventuale delete strategy
-    if((delStrategyName = (String) vData.get("delete-strategy-name")) == null)
+    if((delStrategyElement = Utils.getChildTestName(data, "delete-strategy")) == null)
     {
       delStrategy = (SyncDeletePlugin) getParentRule().getDelStrategy().clone();
     }
     else
     {
-      delStrategy = SyncPluginFactory.getInstance().buildDeleteStrategy(getRole(), delStrategyName);
-      delStrategy.setConfig(delStrategyName, (Map) vData.get("delete-strategy-data"));
+      String name = delStrategyElement.getAttributeValue("name");
+      delStrategy = SyncPluginFactory.getInstance().buildDeleteStrategy(getRole(), name);
     }
 
     // legge eventuale filtro sql
-    if((filter = Utils.parseFilterKeyData(vData)) == null)
+    if((filter = Utils.parseFilterKeyData(data)) == null)
       filter = getParentRule().getFilter();
 
-    ignoreInEmptyFields = okStr(vData.get("ignoreInEmptyFields"));
-    isolateRecord = checkTrueFalse(vData.get("isolateRecord"), false);
-    isolateAllRecords = checkTrueFalse(vData.get("isolateAllRecords"), false);
+    ignoreInEmptyFields = data.getChildText("ignoreInEmptyFields");
+    isolateRecord = checkTrueFalse(data.getAttributeValue("isolateRecord"), false);
+    isolateAllRecords = checkTrueFalse(data.getAttributeValue("isolateAllRecords"), false);
+  }
+
+  private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, String location)
+     throws Exception
+  {
+    Element validators;
+    populateFieldName(ef, fi, location);
+
+    fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
+    if((validators = ef.getChild("validators")) != null)
+    {
+      // i validatori non sono obbligatori
+      fi.fieldValidatorElement = Utils.getChildTestName(validators, "validator");
+    }
+
+    fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
+    fi.primary = checkTrueFalse(ef.getAttributeValue("primary"), false);
+    fi.identityOff = checkTrueFalse(ef.getAttributeValue("identityOff"), false);
+    fi.truncZeroes = checkTrueFalse(ef.getAttributeValue("truncZeroes"), false);
+
+    if(fi.adapterElement != null)
+    {
+      fi.adapter = SyncPluginFactory.getInstance().buildAdapter(
+         getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
+      fi.adapter.setXML(location, fi.adapterElement);
+    }
+
+    return fi;
+  }
+
+  private void populateFieldName(Element ef, FieldLinkInfoBean fi, String location)
+     throws SyncSetupErrorException
+  {
+    Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
+    if(uniquename != null)
+    {
+      fi.field = new Pair<>(uniquename.first, uniquename.second);
+      fi.shareFieldName = fi.field.first;
+      return;
+    }
+
+    String tmp = okStrNull(ef.getAttributeValue("name"));
+    if(tmp != null)
+    {
+      fi.field = new Pair<>(tmp, null);
+      fi.shareFieldName = fi.field.first;
+      return;
+    }
+
+    String tmp1 = okStrNull(ef.getAttributeValue(location));
+    if(tmp1 != null)
+    {
+      fi.field = new Pair<>(tmp1, null);
+      fi.shareFieldName = okStrNull(ef.getAttributeValue("foreign"));
+      return;
+    }
+
+    fi.field = Utils.parseNameTypeIgnore(ef.getChild(location));
+    fi.shareFieldName = okStrNull(ef.getAttributeValue("foreign"));
   }
 
   /**
@@ -172,20 +223,18 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
      List<Map> lsRecs, SyncContext context)
      throws Exception
   {
-    if(foreignTableValidator != null)
-      foreignTableValidator.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, context);
-    if(foreignRecordValidator != null)
-      foreignRecordValidator.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, context);
+    if(tableValidator != null)
+      tableValidator.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, context);
+    if(recordValidator != null)
+      recordValidator.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, context);
 
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
-      if(f.foreignAdapter != null)
-        f.foreignAdapter.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, f, context);
       if(f.adapter != null)
         f.adapter.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, f, context);
-      if(f.foreignFieldValidator != null)
-        f.foreignFieldValidator.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, context);
+      if(f.fieldValidator != null)
+        f.fieldValidator.slavePreparaValidazione(tableName, databaseName, lsRecs, arFields, context);
     }
 
     Map<String, Integer> lsEmptyFields = cacheNotEmptyFields.get(tableName);
@@ -219,18 +268,16 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
-      if(f.foreignAdapter != null)
-        f.foreignAdapter.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, f, context);
       if(f.adapter != null)
         f.adapter.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, f, context);
-      if(f.foreignFieldValidator != null)
-        f.foreignFieldValidator.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, context);
+      if(f.fieldValidator != null)
+        f.fieldValidator.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, context);
     }
 
-    if(foreignRecordValidator != null)
-      foreignRecordValidator.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, context);
-    if(foreignTableValidator != null)
-      foreignTableValidator.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, context);
+    if(recordValidator != null)
+      recordValidator.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, context);
+    if(tableValidator != null)
+      tableValidator.slaveFineValidazione(tableName, databaseName, lsRecs, arFields, context);
   }
 
   /**
@@ -263,8 +310,8 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
     {
       String now = DateTime.formatIsoFull(new Date());
 
-      if(foreignRecordValidator != null)
-        if(foreignRecordValidator.slaveValidaRecord(null, r, arFields, con) != 0)
+      if(recordValidator != null)
+        if(recordValidator.slaveValidaRecord(null, r, arFields, con) != 0)
           return;
 
       HashMap<String, String> valoriUpdate = new HashMap<>();
@@ -322,34 +369,32 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
-      Column col = findInSchema(tableSchema, f.foreignField.first);
-      Object valore = r.get(f.foreignField.first);
+      Column col = findInSchema(tableSchema, f.field.first);
+      Object valore = r.get(f.field.first);
       String sqlValue;
       Object rv;
 
-      if(f.foreignAdapter != null && (rv = f.foreignAdapter.slaveValidaValore(key, r, valore, f, con)) != null)
-        valore = rv;
       if(f.adapter != null && (rv = f.adapter.slaveValidaValore(key, r, valore, f, con)) != null)
         valore = rv;
-      if(f.foreignFieldValidator != null && (f.foreignFieldValidator.slaveValidaRecord((String) valore, r, arFields, con) > 0))
+      if(f.fieldValidator != null && (f.fieldValidator.slaveValidaRecord((String) valore, r, arFields, con) > 0))
         return false;
 
       if(valore == null)
       {
-        sqlValue = convertNullValue(now, f.foreignField, col);
+        sqlValue = convertNullValue(now, f.field, col);
       }
       else
       {
-        if((sqlValue = convertValue(valore, f.foreignField, tableName, col, f.truncZeroes)) == null)
+        if((sqlValue = convertValue(valore, f.field, tableName, col, f.truncZeroes)) == null)
           return false;
       }
 
       if(isSelect(f))
-        valoriSelect.put(f.foreignField.first, sqlValue);
+        valoriSelect.put(f.field.first, sqlValue);
       else
-        valoriUpdate.put(f.foreignField.first, sqlValue);
+        valoriUpdate.put(f.field.first, sqlValue);
 
-      valoriInsert.put(f.foreignField.first, sqlValue);
+      valoriInsert.put(f.field.first, sqlValue);
     }
 
     return true;
@@ -456,7 +501,7 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
   {
     for(FieldLinkInfoBean f : arFields)
     {
-      if(isEqu(nomeCampo, f.foreignField.first))
+      if(isEqu(nomeCampo, f.field.first))
         return f;
     }
 
@@ -487,7 +532,7 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
     // rimuove i campi che verranno trasferiti dal master allo slave
     for(FieldLinkInfoBean f : arFields)
     {
-      fldMap.remove(f.foreignField.first.toUpperCase());
+      fldMap.remove(f.field.first.toUpperCase());
     }
 
     // rimuove in ogni caso le chiavi primarie: non possono essere messe a zero
@@ -513,9 +558,9 @@ abstract public class AgentGenericForeignSlave extends AbstractAgent
     }
 
     // rimuove in ogni caso le colonne identity: non possono essere messe a zero
-    if(SU.isOkStr(ignoreInEmptyFields))
+    if(isOkStr(ignoreInEmptyFields))
     {
-      List<String> ignoreField = SU.string2List(ignoreInEmptyFields, ",", true);
+      List<String> ignoreField = string2List(ignoreInEmptyFields, ",", true);
       for(String fld : ignoreField)
       {
         fldMap.remove(fld.toUpperCase());

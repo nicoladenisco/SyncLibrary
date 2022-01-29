@@ -18,7 +18,6 @@ import com.workingdogs.village.DataSet;
 import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
-import it.infomed.sync.SetupData;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -51,6 +50,9 @@ public class DbPeer
 
   /** the log */
   protected static final Log log = LogFactory.getLog(DbPeer.class);
+
+  public static boolean simulazione = false;
+  public static boolean debug = false;
 
   public static void throwTorqueException(Exception e)
      throws DatabaseException
@@ -133,7 +135,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(String queryString)
+  public static List<Record> executeQuery(String queryString)
      throws DatabaseException
   {
     return executeQuery(queryString, Database.getDefaultDB(), false);
@@ -150,7 +152,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(String queryString, String dbName)
+  public static List<Record> executeQuery(String queryString, String dbName)
      throws DatabaseException
   {
     return executeQuery(queryString, dbName, false);
@@ -167,7 +169,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(
+  public static List<Record> executeQuery(
      String queryString,
      String dbName,
      boolean singleRecord)
@@ -188,7 +190,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(
+  public static List<Record> executeQuery(
      String queryString,
      String dbName,
      boolean singleRecord,
@@ -209,7 +211,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(
+  public static List<Record> executeQuery(
      String queryString,
      boolean singleRecord,
      Connection con)
@@ -231,7 +233,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(
+  public static List<Record> executeQuery(
      String queryString,
      int start,
      int numberOfResults,
@@ -272,7 +274,7 @@ public class DbPeer
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
-  public static List executeQuery(
+  public static List<Record> executeQuery(
      String queryString,
      int start,
      int numberOfResults,
@@ -281,7 +283,7 @@ public class DbPeer
      throws DatabaseException
   {
     QueryDataSet qds = null;
-    List results = Collections.EMPTY_LIST;
+    List<Record> results = Collections.EMPTY_LIST;
     try
     {
       // execute the query
@@ -384,7 +386,7 @@ public class DbPeer
    * @return A <code>List</code> of <code>Record</code> objects.
    * @throws DatabaseException If any <code>Exception</code> occurs.
    */
-  public static List getSelectResults(
+  public static List<Record> getSelectResults(
      QueryDataSet qds,
      int start,
      int numberOfResults,
@@ -401,7 +403,7 @@ public class DbPeer
       }
       else
       {
-        results = new ArrayList(numberOfResults);
+        results = new ArrayList<Record>(numberOfResults);
         qds.fetchRecords(start, numberOfResults);
       }
 
@@ -462,7 +464,7 @@ public class DbPeer
   public static int executeStatement(String statementString, String dbName)
      throws DatabaseException
   {
-    if(SetupData.simulazione)
+    if(simulazione)
     {
       log.info(statementString);
       return 0;
@@ -496,7 +498,7 @@ public class DbPeer
   public static int executeStatement(String statementString, Connection con)
      throws DatabaseException
   {
-    if(SetupData.simulazione)
+    if(simulazione)
     {
       log.info(statementString);
       return 0;
@@ -504,7 +506,7 @@ public class DbPeer
 
     try (Statement statement = con.createStatement())
     {
-      if(SetupData.debug)
+      if(debug)
         log.debug(statementString);
 
       return statement.executeUpdate(statementString);

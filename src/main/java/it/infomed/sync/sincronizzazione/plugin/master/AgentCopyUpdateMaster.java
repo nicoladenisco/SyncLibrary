@@ -14,9 +14,6 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.master;
 
-import java.util.List;
-import java.util.Map;
-import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 
 /**
@@ -24,7 +21,7 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class AgentCopyUpdateMaster extends AgentTableUpdateLocalMaster
+public class AgentCopyUpdateMaster extends AgentTableUpdateMaster
 {
   protected Element sqlStatements;
 
@@ -35,24 +32,5 @@ public class AgentCopyUpdateMaster extends AgentTableUpdateLocalMaster
     super.setXML(location, data);
 
     sqlStatements = data.getChild("sql-statements");
-  }
-
-  @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    super.populateConfigForeign(context);
-
-    VectorRpc v = new VectorRpc();
-    List<Element> lsStatements = sqlStatements.getChildren("statement");
-    for(Element estat : lsStatements)
-    {
-      String sql = okStrNull(estat.getText());
-      if(sql != null)
-        v.add(sql);
-    }
-
-    if(!v.isEmpty())
-      context.put("sql-statements", v);
   }
 }

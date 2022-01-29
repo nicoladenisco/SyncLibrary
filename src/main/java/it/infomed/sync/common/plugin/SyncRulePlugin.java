@@ -28,6 +28,12 @@ import org.commonlib5.utils.Pair;
 public interface SyncRulePlugin extends SyncPlugin
 {
   /**
+   * Ritorna il nome del database di default per la regola.
+   * @return
+   */
+  public String getDatabaseName();
+
+  /**
    * Legge strategia di cancellazione.
    * @return
    */

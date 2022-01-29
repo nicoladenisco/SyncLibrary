@@ -1,5 +1,5 @@
 /*
- *  AgentSharedGenericForeignSlave.java
+ *  AgentSharedGenericSlave.java
  *  Creato il Dec 1, 2017, 10:27:24 AM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -20,6 +20,7 @@ import it.infomed.sync.common.*;
 import it.infomed.sync.db.DatabaseException;
 import it.infomed.sync.db.DbPeer;
 import it.infomed.sync.db.SqlTransactAgent;
+import it.infomed.sync.sincronizzazione.RuleRunner;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,27 +29,44 @@ import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.checkTrueFalse;
+import org.jdom2.Element;
 
 /**
  * Classe base degli Agent con un concetto di campi condivisi e timestamp.
  *
  * @author Nicola De Nisco
  */
-public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
+public class AgentSharedGenericSlave extends AgentGenericSlave
 {
-  protected String tableNameTimestamp = "SYNC_TIMESTAMPS";
-  protected ArrayMap<String, String> arForeignKeys = new ArrayMap<>();
-  protected Pair<String, String> timeStampForeign;
+  protected Pair<String, String> timeStamp;
+  protected ArrayMap<String, String> arKeys = new ArrayMap<>();
+  protected boolean correct = false;
+  protected String correctTableName = null;
   protected Map<String, Date> mapTimeStamps = new HashMap<>();
 
   @Override
-  public void setConfig(String nomeAgent, Map vData)
+  public void setXML(String location, Element data)
      throws Exception
   {
-    super.setConfig(nomeAgent, vData);
+    super.setXML(location, data);
 
-    timeStampForeign = Utils.parseNameTypeIgnore((Map) vData.get("foreign-timestamp"));
-    Utils.parseNameTypeVectorIgnore((List) vData.get("foreign-shared"), arForeignKeys);
+    Element useTs;
+
+    if((useTs = data.getChild("use-timestamps")) != null)
+    {
+      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location));
+      correct = checkTrueFalse(useTs.getAttributeValue("correct-" + location), correct);
+      correctTableName = useTs.getAttributeValue("correct-table-" + location);
+    }
+
+    for(FieldLinkInfoBean f : arFields)
+    {
+      if(f.shared)
+      {
+        arKeys.add(f.field);
+      }
+    }
   }
 
   protected void caricaTimestamps(String nomeTabella)
@@ -57,7 +75,7 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
     mapTimeStamps.clear();
 
     String sSQL = "SELECT SHARED_KEY, LAST_UPDATE \n"
-       + " FROM " + tableNameTimestamp + "\n"
+       + " FROM " + RuleRunner.SYNC_TIMESTAMP_TABLE + "\n"
        + " WHERE TABLE_NAME='" + nomeTabella + "'\n";
 
     List<Record> lsRecs = DbPeer.executeQuery(sSQL);
@@ -71,7 +89,7 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
 
   public boolean haveTs()
   {
-    return timeStampForeign != null && !arForeignKeys.isEmpty();
+    return timeStamp != null && !arKeys.isEmpty();
   }
 
   @Override
@@ -100,17 +118,17 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
      Map<String, Integer> lsNotNullFields, SyncContext context, Connection con)
      throws Exception
   {
-    if(arForeignKeys.isEmpty())
+    if(arKeys.isEmpty())
       die("Nessuna definizione di chiave primaria per " + tableName + ": aggiornamento non possibile");
 
     try
     {
-      boolean haveAutoTs = isEquNocase(timeStampForeign.first, "auto");
-      String key = buildKey(r, arForeignKeys);
+      boolean haveAutoTs = isEquNocase(timeStamp.first, "auto");
+      String key = buildKey(r, arKeys);
       String now = DateTime.formatIsoFull(new Date());
 
-      if(foreignRecordValidator != null)
-        if(foreignRecordValidator.slaveValidaRecord(key, r, arFields, con) != 0)
+      if(recordValidator != null)
+        if(recordValidator.slaveValidaRecord(key, r, arFields, con) != 0)
           return;
 
       HashMap<String, String> valoriUpdate = new HashMap<>();
@@ -119,9 +137,9 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
 
       if(!haveAutoTs)
       {
-        valoriInsert.put(timeStampForeign.first, "'" + now + "'");
-        valoriUpdate.put(timeStampForeign.first, "'" + now + "'");
-        lsNotNullFields.remove(timeStampForeign.first.toUpperCase());
+        valoriInsert.put(timeStamp.first, "'" + now + "'");
+        valoriUpdate.put(timeStamp.first, "'" + now + "'");
+        lsNotNullFields.remove(timeStamp.first.toUpperCase());
       }
 
       preparaValoriNotNull(lsNotNullFields, valoriInsert, now);
@@ -135,7 +153,7 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
       if(delStrategy != null)
       {
         // reimposta lo stato_rec al valore di non cancellato
-        if(!delStrategy.confermaValoriRecord(r, now, key, arForeignKeys,
+        if(!delStrategy.confermaValoriRecord(r, now, key, arKeys,
            valoriSelect, valoriUpdate, valoriInsert, context,
            con))
           return;
@@ -165,7 +183,7 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
   @Override
   protected boolean isSelect(FieldLinkInfoBean f)
   {
-    return arForeignKeys.containsKey(f.foreignField.first) || f.primary;
+    return arKeys.containsKey(f.field.first) || f.primary;
   }
 
   protected void updateCalTimestamp(String tableName, String key, String now, Connection con)
@@ -173,14 +191,14 @@ public class AgentSharedGenericForeignSlave extends AgentGenericForeignSlave
   {
     // aggiornamento tabella dei timestamp; ATTENZIONE: la tabella esiste solo sul db principale
     String sSQL = ""
-       + "UPDATE " + tableNameTimestamp + "\n"
+       + "UPDATE " + RuleRunner.SYNC_TIMESTAMP_TABLE + "\n"
        + "   SET LAST_UPDATE='" + now + "'\n"
        + " WHERE TABLE_NAME='" + tableName + "'\n"
        + "   AND SHARED_KEY='" + key + "'\n";
     if(DbPeer.executeStatement(sSQL, con) == 0)
     {
       sSQL = ""
-         + "INSERT INTO " + tableNameTimestamp + "(TABLE_NAME, SHARED_KEY, LAST_UPDATE)\n"
+         + "INSERT INTO " + RuleRunner.SYNC_TIMESTAMP_TABLE + "(TABLE_NAME, SHARED_KEY, LAST_UPDATE)\n"
          + " VALUES('" + tableName + "','" + key + "','" + now + "')\n";
       DbPeer.executeStatement(sSQL, con);
     }

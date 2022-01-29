@@ -213,12 +213,10 @@ public abstract class AbstractAgent extends AbstractPlugin
   public Column findInSchema(Schema tableSchema, String nomeColonna)
      throws Exception
   {
-    for(int i = 1; i <= tableSchema.numberOfColumns(); i++)
-    {
-      Column col = tableSchema.column(i);
-      if(isEquNocase(nomeColonna, col.name()))
-        return col;
-    }
+    Column col = tableSchema.findInSchemaIgnoreCaseQuiet(nomeColonna);
+
+    if(col != null)
+      return col;
 
     throw new SyncSetupErrorException(String.format(
        "Campo %s non trovato nella tabella %s.",

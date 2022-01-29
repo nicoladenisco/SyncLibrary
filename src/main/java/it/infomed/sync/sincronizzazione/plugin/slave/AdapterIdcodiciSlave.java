@@ -83,14 +83,14 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    ASSERT(field.foreignField.second != null, "field.foreignField.second != null");
+    ASSERT(field.field.second != null, "field.foreignField.second != null");
 
     mapCodici.clear();
     if(lsRecs.isEmpty())
       return;
 
     String[] arallcodici = lsRecs.stream()
-       .map((r) -> (String) r.get(field.foreignField.first))
+       .map((r) -> (String) r.get(field.field.first))
        .filter((s) -> s != null)
        .sorted()
        .distinct()
@@ -178,7 +178,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     if(val != null)
       return val;
 
-    throw new SyncIgnoreRecordException("External Referenced Key Violated " + f.foreignField.first + "=" + v);
+    throw new SyncIgnoreRecordException("External Referenced Key Violated " + f.field.first + "=" + v);
   }
 
   @Override
@@ -190,7 +190,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
       return;
 
     int[] arallid = lsRecs.stream()
-       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.foreignField.first).asInt()))
+       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.field.first).asInt()))
        .filter((i) -> i != 0)
        .sorted()
        .distinct()
@@ -216,9 +216,9 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     // sostrituisce il valore nel record da int (ID) a stringa (CODICE)
     for(Record r : lsRecs)
     {
-      int id = r.getValue(field.foreignField.first).asInt();
+      int id = r.getValue(field.field.first).asInt();
       if(id != 0)
-        r.setValue(field.foreignField.first, mapSharedId.getOrDefault(id, ""));
+        r.setValue(field.field.first, mapSharedId.getOrDefault(id, ""));
     }
   }
 

@@ -14,6 +14,7 @@
  */
 package it.infomed.sync.sincronizzazione;
 
+import it.infomed.sync.SyncClientInterface;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.plugin.SyncPlugin;
 import it.infomed.sync.common.plugin.SyncPluginFactory;
@@ -21,7 +22,6 @@ import it.infomed.sync.common.plugin.SyncRulePlugin;
 import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DatabaseException;
 import it.infomed.sync.db.DbPeer;
-import it.infomed.sync.SyncClientInterface;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.SimpleTimer;
+import org.jdom2.Element;
 
 /**
  * Esecutore di regole di sincronizzazione.
@@ -66,14 +67,14 @@ public abstract class RuleRunner
       init();
       SyncContext context = new SyncContext();
       context.put("extraFilter", extraFilter);
-      client.acquisiciStrategia(regola, context);
+      Element xmlSetup = client.acquisiciStrategia(regola, context);
 
       String ruleName = (String) context.get("rule-name");
       String roleType = (String) context.get("your-role");
       String ruleType = (String) context.get("rule-type");
 
       SyncRulePlugin rule = SyncPluginFactory.getInstance().buildRule(roleType, ruleType);
-      rule.setConfig(ruleName, context);
+      rule.setXML("foreign", xmlSetup);
 
       try
       {

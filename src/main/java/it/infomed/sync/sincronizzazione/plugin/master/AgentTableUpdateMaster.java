@@ -1,5 +1,5 @@
 /*
- *  AgentTableUpdateLocalMaster.java
+ *  AgentTableUpdateMaster.java
  *  Creato il Nov 24, 2017, 7:16:45 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -14,14 +14,16 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.master;
 
+import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.SyncSetupErrorException;
+import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DbPeer;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.torque.util.BasePeer;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.VectorRpc;
@@ -32,47 +34,40 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
+public class AgentTableUpdateMaster extends AgentSharedGenericMaster
 {
-  protected Element tblLocal, tblForeign;
-  protected String tableNameLocal, tableNameForeign, databaseName;
+  protected Element tblElement;
+  protected String tableName, databaseName;
+  protected Schema tableSchema;
 
   @Override
   public void setXML(String location, Element data)
      throws Exception
   {
-    super.setXML(data);
+    super.setXML(location, data);
 
     Element tables = data.getChild("tables");
     if(tables == null)
       throw new SyncSetupErrorException(0, "tables");
 
-    if((tblLocal = tables.getChild("local")) == null)
-      throw new SyncSetupErrorException(0, "tables/local");
+    if((tblElement = tables.getChild(location)) == null)
+      throw new SyncSetupErrorException(0, "tables/" + location);
 
-    if((tblForeign = tables.getChild("foreign")) == null)
-      throw new SyncSetupErrorException(0, "tables/foreign");
+    if((tableName = okStrNull(tblElement.getAttributeValue("name"))) == null)
+      throw new SyncSetupErrorException(0, "tables/" + location + ":name");
 
-    if((tableNameLocal = okStrNull(tblLocal.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "tables/local:name");
+    databaseName = okStr(data.getAttributeValue("database-name"), getParentRule().getDatabaseName());
 
-    if((tableNameForeign = okStrNull(tblForeign.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "tables/foreign:name");
+    if(correctTableName == null)
+      correctTableName = tableName;
+
+    caricaTipiColonne();
   }
 
   @Override
   public String getRole()
   {
     return ROLE_MASTER;
-  }
-
-  @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-    super.populateConfigForeign(context);
-    context.put("foreign-table-name", tblForeign.getAttributeValue("name"));
-    context.put("foreign-table-database", tblForeign.getAttributeValue("database"));
   }
 
   @Override
@@ -87,44 +82,41 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
     if(lsRecs.isEmpty())
       return;
 
-    for(int i = 0; i < arLocalKeys.size(); i++)
+    for(int i = 0; i < arKeys.size(); i++)
     {
-      FieldLinkInfoBean f = findField(arLocalKeys.getKeyByIndex(i));
-      if(f.localAdapter != null)
-        f.localAdapter.masterSharedFetchData(tableNameLocal, null, lsRecs, f, context);
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
       if(f.adapter != null)
-        f.adapter.masterSharedFetchData(tableNameLocal, null, lsRecs, f, context);
+        f.adapter.masterSharedFetchData(tableName, null, lsRecs, f, context);
     }
 
     if(haveTs())
-      compilaBloccoMaster(arLocalKeys, parametri, lsRecs, oldTimestamp, timeStampLocal.first, v, context);
+      compilaBloccoMaster(arKeys, parametri, lsRecs, oldTimestamp, timeStamp.first, v, context);
     else
-      compilaBloccoMaster(arLocalKeys, parametri, lsRecs, null, null, v, context);
+      compilaBloccoMaster(arKeys, parametri, lsRecs, null, null, v, context);
   }
 
   protected List<Record> queryWithTimestamp(Date oldTimestamp)
      throws Exception
   {
-    if(correctLocal)
+    if(correct)
     {
       // corregge la condizione di ULT_MODIF a NULL: produce continui aggiornamenti dei records
-      String tableName = okStrAny(correctTableName, tableNameLocal);
       StringBuilder su = new StringBuilder(128);
-      su.append("UPDATE ").append(tableName)
-         .append(" SET ").append(timeStampLocal.first).append("='").append(DateTime.formatIsoFull(new Date())).append("'")
-         .append(" WHERE ").append(timeStampLocal.first).append(" IS NULL");
-      BasePeer.executeStatement(su.toString());
+      su.append("UPDATE ").append(correctTableName)
+         .append(" SET ").append(timeStamp.first).append("='").append(DateTime.formatIsoFull(new Date())).append("'")
+         .append(" WHERE ").append(timeStamp.first).append(" IS NULL");
+      DbPeer.executeStatement(su.toString(), databaseName);
     }
 
     StringBuilder sb = new StringBuilder();
     sb.append("SELECT ");
-    sb.append(timeStampLocal.first).append(",STATO_REC");
-    arLocalKeys.forEach((f) -> sb.append(',').append(f.first));
-    sb.append(" FROM ").append(tableNameLocal);
+    sb.append(timeStamp.first).append(",STATO_REC");
+    arKeys.forEach((f) -> sb.append(',').append(f.first));
+    sb.append(" FROM ").append(tableName);
     sb.append(" WHERE 1=1");
 
     if(oldTimestamp != null)
-      sb.append(" AND ").append(timeStampForeign.first).append(">='")
+      sb.append(" AND ").append(timeStamp.first).append(">='")
          .append(DateTime.formatIsoFull(oldTimestamp)).append('\'');
 
     if(filter != null)
@@ -139,7 +131,7 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
         Calendar cal = new GregorianCalendar();
         cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitCompare);
         Date firstDate = cal.getTime();
-        sb.append(" AND (").append(timeStampForeign.first).append(" >= '")
+        sb.append(" AND (").append(timeStamp.first).append(" >= '")
            .append(DateTime.formatIsoFull(firstDate)).append("')");
       }
     }
@@ -153,8 +145,8 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
     StringBuilder sb = new StringBuilder();
     sb.append("SELECT ");
     sb.append("STATO_REC");
-    arLocalKeys.forEach((f) -> sb.append(',').append(f.first));
-    sb.append(" FROM ").append(tableNameLocal);
+    arKeys.forEach((f) -> sb.append(',').append(f.first));
+    sb.append(" FROM ").append(tableName);
     sb.append(" WHERE 1=1");
 
     if(filter != null)
@@ -173,26 +165,24 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
   {
     VectorRpc v = new VectorRpc();
     context.put("records-data", v);
-    boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arLocalKeys.isEmpty());
+    boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
 
     // estrae i soli campi significativi
     List<FieldLinkInfoBean> arRealFields = arFields.stream()
-       .filter((f) -> f.localField != null && isOkStr(f.localField.first))
+       .filter((f) -> f.field != null && isOkStr(f.field.first))
        .collect(Collectors.toList());
 
-    String fields = join(arRealFields, (f) -> f.localField.first, ",", null);
+    String fields = join(arRealFields, (f) -> f.field.first, ",", null);
 
-    for(int i = 0; i < arLocalKeys.size(); i++)
+    for(int i = 0; i < arKeys.size(); i++)
     {
-      FieldLinkInfoBean f = findField(arLocalKeys.getKeyByIndex(i));
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
 
-      if(f.localAdapter != null)
-        f.localAdapter.masterSharedConvertKeys(tableNameLocal, "caleido", parametri, f, i, context);
       if(f.adapter != null)
-        f.adapter.masterSharedConvertKeys(tableNameLocal, "caleido", parametri, f, i, context);
+        f.adapter.masterSharedConvertKeys(tableName, "caleido", parametri, f, i, context);
     }
 
-    if(fetchAllData || arLocalKeys.size() == 1)
+    if(fetchAllData || arKeys.size() == 1)
     {
       populateSingleKey(fetchAllData, fields, parametri, arRealFields, v, context);
       return;
@@ -211,16 +201,16 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
     {
       sb.append("SELECT ");
       sb.append(fields);
-      sb.append(" FROM ").append(tableNameLocal);
+      sb.append(" FROM ").append(tableName);
       sb.append(" WHERE ((STATO_REC IS NULL) OR (STATO_REC < 10))");
     }
     else
     {
-      String fieldLink = arLocalKeys.getKeyByIndex(0);
+      String fieldLink = arKeys.getKeyByIndex(0);
 
       sb.append("SELECT ");
       sb.append(fieldLink).append(',').append(fields);
-      sb.append(" FROM ").append(tableNameLocal);
+      sb.append(" FROM ").append(tableName);
       sb.append(" WHERE ((STATO_REC IS NULL) OR (STATO_REC < 10))");
       if(!parametri.isEmpty())
       {
@@ -240,7 +230,7 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
     if(lsRecs.isEmpty())
       return;
 
-    popolaTuttiRecords(tableNameLocal, "caleido", lsRecs, arRealFields, v, context);
+    popolaTuttiRecords(tableName, "caleido", lsRecs, arRealFields, v, context);
   }
 
   private void populateMultipleKey(String fields,
@@ -248,7 +238,7 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
      throws Exception
   {
     int pos;
-    String fieldLink = arLocalKeys.getKeyByIndex(0);
+    String fieldLink = arKeys.getKeyByIndex(0);
 
     // estrae la prima chiave da utilizzare nella select
     HashSet<String> keyVals = new HashSet<>();
@@ -264,7 +254,7 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
     StringBuilder sb = new StringBuilder();
     sb.append("SELECT ");
     sb.append(fieldLink).append(',').append(fields);
-    sb.append(" FROM ").append(tableNameLocal);
+    sb.append(" FROM ").append(tableName);
     if(!parametri.isEmpty())
     {
       sb.append(" WHERE ").append(fieldLink).append(" IN (");
@@ -279,6 +269,48 @@ public class AgentTableUpdateLocalMaster extends AgentSharedGenericLocalMaster
     // produce una nuova lista di record controllando i valori delle altre chiavi
     List<Record> lsRecsFlt = filtraRecors(lsRecs, parametri, context);
 
-    popolaTuttiRecords(tableNameLocal, "caleido", lsRecsFlt, arRealFields, v, context);
+    popolaTuttiRecords(tableName, "caleido", lsRecsFlt, arRealFields, v, context);
+  }
+
+  /**
+   * Determina i tipi colonne utilizzando le informazioni di runtime del database.
+   * @throws Exception
+   */
+  protected void caricaTipiColonne()
+     throws Exception
+  {
+    tableSchema = Database.schemaTable(databaseName, tableName);
+
+    if(tableSchema == null)
+      throw new SyncSetupErrorException(String.format(
+         "Tabella %s non trovata nel database %s.", tableName, databaseName));
+
+    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
+      timeStamp.second = findInSchema(timeStamp.first).type();
+
+    for(FieldLinkInfoBean f : arFields)
+    {
+      if(!isOkStr(f.field.second))
+      {
+        f.field.second = findInSchema(f.field.first).type();
+      }
+    }
+
+    for(Pair<String, String> f : arKeys.getAsList())
+    {
+      if(!isOkStr(f.second))
+      {
+        f.second = findInSchema(f.first).type();
+      }
+    }
+
+    if(delStrategy != null)
+      delStrategy.caricaTipiColonne(databaseName, tableName);
+  }
+
+  protected Column findInSchema(String nomeColonna)
+     throws Exception
+  {
+    return findInSchema(tableSchema, nomeColonna);
   }
 }

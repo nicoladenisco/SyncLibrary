@@ -17,7 +17,6 @@ package it.infomed.sync.db;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.TableDataSet;
-import it.infomed.sync.SU;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -402,7 +401,7 @@ public class Database
    */
   public static boolean isSchemaPublic(String nomeSchema)
   {
-    return SU.isEquNocaseAny(nomeSchema, "public", "dbo");
+    return StringOper.isEquNocaseAny(nomeSchema, "public", "dbo");
   }
 
   public static Integer getTipoColonna(Connection con,

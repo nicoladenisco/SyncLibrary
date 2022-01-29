@@ -41,18 +41,6 @@ public class DeleteStrategyStatorec extends AbstractDelete
   }
 
   @Override
-  public void populateConfigForeign(Map context)
-     throws Exception
-  {
-  }
-
-  @Override
-  public void setConfig(String nomeAdapter, Map vData)
-     throws Exception
-  {
-  }
-
-  @Override
   public void caricaTipiColonne(String databaseName, String tableName)
      throws Exception
   {
