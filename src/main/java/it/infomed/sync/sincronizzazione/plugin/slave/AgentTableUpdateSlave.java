@@ -223,13 +223,15 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
     if(!delete.isEmpty())
     {
-      convertiChiavi(delete, context);
+      if(keysHaveAdapter)
+        convertiChiavi(delete, context);
       delStrategy.cancellaRecordsPerDelete(unknow, arKeys, context);
     }
 
     if(!unknow.isEmpty())
     {
-      convertiChiavi(unknow, context);
+      if(keysHaveAdapter)
+        convertiChiavi(unknow, context);
       delStrategy.cancellaRecordsPerUnknow(unknow, arKeys, context);
     }
   }

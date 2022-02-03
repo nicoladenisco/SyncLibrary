@@ -22,6 +22,7 @@ import it.infomed.sync.db.DbPeer;
 import it.infomed.sync.db.SqlTransactAgent;
 import it.infomed.sync.sincronizzazione.RuleRunner;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   protected boolean correct = false;
   protected String correctTableName = null;
   protected Map<String, Date> mapTimeStamps = new HashMap<>();
+  protected boolean keysHaveAdapter = false;
 
   @Override
   public void setXML(String location, Element data)
@@ -65,6 +67,10 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
       if(f.shared)
       {
         arKeys.add(f.field);
+
+        // se le shared keys hanno almeno un adapter, richiede una conversione delle chiavi
+        if(f.adapter != null)
+          keysHaveAdapter = true;
       }
     }
   }
@@ -119,7 +125,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
      throws Exception
   {
     if(arKeys.isEmpty())
-      die("Nessuna definizione di chiave primaria per " + tableName + ": aggiornamento non possibile");
+      die("Nessuna definizione di chiave per " + tableName + ": aggiornamento non possibile");
 
     try
     {
@@ -152,11 +158,18 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
       if(delStrategy != null)
       {
-        // reimposta lo stato_rec al valore di non cancellato
-        if(!delStrategy.confermaValoriRecord(r, now, key, arKeys,
-           valoriSelect, valoriUpdate, valoriInsert, context,
-           con))
-          return;
+        // converte chiave per shared con adapter
+        String convertedKey = keysHaveAdapter ? convertiChiave(
+           tableName, databaseName, tableSchema, key, context) : key;
+
+        if(convertedKey != null)
+        {
+          // reimposta lo stato_rec al valore di non cancellato
+          if(!delStrategy.confermaValoriRecord(r, now, key, arKeys,
+             valoriSelect, valoriUpdate, valoriInsert, context,
+             con))
+            return;
+        }
       }
 
       createOrUpdateRecord(con, tableName, valoriUpdate, valoriSelect, valoriInsert);
@@ -202,5 +215,23 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
          + " VALUES('" + tableName + "','" + key + "','" + now + "')\n";
       DbPeer.executeStatement(sSQL, con);
     }
+  }
+
+  protected String convertiChiave(
+     String tableName, String databaseName, Schema tableSchema, String key,
+     SyncContext context)
+     throws Exception
+  {
+    List<String> lsKeys = new ArrayList<>(1);
+    lsKeys.add(key);
+
+    for(int i = 0; i < arKeys.size(); i++)
+    {
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
+      if(f.adapter != null)
+        f.adapter.slaveSharedConvertKeys(tableName, databaseName, lsKeys, f, i, context);
+    }
+
+    return lsKeys.isEmpty() ? null : lsKeys.get(0);
   }
 }
