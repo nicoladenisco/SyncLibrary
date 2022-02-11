@@ -1,5 +1,5 @@
 /*
- *  CustomDataPoolLocalMaster.java
+ *  CustomDataPoolMaster.java
  *  Creato il Mar 12, 2020, 12:37:35 PM
  *
  *  Copyright (C) 2020 Informatica Medica s.r.l.
@@ -15,6 +15,7 @@
 package it.infomed.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncSetupErrorException;
 import it.infomed.sync.common.plugin.AbstractDataPool;
@@ -25,6 +26,7 @@ import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.ClassOper;
+import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 
 /**
@@ -33,7 +35,7 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class CustomDataPoolLocalMaster extends AbstractDataPool
+public class CustomDataPoolMaster extends AbstractDataPool
 {
   protected String className;
   protected SyncPoolPlugin worker;
@@ -73,7 +75,7 @@ public class CustomDataPoolLocalMaster extends AbstractDataPool
   }
 
   @Override
-  public List<Record> getDatiVerifica(String dataBlockName, String poolData, Date oldTimestamp,
+  public Pair<List<Record>, Schema> getDatiVerifica(String dataBlockName, String poolData, Date oldTimestamp,
      List<FieldLinkInfoBean> arFields, Map<String, String> extraFilter)
      throws Exception
   {
@@ -81,12 +83,12 @@ public class CustomDataPoolLocalMaster extends AbstractDataPool
   }
 
   @Override
-  public List<Record> getDatiAggiorna(String dataBlockName, String poolData,
-     ArrayMap<String, String> arLocalKeys, List<String> parametri,
+  public Pair<List<Record>, Schema> getDatiAggiorna(String dataBlockName, String poolData,
+     ArrayMap<String, String> arKeys, List<String> parametri,
      List<FieldLinkInfoBean> arFields, Map<String, String> extraFilter)
      throws Exception
   {
-    return worker.getDatiAggiorna(dataBlockName, poolData, arLocalKeys, parametri, arFields, extraFilter);
+    return worker.getDatiAggiorna(dataBlockName, poolData, arKeys, parametri, arFields, extraFilter);
   }
 
   @Override
@@ -99,12 +101,5 @@ public class CustomDataPoolLocalMaster extends AbstractDataPool
   public void clearPool()
   {
     worker.clearPool();
-  }
-
-  @Override
-  public String getStatoRecField(String dataBlockName, String poolData)
-     throws Exception
-  {
-    return worker.getStatoRecField(dataBlockName, poolData);
   }
 }

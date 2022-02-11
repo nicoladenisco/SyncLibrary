@@ -1,5 +1,5 @@
 /*
- *  AgentQueryUpdateLocalMaster.java
+ *  AgentQueryUpdateMaster.java
  *  Creato il Dec 1, 2017, 7:54:14 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -14,10 +14,8 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.master;
 
-import com.workingdogs.village.Column;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
-import com.workingdogs.village.Schema;
 import it.infomed.sync.SyncMacroResolver;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
@@ -30,7 +28,6 @@ import java.util.stream.Collectors;
 import org.apache.torque.criteria.SqlEnum;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.isEquNocase;
 import static org.commonlib5.utils.StringOper.isOkStr;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
@@ -44,14 +41,13 @@ import org.rigel5.table.RigelColumnDescriptor;
  *
  * @author Nicola De Nisco
  */
-public class AgentQueryUpdateLocalMaster extends AgentSharedGenericMaster
+public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 {
-  protected Element queryLocal;
+  protected Element queryElement;
   protected String tableName, databaseName;
   protected QueryBuilder qb;
   protected boolean ignoreOldTimestamp;
   protected final SyncMacroResolver resolver = new SyncMacroResolver();
-  protected Schema querySchema;
 
   @Override
   public void setXML(String location, Element data)
@@ -63,25 +59,25 @@ public class AgentQueryUpdateLocalMaster extends AgentSharedGenericMaster
     if(tables == null)
       throw new SyncSetupErrorException(0, "tables");
 
-    if((queryLocal = tables.getChild("query-" + location)) == null)
+    if((queryElement = tables.getChild("query-" + location)) == null)
       throw new SyncSetupErrorException(0, "query-" + location);
 
     preparaLimitiDate();
 
     qb = SetupHolder.getQueryBuilder();
-    qb.setSelect(resolver.resolveMacro(okStr(queryLocal.getChildText("select"))));
-    qb.setFrom(resolver.resolveMacro(okStr(queryLocal.getChildText("from"))));
-    qb.setWhere(resolver.resolveMacro(okStr(queryLocal.getChildText("where"))));
-    qb.setOrderby(resolver.resolveMacro(okStr(queryLocal.getChildText("orderby"))));
-    qb.setGroupby(resolver.resolveMacro(okStr(queryLocal.getChildText("groupby"))));
-    qb.setHaving(resolver.resolveMacro(okStr(queryLocal.getChildText("having"))));
+    qb.setSelect(resolver.resolveMacro(okStr(queryElement.getChildText("select"))));
+    qb.setFrom(resolver.resolveMacro(okStr(queryElement.getChildText("from"))));
+    qb.setWhere(resolver.resolveMacro(okStr(queryElement.getChildText("where"))));
+    qb.setOrderby(resolver.resolveMacro(okStr(queryElement.getChildText("orderby"))));
+    qb.setGroupby(resolver.resolveMacro(okStr(queryElement.getChildText("groupby"))));
+    qb.setHaving(resolver.resolveMacro(okStr(queryElement.getChildText("having"))));
 
     // la tabella locale non è obbligatoria: la fonte dati è comunque la query
-    tableName = okStrNull(queryLocal.getAttributeValue("table-name"));
-    databaseName = okStr(queryLocal.getAttributeValue("database-name"), getParentRule().getDatabaseName());
+    tableName = okStrNull(queryElement.getAttributeValue("table-name"));
+    databaseName = okStr(queryElement.getAttributeValue("database-name"), getParentRule().getDatabaseName());
 
     // in casi particolari (join multiple) si deve ignorare l'ultima time stamp
-    ignoreOldTimestamp = checkTrueFalse(queryLocal.getAttributeValue("ignoreOldTimestamp"), ignoreOldTimestamp);
+    ignoreOldTimestamp = checkTrueFalse(queryElement.getAttributeValue("ignoreOldTimestamp"), ignoreOldTimestamp);
 
     if(arKeys.size() != 1)
       throw new SyncSetupErrorException("Questo agent supporta solo una chiave singola.");
@@ -192,40 +188,17 @@ public class AgentQueryUpdateLocalMaster extends AgentSharedGenericMaster
     {
       try (QueryDataSet qds = qb.buildQueryDataset(con, false))
       {
-        querySchema = qds.schema();
+        schema = qds.schema();
       }
     }
 
-    if(querySchema == null)
+    if(schema == null)
       throw new SyncSetupErrorException(String.format(
-         "Tabella %s non trovata nel database %s.", tableName, databaseName));
+         "Query non eseguibile sul database %s.", databaseName));
 
-    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
-      timeStamp.second = findInSchema(timeStamp.first).type();
-
-    for(FieldLinkInfoBean f : arFields)
-    {
-      if(!isOkStr(f.field.second))
-      {
-        f.field.second = findInSchema(f.field.first).type();
-      }
-    }
-
-    for(Pair<String, String> f : arKeys.getAsList())
-    {
-      if(!isOkStr(f.second))
-      {
-        f.second = findInSchema(f.first).type();
-      }
-    }
+    caricaTipiColonne(schema);
 
     if(delStrategy != null)
       delStrategy.caricaTipiColonne(databaseName, tableName);
-  }
-
-  protected Column findInSchema(String nomeColonna)
-     throws Exception
-  {
-    return findInSchema(querySchema, nomeColonna);
   }
 }

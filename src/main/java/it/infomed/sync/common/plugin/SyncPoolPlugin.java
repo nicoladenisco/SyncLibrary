@@ -15,11 +15,13 @@
 package it.infomed.sync.common.plugin;
 
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
+import org.commonlib5.utils.Pair;
 
 /**
  * Intefaccia di un generico pool di dati.
@@ -50,7 +52,7 @@ public interface SyncPoolPlugin extends SyncPlugin
    * @throws Exception
    * @return elenco di record con i dati richiesti
    */
-  public List<Record> getDatiVerifica(String dataBlockName, String poolData, Date oldTimestamp,
+  public Pair<List<Record>, Schema> getDatiVerifica(String dataBlockName, String poolData, Date oldTimestamp,
      List<FieldLinkInfoBean> arFields, Map<String, String> extraFilter)
      throws Exception;
 
@@ -58,15 +60,15 @@ public interface SyncPoolPlugin extends SyncPlugin
    * Ritorna il blocco dati richiesto per l'aggiornamento.
    * @param dataBlockName nome del datablock che esegue la richiesta
    * @param poolData identificatore univoco del blocco dati
-   * @param arLocalKeys mappa nomecampo/tipo per interpretare i parametri
+   * @param arKeys mappa nomecampo/tipo per interpretare i parametri
    * @param parametri eventuali chiavi per restringere la query (può essere null)
    * @param arFields lista dei campi di interesse nel blocco dati
    * @param extraFilter filtro passato dal remote per limitare il risultato
    * @throws Exception
    * @return elenco di record con i dati richiesti
    */
-  public List<Record> getDatiAggiorna(String dataBlockName, String poolData,
-     ArrayMap<String, String> arLocalKeys, List<String> parametri,
+  public Pair<List<Record>, Schema> getDatiAggiorna(String dataBlockName, String poolData,
+     ArrayMap<String, String> arKeys, List<String> parametri,
      List<FieldLinkInfoBean> arFields, Map<String, String> extraFilter)
      throws Exception;
 
@@ -84,17 +86,4 @@ public interface SyncPoolPlugin extends SyncPlugin
    * Il pool scarica eventuali dati mantenuti in memoria.
    */
   public void clearPool();
-
-  /**
-   * Suporto cancellazione logica e relativo campo.
-   * Se la cancellazione logica è attiva pre il pool richiesto ritorna il nome del campo
-   * da cercare all'interno dei records per verificare se un record è cancellato logicamente.
-   * Se la cancellazione logica non è attiva ritorna null
-   * @param dataBlockName nome del datablock che esegue la richiesta
-   * @param poolData identificatore univoco del blocco dati
-   * @return il campo da considerare per la cancellazione logica (di solito STATO_REC)
-   * @throws Exception
-   */
-  public String getStatoRecField(String dataBlockName, String poolData)
-     throws Exception;
 }

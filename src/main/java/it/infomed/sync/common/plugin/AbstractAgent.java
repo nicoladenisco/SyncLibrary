@@ -21,11 +21,13 @@ import it.infomed.sync.common.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.math.NumberUtils;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.VectorRpc;
@@ -41,6 +43,7 @@ public abstract class AbstractAgent extends AbstractPlugin
   protected SyncRulePlugin parentRule;
   protected SyncDeletePlugin delStrategy;
   protected FilterKeyData filter;
+  protected Schema schema;
 
   @Override
   public SyncRulePlugin getParentRule()
@@ -99,9 +102,63 @@ public abstract class AbstractAgent extends AbstractPlugin
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
-  protected abstract String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes);
+  protected String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes)
+  {
+    int tipo = col.typeEnum();
+    String s = okStr(valore);
 
-  protected abstract String convertNullValue(String now, Pair<String, String> field, Column col);
+    if(tipo == Types.BIT)
+    {
+      if(checkTrue(s))
+        return "TRUE";
+      if(checkFalse(s))
+        return "FALSE";
+
+      int val = parse(s, -1);
+      if(val != -1)
+        return val > 0 ? "TRUE" : "FALSE";
+
+      log.error("Tipo campo BIT non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
+      return null;
+    }
+
+    if(truncZeroes)
+      s = removeZero(s);
+
+    if(col.isNumericValue())
+    {
+      if(!NumberUtils.isNumber(s))
+      {
+        log.error("Tipo campo NUMERICO non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
+        return null;
+      }
+      return s;
+    }
+
+    if(col.isStringValue() || col.isDateValue())
+    {
+      if(isEquAny(s, "NULL", "''"))
+        return s;
+    }
+
+    return "'" + s.replace("'", "''") + "'";
+  }
+
+  protected String convertNullValue(String now, Pair<String, String> field, Column col)
+  {
+    int tipo = col.typeEnum();
+
+    if(col.isNumericValue())
+      return col.nullAllowed() ? "NULL" : "0";
+
+    if(col.isStringValue())
+      return col.nullAllowed() ? "NULL" : "''";
+
+    if(col.isDateValue())
+      return col.nullAllowed() ? "NULL" : "'" + now + "'";
+
+    return "NULL";
+  }
 
   public boolean createOrUpdateRecord(Connection con, String tableName,
      Map<String, String> valoriUpdate, Map<String, String> valoriSelect, Map<String, String> valoriInsert)
@@ -118,13 +175,13 @@ public abstract class AbstractAgent extends AbstractPlugin
       }
     }
 
-    if((sSQL = createInsertStatement(tableName, valoriInsert)) == null)
-      return false;
-
-    try (Statement st = con.createStatement())
+    if((sSQL = createInsertStatement(tableName, valoriInsert)) != null)
     {
-      if(st.executeUpdate(sSQL) > 0)
-        return true;
+      try (Statement st = con.createStatement())
+      {
+        if(st.executeUpdate(sSQL) > 0)
+          return true;
+      }
     }
 
     return false;
@@ -210,17 +267,22 @@ public abstract class AbstractAgent extends AbstractPlugin
     }
   }
 
-  public Column findInSchema(Schema tableSchema, String nomeColonna)
+  public Column findInSchema(String nomeColonna)
      throws Exception
   {
-    Column col = tableSchema.findInSchemaIgnoreCaseQuiet(nomeColonna);
+    Column col = schema.findInSchemaIgnoreCaseQuiet(nomeColonna);
 
     if(col != null)
       return col;
 
+    if(schema.isSingleTable())
+      throw new SyncSetupErrorException(String.format(
+         "Campo %s non trovato nella tabella %s.",
+         nomeColonna, schema.getTableName()));
+
     throw new SyncSetupErrorException(String.format(
-       "Campo %s non trovato nella tabella %s.",
-       nomeColonna, tableSchema.getTableName()));
+       "Campo %s non trovato nella tabella query.",
+       nomeColonna));
   }
 
   /**
@@ -303,6 +365,7 @@ public abstract class AbstractAgent extends AbstractPlugin
    * @param oldTimestamp eventuale ultima timestamp di aggiornamento (può essere null)
    * @param timeStampField nome del campo timestamp nei records
    * @param vResult risultati del match
+   * @param context
    * @throws Exception
    */
   protected void compilaBloccoMaster(

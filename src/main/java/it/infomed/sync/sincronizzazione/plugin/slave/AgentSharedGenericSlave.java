@@ -31,6 +31,8 @@ import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import static org.commonlib5.utils.StringOper.checkTrueFalse;
+import static org.commonlib5.utils.StringOper.isEquNocase;
+import static org.commonlib5.utils.StringOper.isOkStr;
 import org.jdom2.Element;
 
 /**
@@ -100,27 +102,27 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
   @Override
   protected void salvaRecord(Map r,
-     String tableName, String databaseName, Schema tableSchema,
+     String tableName, String databaseName,
      Map<String, Integer> lsNotNullFields, SyncContext context)
      throws Exception
   {
     if(haveTs())
-      salvaRecordShared(r, tableName, databaseName, tableSchema, lsNotNullFields, context);
+      salvaRecordShared(r, tableName, databaseName, lsNotNullFields, context);
     else
-      super.salvaRecord(r, tableName, databaseName, tableSchema, lsNotNullFields, context);
+      super.salvaRecord(r, tableName, databaseName, lsNotNullFields, context);
   }
 
   protected void salvaRecordShared(Map r,
-     String tableName, String databaseName, Schema tableSchema,
+     String tableName, String databaseName,
      Map<String, Integer> lsNotNullFields, SyncContext context)
      throws Exception
   {
     SqlTransactAgent.execute(databaseName, (con) -> salvaRecordShared(r,
-       tableName, databaseName, tableSchema, lsNotNullFields, context, con));
+       tableName, databaseName, lsNotNullFields, context, con));
   }
 
   protected void salvaRecordShared(Map r,
-     String tableName, String databaseName, Schema tableSchema,
+     String tableName, String databaseName,
      Map<String, Integer> lsNotNullFields, SyncContext context, Connection con)
      throws Exception
   {
@@ -151,7 +153,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
       preparaValoriNotNull(lsNotNullFields, valoriInsert, now);
 
       if(!preparaValoriRecord(r,
-         tableName, databaseName, tableSchema, key, now,
+         tableName, databaseName, key, now,
          valoriSelect, valoriUpdate, valoriInsert,
          con))
         return;
@@ -160,7 +162,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
       {
         // converte chiave per shared con adapter
         String convertedKey = keysHaveAdapter ? convertiChiave(
-           tableName, databaseName, tableSchema, key, context) : key;
+           tableName, databaseName, key, context) : key;
 
         if(convertedKey != null)
         {
@@ -218,7 +220,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   }
 
   protected String convertiChiave(
-     String tableName, String databaseName, Schema tableSchema, String key,
+     String tableName, String databaseName, String key,
      SyncContext context)
      throws Exception
   {
@@ -233,5 +235,23 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     }
 
     return lsKeys.isEmpty() ? null : lsKeys.get(0);
+  }
+
+  @Override
+  protected void caricaTipiColonne(Schema schema)
+     throws Exception
+  {
+    super.caricaTipiColonne(schema);
+
+    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
+      timeStamp.second = findInSchema(timeStamp.first).type();
+
+    for(Pair<String, String> f : arKeys.getAsList())
+    {
+      if(!isOkStr(f.second))
+      {
+        f.second = findInSchema(f.first).type();
+      }
+    }
   }
 }

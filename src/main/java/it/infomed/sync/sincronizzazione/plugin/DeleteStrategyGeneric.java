@@ -17,12 +17,10 @@ package it.infomed.sync.sincronizzazione.plugin;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.Record;
-import com.workingdogs.village.Schema;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractAgent;
 import it.infomed.sync.common.plugin.AbstractDelete;
-import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DbPeer;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -91,7 +89,6 @@ public class DeleteStrategyGeneric extends AbstractDelete
   public final List<DeleteField> sqlUpdateDeleteStatement = new ArrayList<>();
   public final List<String> sqlGenericDeleteStatement = new ArrayList<>();
 
-  private Schema tableSchema;
   private String databaseNameForeign, tableNameForeign;
 
   @Override
@@ -182,7 +179,6 @@ public class DeleteStrategyGeneric extends AbstractDelete
   {
     this.databaseNameForeign = databaseName;
     this.tableNameForeign = tableName;
-    this.tableSchema = Database.schemaTable(databaseName, tableName);
 
     for(DeleteField f : sqlUpdateDeleteStatement)
     {
@@ -204,7 +200,7 @@ public class DeleteStrategyGeneric extends AbstractDelete
      throws Exception
   {
     AbstractAgent agent = (AbstractAgent) getParentAgent();
-    return agent.findInSchema(tableSchema, nomeColonna);
+    return agent.findInSchema(nomeColonna);
   }
 
   @Override

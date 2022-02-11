@@ -30,7 +30,7 @@ import org.jdom2.Element;
  * Questo adapter può essere utilizzato sia come master che come slave.
  * @author Nicola De Nisco
  */
-public class AdapterNotNullForeign extends AbstractAdapter
+public class AdapterNotNull extends AbstractAdapter
 {
   protected String nullValue = "";
   protected Map setup;

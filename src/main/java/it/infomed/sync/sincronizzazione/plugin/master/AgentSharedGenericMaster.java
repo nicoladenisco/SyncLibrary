@@ -15,6 +15,7 @@
 package it.infomed.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
@@ -22,6 +23,8 @@ import it.infomed.sync.common.Utils;
 import java.util.*;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.isEquNocase;
+import static org.commonlib5.utils.StringOper.isOkStr;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 
@@ -140,5 +143,23 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
     }
 
     return lsRecsFlt;
+  }
+
+  @Override
+  protected void caricaTipiColonne(Schema schema)
+     throws Exception
+  {
+    super.caricaTipiColonne(schema);
+
+    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
+      timeStamp.second = findInSchema(timeStamp.first).type();
+
+    for(Pair<String, String> f : arKeys.getAsList())
+    {
+      if(!isOkStr(f.second))
+      {
+        f.second = findInSchema(f.first).type();
+      }
+    }
   }
 }

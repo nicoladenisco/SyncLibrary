@@ -25,16 +25,12 @@ import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DatabaseException;
 import it.infomed.sync.db.SqlTransactAgent;
 import java.sql.Connection;
-import java.sql.Types;
 import java.util.*;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.math.NumberUtils;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.checkTrueFalse;
-import static org.commonlib5.utils.StringOper.okStr;
-import static org.commonlib5.utils.StringOper.okStrNull;
+import static org.commonlib5.utils.StringOper.isOkStr;
 import org.jdom2.Element;
 
 /**
@@ -48,7 +44,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
   protected ArrayList<FieldLinkInfoBean> arFields = new ArrayList<>();
   protected Element recordValidatorElement, tableValidatorElement, delStrategyElement;
   protected SyncValidatorPlugin recordValidator, tableValidator;
-  protected String dataBlockName;
+  protected String dataBlockName, databaseName;
   // ----------- questi servono solo per lo slave abbinato ----------
   protected String ignoreInEmptyFields;
   protected boolean isolateRecord, isolateAllRecords;
@@ -76,6 +72,8 @@ abstract public class AgentGenericSlave extends AbstractAgent
 
     if((dataBlockName = okStrNull(data.getAttributeValue("name"))) == null)
       throw new SyncSetupErrorException(0, "name");
+
+    databaseName = okStr(data.getAttributeValue("database-name"), getParentRule().getDatabaseName());
 
     Element fields, validators;
 
@@ -198,7 +196,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  protected void salvaTuttiRecords(String tableName, String databaseName, Schema tableSchema,
+  protected void salvaTuttiRecords(String tableName, String databaseName,
      List<Map> lsRecs, SyncContext context)
      throws Exception
   {
@@ -206,7 +204,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     {
       try
       {
-        salvaTuttiRecordsInternal(tableName, databaseName, tableSchema, lsRecs, context);
+        salvaTuttiRecordsInternal(tableName, databaseName, lsRecs, context);
       }
       catch(Throwable t)
       {
@@ -215,11 +213,11 @@ abstract public class AgentGenericSlave extends AbstractAgent
     }
     else
     {
-      salvaTuttiRecordsInternal(tableName, databaseName, tableSchema, lsRecs, context);
+      salvaTuttiRecordsInternal(tableName, databaseName, lsRecs, context);
     }
   }
 
-  private void salvaTuttiRecordsInternal(String tableName, String databaseName, Schema tableSchema,
+  private void salvaTuttiRecordsInternal(String tableName, String databaseName,
      List<Map> lsRecs, SyncContext context)
      throws Exception
   {
@@ -240,7 +238,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     Map<String, Integer> lsEmptyFields = cacheNotEmptyFields.get(tableName);
     if(lsEmptyFields == null)
     {
-      lsEmptyFields = SqlTransactAgent.executeReturn(databaseName, (con) -> buildNotNullFields(con, tableSchema));
+      lsEmptyFields = SqlTransactAgent.executeReturn(databaseName, (con) -> buildNotNullFields(con));
       cacheNotEmptyFields.put(tableName, lsEmptyFields);
     }
 
@@ -251,7 +249,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
       {
         try
         {
-          salvaRecord(r, tableName, databaseName, tableSchema, lsEmptyFields, context);
+          salvaRecord(r, tableName, databaseName, lsEmptyFields, context);
         }
         catch(Throwable t)
         {
@@ -262,7 +260,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     else
     {
       for(Map r : lsRecs)
-        salvaRecord(r, tableName, databaseName, tableSchema, lsEmptyFields, context);
+        salvaRecord(r, tableName, databaseName, lsEmptyFields, context);
     }
 
     for(int i = 0; i < arFields.size(); i++)
@@ -287,22 +285,21 @@ abstract public class AgentGenericSlave extends AbstractAgent
    * @param r valori del record
    * @param tableName nome tabella
    * @param databaseName nome del database
-   * @param tableSchema the value of tableSchema
    * @param lsNotNullFields lista di campi che non possono essere null
    * @param context the value of context
    * @throws Exception
    */
   protected void salvaRecord(Map r,
-     String tableName, String databaseName, Schema tableSchema,
+     String tableName, String databaseName,
      Map<String, Integer> lsNotNullFields, SyncContext context)
      throws Exception
   {
     SqlTransactAgent.execute(databaseName, (con) -> salvaRecord(r,
-       tableName, databaseName, tableSchema, lsNotNullFields, context, con));
+       tableName, databaseName, lsNotNullFields, context, con));
   }
 
   protected void salvaRecord(Map r,
-     String tableName, String databaseName, Schema tableSchema,
+     String tableName, String databaseName,
      Map<String, Integer> lsNotNullFields, SyncContext context, Connection con)
      throws Exception
   {
@@ -321,7 +318,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
       preparaValoriNotNull(lsNotNullFields, valoriInsert, now);
 
       if(!preparaValoriRecord(r,
-         tableName, databaseName, tableSchema, null, now,
+         tableName, databaseName, null, now,
          valoriSelect, valoriUpdate, valoriInsert,
          con))
         return;
@@ -359,7 +356,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
   }
 
   protected boolean preparaValoriRecord(Map r,
-     String tableName, String databaseName, Schema tableSchema, String key, String now,
+     String tableName, String databaseName, String key, String now,
      Map<String, String> valoriSelect, Map<String, String> valoriUpdate, Map<String, String> valoriInsert,
      Connection con)
      throws Exception
@@ -369,7 +366,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
-      Column col = findInSchema(tableSchema, f.field.first);
+      Column col = findInSchema(f.field.first);
       Object valore = r.get(f.field.first);
       String sqlValue;
       Object rv;
@@ -436,66 +433,6 @@ abstract public class AgentGenericSlave extends AbstractAgent
     }
   }
 
-  @Override
-  protected String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes)
-  {
-    int tipo = col.typeEnum();
-    String s = okStr(valore);
-
-    if(tipo == Types.BIT)
-    {
-      if(checkTrue(s))
-        return "TRUE";
-      if(checkFalse(s))
-        return "FALSE";
-
-      int val = parse(s, -1);
-      if(val != -1)
-        return val > 0 ? "TRUE" : "FALSE";
-
-      log.error("Tipo campo non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-      return null;
-    }
-
-    if(truncZeroes)
-      s = removeZero(s);
-
-    if(Database.isNumeric(tipo))
-    {
-      if(!NumberUtils.isNumber(s))
-      {
-        log.error("Tipo campo non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-        return null;
-      }
-      return s;
-    }
-
-    if(Database.isString(tipo) || Database.isDate(tipo))
-    {
-      if(isEquAny(s, "NULL", "''"))
-        return s;
-    }
-
-    return "'" + s.replace("'", "''") + "'";
-  }
-
-  @Override
-  protected String convertNullValue(String now, Pair<String, String> field, Column col)
-  {
-    int tipo = col.typeEnum();
-
-    if(Database.isNumeric(tipo))
-      return col.nullAllowed() ? "NULL" : "0";
-
-    if(Database.isString(tipo))
-      return col.nullAllowed() ? "NULL" : "''";
-
-    if(Database.isDate(tipo))
-      return col.nullAllowed() ? "NULL" : "'" + now + "'";
-
-    return "NULL";
-  }
-
   protected FieldLinkInfoBean findField(String nomeCampo)
      throws Exception
   {
@@ -513,18 +450,17 @@ abstract public class AgentGenericSlave extends AbstractAgent
   /**
    * Ritorna un elenco di campi che non possono essere lasciati a NULL.
    * @param con
-   * @param tableSchema schema tabella
    * @return array di campi
    * @throws Exception
    */
-  protected Map<String, Integer> buildNotNullFields(Connection con, Schema tableSchema)
+  protected Map<String, Integer> buildNotNullFields(Connection con)
      throws Exception
   {
     ArrayMap<String, Integer> fldMap = new ArrayMap<>();
 
-    for(int i = 1; i <= tableSchema.numberOfColumns(); i++)
+    for(int i = 1; i <= schema.numberOfColumns(); i++)
     {
-      Column col = tableSchema.column(i);
+      Column col = schema.column(i);
       if(!col.nullAllowed() && !col.readOnly())
         fldMap.put(col.name().toUpperCase(), col.typeEnum());
     }
@@ -535,25 +471,28 @@ abstract public class AgentGenericSlave extends AbstractAgent
       fldMap.remove(f.field.first.toUpperCase());
     }
 
-    // rimuove in ogni caso le chiavi primarie: non possono essere messe a zero
-    Map<String, Integer> primaryKeys = cachePrimaryKeys.get(tableSchema.tableName());
-    if(primaryKeys == null)
+    if(schema.isSingleTable())
     {
-      if((primaryKeys = Database.getPrimaryKeys(con, tableSchema.tableName())) != null)
+      // rimuove in ogni caso le chiavi primarie: non possono essere messe a zero
+      Map<String, Integer> primaryKeys = cachePrimaryKeys.get(schema.tableName());
+      if(primaryKeys == null)
       {
-        cachePrimaryKeys.put(tableSchema.getTableName(), primaryKeys);
+        if((primaryKeys = Database.getPrimaryKeys(con, schema.tableName())) != null)
+        {
+          cachePrimaryKeys.put(schema.getTableName(), primaryKeys);
+        }
       }
-    }
 
-    if(primaryKeys == null || primaryKeys.isEmpty())
-      log.info("ATTENZIONE: nessuna definizione di chiave primaria per " + tableSchema.tableName());
+      if(primaryKeys == null || primaryKeys.isEmpty())
+        log.info("ATTENZIONE: nessuna definizione di chiave primaria per " + schema.tableName());
 
-    if(primaryKeys != null)
-    {
-      for(Map.Entry<String, Integer> entry : primaryKeys.entrySet())
+      if(primaryKeys != null)
       {
-        String primaryKey = entry.getKey();
-        fldMap.remove(primaryKey.toUpperCase());
+        for(Map.Entry<String, Integer> entry : primaryKeys.entrySet())
+        {
+          String primaryKey = entry.getKey();
+          fldMap.remove(primaryKey.toUpperCase());
+        }
       }
     }
 
@@ -568,5 +507,19 @@ abstract public class AgentGenericSlave extends AbstractAgent
     }
 
     return fldMap;
+  }
+
+  protected void caricaTipiColonne(Schema schema)
+     throws Exception
+  {
+    this.schema = schema;
+
+    for(FieldLinkInfoBean f : arFields)
+    {
+      if(!isOkStr(f.field.second))
+      {
+        f.field.second = findInSchema(f.field.first).type();
+      }
+    }
   }
 }

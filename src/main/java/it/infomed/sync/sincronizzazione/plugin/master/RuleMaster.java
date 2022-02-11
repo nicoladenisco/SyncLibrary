@@ -1,6 +1,6 @@
 /*
- *  RuleForeignSlave.java
- *  Creato il Nov 26, 2017, 4:11:03 PM
+ *  RuleMaster.java
+ *  Creato il Nov 24, 2017, 7:13:57 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
  *
@@ -12,7 +12,7 @@
  *  Viale dei Tigli, 19
  *  Casalnuovo di Napoli (NA)
  */
-package it.infomed.sync.sincronizzazione.plugin.slave;
+package it.infomed.sync.sincronizzazione.plugin.master;
 
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.SyncSetupErrorException;
@@ -20,27 +20,26 @@ import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractRule;
 import it.infomed.sync.common.plugin.SyncAgentPlugin;
 import it.infomed.sync.common.plugin.SyncPluginFactory;
+import it.infomed.sync.common.plugin.SyncPoolPlugin;
 import it.infomed.sync.db.Database;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.okStr;
 import org.jdom2.Element;
 
 /**
  * Plugin di sincronizzazione per Diamante via XML-RPC.
- * Versione client/slave.
+ * Versione caleido/master.
  *
  * @author Nicola De Nisco
  */
-public class RuleForeignSlave extends AbstractRule
+public class RuleMaster extends AbstractRule
 {
   protected Element rule, delStrategyElement;
+  protected HashMap<String, SyncPoolPlugin> poolMap = new HashMap<>();
   protected HashMap<String, SyncAgentPlugin> agentMap = new HashMap<>();
-  protected ArrayList<String> arBlocchi = new ArrayList<>();
 
   @Override
   public void configure(Configuration cfg)
@@ -51,7 +50,7 @@ public class RuleForeignSlave extends AbstractRule
   @Override
   public String getRole()
   {
-    return ROLE_SLAVE;
+    return ROLE_MASTER;
   }
 
   @Override
@@ -75,7 +74,39 @@ public class RuleForeignSlave extends AbstractRule
     // legge eventuale filtro sql
     setFilter(Utils.parseFilterKeyData(rule));
 
+    createDataPools(location);
     createDataBlocks(location);
+  }
+
+  protected void createDataPools(String location)
+     throws Exception
+  {
+    Element pools = rule.getChild("data-pools");
+    if(pools == null)
+      return;
+
+    Element master = pools.getChild("master");
+    if(master == null)
+      return;
+
+    List<Element> lsPool = master.getChildren("pool");
+
+    for(Element pool : lsPool)
+    {
+      if(checkTrueFalse(pool.getAttributeValue("ignore"), false))
+        continue;
+
+      String nomeBlocco = pool.getAttributeValue("name");
+      String nomeAgent = pool.getAttributeValue("agent");
+
+      if(poolMap.containsKey(nomeBlocco))
+        throw new SyncSetupErrorException(String.format("Pool %s duplicato nel file XML.", nomeBlocco));
+
+      SyncPoolPlugin agent = SyncPluginFactory.getInstance().buildPool(getRole(), nomeAgent);
+      agent.setParentRule(this);
+      agent.setXML(location, pool);
+      poolMap.put(nomeBlocco, agent);
+    }
   }
 
   protected void createDataBlocks(String location)
@@ -119,17 +150,23 @@ public class RuleForeignSlave extends AbstractRule
   }
 
   @Override
-  public void pianificaAggiornamento(String nome, List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public SyncPoolPlugin getPool(String poolName)
      throws Exception
   {
-    SyncAgentPlugin agent = agentMap.get(nome);
-    agent.pianificaAggiornamento(aggiorna, vInfo, context);
+    return poolMap.get(poolName);
   }
 
   @Override
-  public List<String> getListaBlocchi()
+  public void beginRumbleRule(SyncContext context)
      throws Exception
   {
-    return arBlocchi;
+    poolMap.forEach((nome, pool) -> pool.clearPool());
+  }
+
+  @Override
+  public void endRumbleRule(SyncContext context)
+     throws Exception
+  {
+    poolMap.forEach((nome, pool) -> pool.clearPool());
   }
 }

@@ -14,9 +14,7 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.master;
 
-import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
-import com.workingdogs.village.Schema;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.SyncSetupErrorException;
@@ -37,8 +35,7 @@ import org.jdom2.Element;
 public class AgentTableUpdateMaster extends AgentSharedGenericMaster
 {
   protected Element tblElement;
-  protected String tableName, databaseName;
-  protected Schema tableSchema;
+  protected String tableName;
 
   @Override
   public void setXML(String location, Element data)
@@ -55,8 +52,6 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
 
     if((tableName = okStrNull(tblElement.getAttributeValue("name"))) == null)
       throw new SyncSetupErrorException(0, "tables/" + location + ":name");
-
-    databaseName = okStr(data.getAttributeValue("database-name"), getParentRule().getDatabaseName());
 
     if(correctTableName == null)
       correctTableName = tableName;
@@ -279,38 +274,13 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   protected void caricaTipiColonne()
      throws Exception
   {
-    tableSchema = Database.schemaTable(databaseName, tableName);
-
-    if(tableSchema == null)
+    if((schema = Database.schemaTable(databaseName, tableName)) == null)
       throw new SyncSetupErrorException(String.format(
          "Tabella %s non trovata nel database %s.", tableName, databaseName));
 
-    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
-      timeStamp.second = findInSchema(timeStamp.first).type();
-
-    for(FieldLinkInfoBean f : arFields)
-    {
-      if(!isOkStr(f.field.second))
-      {
-        f.field.second = findInSchema(f.field.first).type();
-      }
-    }
-
-    for(Pair<String, String> f : arKeys.getAsList())
-    {
-      if(!isOkStr(f.second))
-      {
-        f.second = findInSchema(f.first).type();
-      }
-    }
+    caricaTipiColonne(schema);
 
     if(delStrategy != null)
       delStrategy.caricaTipiColonne(databaseName, tableName);
-  }
-
-  protected Column findInSchema(String nomeColonna)
-     throws Exception
-  {
-    return findInSchema(tableSchema, nomeColonna);
   }
 }

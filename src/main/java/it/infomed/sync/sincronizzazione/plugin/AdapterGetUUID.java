@@ -1,5 +1,5 @@
 /*
- *  AdapterGetUUIDForeign.java
+ *  AdapterGetUUID.java
  *  Creato il Apr 24, 2018, 11:38:03 AM
  *
  *  Copyright (C) 2018 Informatica Medica s.r.l.
@@ -30,7 +30,7 @@ import java.util.UUID;
  * Ritorna un UUID da inserire nel campo verificando che non sia già utilizzato.
  * @author Nadia Romano
  */
-public class AdapterGetUUIDForeign extends AbstractAdapter
+public class AdapterGetUUID extends AbstractAdapter
 {
   protected String tableName, dbName;
 

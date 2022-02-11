@@ -1,5 +1,5 @@
 /*
- *  AgentPoolUpdateLocalMaster.java
+ *  AgentPoolUpdateMaster.java
  *  Creato il Mar 12, 2020, 11:44:49 AM
  *
  *  Copyright (C) 2020 Informatica Medica s.r.l.
@@ -15,6 +15,7 @@
 package it.infomed.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.SyncSetupErrorException;
@@ -28,13 +29,13 @@ import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 
 /**
- * Agent di sincronizzazione con utilizzo di un pool di dati.
+ * Agent di sincronizzazione con utilizzo di un poolElement di dati.
  *
  * @author Nicola De Nisco
  */
-public class AgentPoolUpdateLocalMaster extends AgentSharedGenericMaster
+public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
 {
-  protected Element poolLocal;
+  protected Element poolElement;
   protected String poolName, poolData;
 
   @Override
@@ -47,14 +48,14 @@ public class AgentPoolUpdateLocalMaster extends AgentSharedGenericMaster
     if(tables == null)
       throw new SyncSetupErrorException(0, "tables");
 
-    if((poolLocal = tables.getChild("pool-local")) == null)
-      throw new SyncSetupErrorException(0, "tables/pool-local");
+    if((poolElement = tables.getChild("pool")) == null)
+      throw new SyncSetupErrorException(0, "tables/pool");
 
-    if((poolName = okStrNull(poolLocal.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "tables/pool-local:name");
+    if((poolName = okStrNull(poolElement.getAttributeValue("name"))) == null)
+      throw new SyncSetupErrorException(0, "tables/pool:name");
 
-    if((poolData = okStrNull(poolLocal.getAttributeValue("data"))) == null)
-      throw new SyncSetupErrorException(0, "tables/pool-local:data");
+    if((poolData = okStrNull(poolElement.getAttributeValue("data"))) == null)
+      throw new SyncSetupErrorException(0, "tables/pool:data");
   }
 
   @Override
@@ -68,14 +69,17 @@ public class AgentPoolUpdateLocalMaster extends AgentSharedGenericMaster
     if(pool == null)
       die("Missing data pool for name " + poolName);
 
-    List<Record> lsRecs = pool.getDatiVerifica(dataBlockName, poolData,
+    Pair<List<Record>, Schema> dati = pool.getDatiVerifica(dataBlockName, poolData,
        oldTimestamp, arFields, (Map<String, String>) context.get("extraFilter"));
-    if(lsRecs.isEmpty())
+    if(dati.first.isEmpty())
       return;
 
+    if(dati.second != null && schema != null)
+      caricaTipiColonne(dati.second);
+
     // NOTA IMPORTANTE: il timestamp ultimo aggiornamento non viene passato
-    // in quanto è responsabilità del pool stabilire quali record devono essere aggiornati
-    compilaBloccoMaster(arKeys, parametri, lsRecs,
+    // in quanto è responsabilità del poolElement stabilire quali record devono essere aggiornati
+    compilaBloccoMaster(arKeys, parametri, dati.first,
        null, // vedi nota
        timeStamp == null ? null : timeStamp.first,
        v, context);
@@ -98,15 +102,19 @@ public class AgentPoolUpdateLocalMaster extends AgentSharedGenericMaster
     if(pool == null)
       die("Missing data pool for name " + poolName);
 
-    List<Record> lsRecs = pool.getDatiAggiorna(dataBlockName, poolData, arKeys,
+    Pair<List<Record>, Schema> dati = pool.getDatiAggiorna(dataBlockName, poolData, arKeys,
        fetchAllData ? null : parametri, arFields, (Map<String, String>) context.get("extraFilter"));
+    List<Record> lsRecs = dati.first;
     if(lsRecs.isEmpty())
       return;
 
-    // se il pool non sa filtrare i records in base ai parametri, applichiamo un filtro a posteriori
+    if(dati.second != null && schema != null)
+      caricaTipiColonne(dati.second);
+
+    // se il poolElement non sa filtrare i records in base ai parametri, applichiamo un filtro a posteriori
     if(!fetchAllData && !pool.haveNativeFilter())
       lsRecs = filtraRecors(lsRecs, parametri, context);
 
-    popolaTuttiRecords(dataBlockName, "caleido", lsRecs, arRealFields, v, context);
+    popolaTuttiRecords(dataBlockName, databaseName, lsRecs, arRealFields, v, context);
   }
 }

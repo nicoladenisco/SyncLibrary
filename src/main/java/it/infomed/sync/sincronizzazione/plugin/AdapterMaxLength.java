@@ -1,5 +1,5 @@
 /*
- *  AdapterGetFieldMaxForeign.java
+ *  AdapterGetFieldMax.java
  *  Creato il Nov 28, 2017, 5:04:37 PM
  *
  *  Copyright (C) 2017 Informatica Medica s.r.l.
@@ -18,28 +18,53 @@ import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
+import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractAdapter;
-import it.infomed.sync.db.DbPeer;
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.jdom2.Element;
 
 /**
- * Adapter per generazione valore computando il massimo di un campo.
+ * Adapter per limitare dimensioni delle stringhe.
  * Questo adapter può essere utilizzato sia come master che come slave.
  * @author Nicola De Nisco
  */
-public class AdapterGetFieldMaxForeign extends AbstractAdapter
+public class AdapterMaxLength extends AbstractAdapter
 {
-  protected String tableName, dbName;
+  protected int maxValue = 0;
+  protected Map<String, String> valuesMap = new HashMap<>();
+  private Map setup;
+
+  @Override
+  public void setXML(String location, Element data)
+     throws Exception
+  {
+    setup = Utils.parseParams(data);
+    commonSetup();
+  }
+
+  protected void commonSetup()
+  {
+    for(Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) setup.entrySet())
+    {
+      String key = entry.getKey();
+      String value = entry.getValue();
+
+      if(isEquNocase(key, "maxval"))
+        maxValue = parse(value, 0);
+      else
+        valuesMap.put(key, value);
+    }
+  }
 
   @Override
   public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    this.tableName = uniqueName;
-    this.dbName = dbName;
   }
 
   @Override
@@ -54,8 +79,6 @@ public class AdapterGetFieldMaxForeign extends AbstractAdapter
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    this.tableName = uniqueName;
-    this.dbName = dbName;
   }
 
   @Override
@@ -69,17 +92,13 @@ public class AdapterGetFieldMaxForeign extends AbstractAdapter
   public Object masterValidaValore(String key, Record r, Value v, FieldLinkInfoBean f)
      throws Exception
   {
-    String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true);
-    return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
+    return maxValue == 0 ? v.asString() : okStr(v.asString(), maxValue);
   }
 
   @Override
   public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
-    String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true, con);
-    return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
+    return maxValue == 0 ? v : okStr(v, maxValue);
   }
 }

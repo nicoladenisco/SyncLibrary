@@ -14,8 +14,8 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.master;
 
-import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
@@ -27,12 +27,11 @@ import it.infomed.sync.common.plugin.SyncPluginFactory;
 import it.infomed.sync.common.plugin.SyncValidatorPlugin;
 import java.util.*;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.math.NumberUtils;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.isOkStr;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
-import org.rigel5.db.DbUtils;
 
 /**
  * Classe base degli Agent.
@@ -45,7 +44,7 @@ abstract public class AgentGenericMaster extends AbstractAgent
   protected ArrayList<FieldLinkInfoBean> arFields = new ArrayList<>();
   protected Element recordValidatorElement, tableValidatorElement, delStrategyElement;
   protected SyncValidatorPlugin recordValidator, tableValidator;
-  protected String dataBlockName;
+  protected String dataBlockName, databaseName;
   // ----------- questi servono solo per lo slave abbinato ----------
   protected String ignoreInEmptyFields;
   protected boolean isolateRecord, isolateAllRecords;
@@ -70,6 +69,8 @@ abstract public class AgentGenericMaster extends AbstractAgent
 
     if((dataBlockName = okStrNull(data.getAttributeValue("name"))) == null)
       throw new SyncSetupErrorException(0, "name");
+
+    databaseName = okStr(data.getAttributeValue("database-name"), getParentRule().getDatabaseName());
 
     Element fields, validators;
 
@@ -267,48 +268,17 @@ abstract public class AgentGenericMaster extends AbstractAgent
     return null;
   }
 
-  @Override
-  protected String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes)
+  protected void caricaTipiColonne(Schema schema)
+     throws Exception
   {
-    int tipo = col.typeEnum();
-    String s = okStr(valore);
+    this.schema = schema;
 
-    if(truncZeroes)
-      s = removeZero(s);
-
-    if(DbUtils.isNumeric(tipo))
+    for(FieldLinkInfoBean f : arFields)
     {
-      if(!NumberUtils.isNumber(s))
+      if(!isOkStr(f.field.second))
       {
-        log.error("Tipo campo non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-        return null;
+        f.field.second = findInSchema(f.field.first).type();
       }
-      return s;
     }
-
-    if(DbUtils.isString(tipo) || DbUtils.isDate(tipo))
-    {
-      if(isEquAny(s, "NULL", "''"))
-        return s;
-    }
-
-    return "'" + s.replace("'", "''") + "'";
-  }
-
-  @Override
-  protected String convertNullValue(String now, Pair<String, String> field, Column col)
-  {
-    int tipo = col.typeEnum();
-
-    if(DbUtils.isNumeric(tipo))
-      return col.nullAllowed() ? "NULL" : "0";
-
-    if(DbUtils.isString(tipo))
-      return col.nullAllowed() ? "NULL" : "''";
-
-    if(DbUtils.isDate(tipo))
-      return col.nullAllowed() ? "NULL" : "'" + now + "'";
-
-    return "NULL";
   }
 }

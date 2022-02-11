@@ -1,5 +1,5 @@
 /*
- *  RecordFilterValidatorLocalMaster.java
+ *  RecordFilterValidatorMaster.java
  *  Creato il 29-ott-2021, 10.23.13
  *
  *  Copyright (C) 2021 Informatica Medica s.r.l.
@@ -33,7 +33,7 @@ import org.jdom2.Element;
  *
  * @author Nicola De Nisco
  */
-public class RecordFilterValidatorLocalMaster extends AbstractValidator
+public class RecordFilterValidatorMaster extends AbstractValidator
 {
   private Element data;
   private List<FieldFilterBean> arFiltri = new ArrayList<>();

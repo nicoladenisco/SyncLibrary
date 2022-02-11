@@ -1,5 +1,5 @@
 /*
- *  SequenceUpdateValidatorForeign.java
+ *  SequenceUpdateValidator.java
  *  Creato il Jan 31, 2020, 2:44:53 PM
  *
  *  Copyright (C) 2020 Informatica Medica s.r.l.
@@ -26,11 +26,10 @@ import org.jdom2.Element;
 
 /**
  * Reimposta sequenza al valore massimo di un campo.
- * Questo validatore di tabella (local-table-validator o foreign-table-validator)
- * può essere utlizzato sia come master che come slave.
+ * Questo validatore di tabella può essere utlizzato sia come master che come slave.
  * @author Nicola De Nisco
  */
-public class SequenceUpdateValidatorForeign extends AbstractValidator
+public class SequenceUpdateValidator extends AbstractValidator
 {
   protected String field, sequence;
   //  "SELECT pg_catalog.setval('stp.valori_normali_valori_normali_id_seq', 1, false);";
