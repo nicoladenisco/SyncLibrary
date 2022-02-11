@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.okStr;
 import org.jdom2.Element;
 
 /**

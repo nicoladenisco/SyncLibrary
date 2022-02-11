@@ -30,9 +30,6 @@ import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.checkTrueFalse;
-import static org.commonlib5.utils.StringOper.isEquNocase;
-import static org.commonlib5.utils.StringOper.isOkStr;
 import org.jdom2.Element;
 
 /**

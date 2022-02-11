@@ -23,8 +23,6 @@ import it.infomed.sync.common.Utils;
 import java.util.*;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.isEquNocase;
-import static org.commonlib5.utils.StringOper.isOkStr;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 

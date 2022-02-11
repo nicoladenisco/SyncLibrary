@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import org.apache.torque.criteria.SqlEnum;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.isOkStr;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 import org.rigel5.SetupHolder;

@@ -20,7 +20,6 @@ import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractValidator;
-import static it.infomed.sync.common.plugin.SyncPlugin.ROLE_MASTER;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.configuration.Configuration;

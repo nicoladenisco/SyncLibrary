@@ -28,7 +28,6 @@ import it.infomed.sync.common.plugin.SyncValidatorPlugin;
 import java.util.*;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.utils.Pair;
-import static org.commonlib5.utils.StringOper.isOkStr;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
