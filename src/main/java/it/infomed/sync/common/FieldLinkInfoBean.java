@@ -15,7 +15,6 @@
 package it.infomed.sync.common;
 
 import it.infomed.sync.common.plugin.SyncAdapterPlugin;
-import it.infomed.sync.common.plugin.SyncValidatorPlugin;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 
@@ -34,10 +33,6 @@ public class FieldLinkInfoBean
   public String adapterName;
   public SyncAdapterPlugin adapter;
   public Element adapterElement;
-  //
-  public String fieldValidatorName;
-  public SyncValidatorPlugin fieldValidator;
-  public Element fieldValidatorElement;
 
   @Override
   public String toString()

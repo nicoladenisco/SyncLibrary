@@ -30,7 +30,7 @@ import org.jdom2.Element;
  * La delete strategy viene ignorata.
  * Se presenti prima del salvataggio records vengono eseguite una serie
  * di statement SQL, generalmente per cancellare il contenuto in modo selettivo.
- * Se non sono presenti una DELETE FROM nome_tabella viene eseguita in alternativa.
+ * Se non sono presenti, una DELETE FROM nome_tabella viene eseguita in alternativa.
  * <pre>
  *    [sql-statements]
  *      [statement]....[/statement]

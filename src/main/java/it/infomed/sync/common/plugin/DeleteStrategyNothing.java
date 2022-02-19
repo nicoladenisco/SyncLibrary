@@ -17,6 +17,7 @@ package it.infomed.sync.common.plugin;
 import com.workingdogs.village.Record;
 import it.infomed.sync.common.SyncContext;
 import java.sql.Connection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
@@ -47,7 +48,10 @@ public class DeleteStrategyNothing extends AbstractDelete
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, String now, String key, Map<String, String> arKeys, Map<String, String> valoriSelect, Map<String, String> valoriUpdate, Map<String, String> valoriInsert, SyncContext context, Connection con)
+  public boolean confermaValoriRecord(Map r, Date now,
+     String key, Map<String, String> arKeys,
+     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
+     SyncContext context, Connection con)
      throws Exception
   {
     return true;

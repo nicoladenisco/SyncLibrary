@@ -127,15 +127,9 @@ abstract public class AgentGenericMaster extends AbstractAgent
   private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, String location)
      throws Exception
   {
-    Element validators;
     populateFieldName(ef, fi, location);
 
     fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
-    if((validators = ef.getChild("validators")) != null)
-    {
-      // i validatori non sono obbligatori
-      fi.fieldValidatorElement = Utils.getChildTestName(validators, "validator");
-    }
 
     fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
     fi.primary = checkTrueFalse(ef.getAttributeValue("primary"), false);

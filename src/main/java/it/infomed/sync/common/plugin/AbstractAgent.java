@@ -18,16 +18,11 @@ import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import it.infomed.sync.common.*;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.math.NumberUtils;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.VectorRpc;
@@ -102,171 +97,169 @@ public abstract class AbstractAgent extends AbstractPlugin
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
-  protected String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes)
-  {
-    int tipo = col.typeEnum();
-    String s = okStr(valore);
-
-    if(tipo == Types.BIT)
-    {
-      if(checkTrue(s))
-        return "TRUE";
-      if(checkFalse(s))
-        return "FALSE";
-
-      int val = parse(s, -1);
-      if(val != -1)
-        return val > 0 ? "TRUE" : "FALSE";
-
-      log.error("Tipo campo BIT non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-      return null;
-    }
-
-    if(truncZeroes)
-      s = removeZero(s);
-
-    if(col.isNumericValue())
-    {
-      if(!NumberUtils.isNumber(s))
-      {
-        log.error("Tipo campo NUMERICO non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-        return null;
-      }
-      return s;
-    }
-
-    if(col.isStringValue() || col.isDateValue())
-    {
-      if(isEquAny(s, "NULL", "''"))
-        return s;
-    }
-
-    return "'" + s.replace("'", "''") + "'";
-  }
-
-  protected String convertNullValue(String now, Pair<String, String> field, Column col)
-  {
-    int tipo = col.typeEnum();
-
-    if(col.isNumericValue())
-      return col.nullAllowed() ? "NULL" : "0";
-
-    if(col.isStringValue())
-      return col.nullAllowed() ? "NULL" : "''";
-
-    if(col.isDateValue())
-      return col.nullAllowed() ? "NULL" : "'" + now + "'";
-
-    return "NULL";
-  }
-
-  public boolean createOrUpdateRecord(Connection con, String tableName,
-     Map<String, String> valoriUpdate, Map<String, String> valoriSelect, Map<String, String> valoriInsert)
-     throws SQLException
-  {
-    String sSQL;
-
-    if((sSQL = createUpdateStatement(tableName, valoriUpdate, valoriSelect)) != null)
-    {
-      try (Statement st = con.createStatement())
-      {
-        if(st.executeUpdate(sSQL) > 0)
-          return true;
-      }
-    }
-
-    if((sSQL = createInsertStatement(tableName, valoriInsert)) != null)
-    {
-      try (Statement st = con.createStatement())
-      {
-        if(st.executeUpdate(sSQL) > 0)
-          return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Costruzione di statement SQL.
-   * @param tableName nome tabella
-   * @param valori mappa dei valori convertiti in stringa
-   * @return istruzione SQL
-   */
-  public String createInsertStatement(String tableName, Map<String, String> valori)
-  {
-    StringBuilder sb1 = new StringBuilder(512);
-    StringBuilder sb2 = new StringBuilder(512);
-
-    for(Map.Entry<String, String> entry : valori.entrySet())
-    {
-      String key = okStr(entry.getKey());
-      String value = okStr(entry.getValue());
-
-      sb1.append(",").append(key);
-      sb2.append(",").append(value);
-    }
-
-    if(sb1.length() == 0 || sb2.length() == 0)
-      return null;
-
-    String sSQL
-       = "INSERT INTO " + tableName + "(" + sb1.toString().substring(1) + ")"
-       + " VALUES(" + sb2.toString().substring(1) + ")";
-
-    return sSQL;
-  }
-
-  /**
-   * Costruzione di statement SQL.
-   * @param tableName nome tabella
-   * @param valoriUpdate valori da aggiornare convertiti in stringa
-   * @param valoriSelect valori di selezione convertiti in stringa
-   * @return
-   */
-  public String createUpdateStatement(String tableName,
-     Map<String, String> valoriUpdate, Map<String, String> valoriSelect)
-  {
-    StringBuilder sb1 = new StringBuilder(512);
-    StringBuilder sb2 = new StringBuilder(512);
-
-    // ottimizzazione per unico campo da aggiornare
-    // questa serve quando il datablock prevede
-    // l'aggiornamento di un solo campo
-    if(valoriSelect.size() == 1 && valoriUpdate.isEmpty())
-      valoriUpdate.putAll(valoriSelect);
-
-    if(valoriUpdate != null && !valoriUpdate.isEmpty())
-      mapToString(valoriUpdate, sb1, ",");
-
-    if(valoriSelect != null && !valoriSelect.isEmpty())
-      mapToString(valoriSelect, sb2, ") AND (");
-
-    if(sb1.length() == 0)
-      return null;
-
-    String sSQL
-       = "UPDATE " + tableName
-       + " SET " + sb1.toString().substring(1);
-
-    if(sb2.length() > 0)
-      sSQL += " WHERE " + sb2.toString().substring(6) + ")";
-
-    return sSQL;
-  }
-
-  private void mapToString(Map<String, String> valori, StringBuilder sb, String sep)
-  {
-    for(Map.Entry<String, String> entry : valori.entrySet())
-    {
-      String key = okStr(entry.getKey());
-      String value = okStr(entry.getValue());
-
-      sb.append(sep).append(key);
-      sb.append("=").append(value);
-    }
-  }
-
+// TODO: rimuovere
+//  protected String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes)
+//  {
+//    int tipo = col.typeEnum();
+//    String s = okStr(valore);
+//
+//    if(tipo == Types.BIT)
+//    {
+//      if(checkTrue(s))
+//        return "TRUE";
+//      if(checkFalse(s))
+//        return "FALSE";
+//
+//      int val = parse(s, -1);
+//      if(val != -1)
+//        return val > 0 ? "TRUE" : "FALSE";
+//
+//      log.error("Tipo campo BIT non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
+//      return null;
+//    }
+//
+//    if(truncZeroes)
+//      s = removeZero(s);
+//
+//    if(col.isNumericValue())
+//    {
+//      if(!NumberUtils.isNumber(s))
+//      {
+//        log.error("Tipo campo NUMERICO non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
+//        return null;
+//      }
+//      return s;
+//    }
+//
+//    if(col.isStringValue() || col.isDateValue())
+//    {
+//      if(isEquAny(s, "NULL", "''"))
+//        return s;
+//    }
+//
+//    return "'" + s.replace("'", "''") + "'";
+//  }
+//
+//  protected String convertNullValue(String now, Pair<String, String> field, Column col)
+//  {
+//    if(col.isNumericValue())
+//      return col.nullAllowed() ? "NULL" : "0";
+//
+//    if(col.isStringValue())
+//      return col.nullAllowed() ? "NULL" : "''";
+//
+//    if(col.isDateValue())
+//      return col.nullAllowed() ? "NULL" : "'" + now + "'";
+//
+//    return "NULL";
+//  }
+//
+//  public boolean createOrUpdateRecord(Connection con, String tableName,
+//     Map<String, String> valoriUpdate, Map<String, String> valoriSelect, Map<String, String> valoriInsert)
+//     throws SQLException
+//  {
+//    String sSQL;
+//
+//    if((sSQL = createUpdateStatement(tableName, valoriUpdate, valoriSelect)) != null)
+//    {
+//      try (Statement st = con.createStatement())
+//      {
+//        if(st.executeUpdate(sSQL) > 0)
+//          return true;
+//      }
+//    }
+//
+//    if((sSQL = createInsertStatement(tableName, valoriInsert)) != null)
+//    {
+//      try (Statement st = con.createStatement())
+//      {
+//        if(st.executeUpdate(sSQL) > 0)
+//          return true;
+//      }
+//    }
+//
+//    return false;
+//  }
+//
+//  /**
+//   * Costruzione di statement SQL.
+//   * @param tableName nome tabella
+//   * @param valori mappa dei valori convertiti in stringa
+//   * @return istruzione SQL
+//   */
+//  public String createInsertStatement(String tableName, Map<String, String> valori)
+//  {
+//    StringBuilder sb1 = new StringBuilder(512);
+//    StringBuilder sb2 = new StringBuilder(512);
+//
+//    for(Map.Entry<String, String> entry : valori.entrySet())
+//    {
+//      String key = okStr(entry.getKey());
+//      String value = okStr(entry.getValue());
+//
+//      sb1.append(",").append(key);
+//      sb2.append(",").append(value);
+//    }
+//
+//    if(sb1.length() == 0 || sb2.length() == 0)
+//      return null;
+//
+//    String sSQL
+//       = "INSERT INTO " + tableName + "(" + sb1.toString().substring(1) + ")"
+//       + " VALUES(" + sb2.toString().substring(1) + ")";
+//
+//    return sSQL;
+//  }
+//
+//  /**
+//   * Costruzione di statement SQL.
+//   * @param tableName nome tabella
+//   * @param valoriUpdate valori da aggiornare convertiti in stringa
+//   * @param valoriSelect valori di selezione convertiti in stringa
+//   * @return
+//   */
+//  public String createUpdateStatement(String tableName,
+//     Map<String, String> valoriUpdate, Map<String, String> valoriSelect)
+//  {
+//    StringBuilder sb1 = new StringBuilder(512);
+//    StringBuilder sb2 = new StringBuilder(512);
+//
+//    // ottimizzazione per unico campo da aggiornare
+//    // questa serve quando il datablock prevede
+//    // l'aggiornamento di un solo campo
+//    if(valoriSelect.size() == 1 && valoriUpdate.isEmpty())
+//      valoriUpdate.putAll(valoriSelect);
+//
+//    if(valoriUpdate != null && !valoriUpdate.isEmpty())
+//      mapToString(valoriUpdate, sb1, ",");
+//
+//    if(valoriSelect != null && !valoriSelect.isEmpty())
+//      mapToString(valoriSelect, sb2, ") AND (");
+//
+//    if(sb1.length() == 0)
+//      return null;
+//
+//    String sSQL
+//       = "UPDATE " + tableName
+//       + " SET " + sb1.toString().substring(1);
+//
+//    if(sb2.length() > 0)
+//      sSQL += " WHERE " + sb2.toString().substring(6) + ")";
+//
+//    return sSQL;
+//  }
+//
+//  private void mapToString(Map<String, String> valori, StringBuilder sb, String sep)
+//  {
+//    for(Map.Entry<String, String> entry : valori.entrySet())
+//    {
+//      String key = okStr(entry.getKey());
+//      String value = okStr(entry.getValue());
+//
+//      sb.append(sep).append(key);
+//      sb.append("=").append(value);
+//    }
+//  }
   public Column findInSchema(String nomeColonna)
      throws Exception
   {

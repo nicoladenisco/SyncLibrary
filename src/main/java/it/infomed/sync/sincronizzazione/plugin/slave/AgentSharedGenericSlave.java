@@ -14,23 +14,24 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.slave;
 
+import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import it.infomed.sync.common.*;
-import it.infomed.sync.db.DatabaseException;
 import it.infomed.sync.db.DbPeer;
-import it.infomed.sync.db.SqlTransactAgent;
 import it.infomed.sync.sincronizzazione.RuleRunner;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
-import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.rigel5.db.DbUtils;
 
 /**
  * Classe base degli Agent con un concetto di campi condivisi e timestamp.
@@ -98,122 +99,44 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   }
 
   @Override
-  protected void salvaRecord(Map r,
-     String tableName, String databaseName,
-     Map<String, Integer> lsNotNullFields, SyncContext context)
-     throws Exception
-  {
-    if(haveTs())
-      salvaRecordShared(r, tableName, databaseName, lsNotNullFields, context);
-    else
-      super.salvaRecord(r, tableName, databaseName, lsNotNullFields, context);
-  }
-
-  protected void salvaRecordShared(Map r,
-     String tableName, String databaseName,
-     Map<String, Integer> lsNotNullFields, SyncContext context)
-     throws Exception
-  {
-    SqlTransactAgent.execute(databaseName, (con) -> salvaRecordShared(r,
-       tableName, databaseName, lsNotNullFields, context, con));
-  }
-
-  protected void salvaRecordShared(Map r,
-     String tableName, String databaseName,
-     Map<String, Integer> lsNotNullFields, SyncContext context, Connection con)
-     throws Exception
-  {
-    if(arKeys.isEmpty())
-      die("Nessuna definizione di chiave per " + tableName + ": aggiornamento non possibile");
-
-    try
-    {
-      boolean haveAutoTs = isEquNocase(timeStamp.first, "auto");
-      String key = buildKey(r, arKeys);
-      String now = DateTime.formatIsoFull(new Date());
-
-      if(recordValidator != null)
-        if(recordValidator.slaveValidaRecord(key, r, arFields, con) != 0)
-          return;
-
-      HashMap<String, String> valoriUpdate = new HashMap<>();
-      HashMap<String, String> valoriSelect = new HashMap<>();
-      HashMap<String, String> valoriInsert = new HashMap<>();
-
-      if(!haveAutoTs)
-      {
-        valoriInsert.put(timeStamp.first, "'" + now + "'");
-        valoriUpdate.put(timeStamp.first, "'" + now + "'");
-        lsNotNullFields.remove(timeStamp.first.toUpperCase());
-      }
-
-      preparaValoriNotNull(lsNotNullFields, valoriInsert, now);
-
-      if(!preparaValoriRecord(r,
-         tableName, databaseName, key, now,
-         valoriSelect, valoriUpdate, valoriInsert,
-         con))
-        return;
-
-      if(delStrategy != null)
-      {
-        // converte chiave per shared con adapter
-        String convertedKey = keysHaveAdapter ? convertiChiave(
-           tableName, databaseName, key, context) : key;
-
-        if(convertedKey != null)
-        {
-          // reimposta lo stato_rec al valore di non cancellato
-          if(!delStrategy.confermaValoriRecord(r, now, key, arKeys,
-             valoriSelect, valoriUpdate, valoriInsert, context,
-             con))
-            return;
-        }
-      }
-
-      createOrUpdateRecord(con, tableName, valoriUpdate, valoriSelect, valoriInsert);
-
-      if(haveAutoTs)
-        updateCalTimestamp(tableName, key, now, con);
-    }
-    catch(SyncIgnoreRecordException e)
-    {
-      // un adapter o altra ha esplicitamente bloccato l'inserimento di questo record
-      if(log.isDebugEnabled())
-        log.info(e.getMessage() + " ignore record " + r.toString());
-      else
-        log.info(e.getMessage());
-    }
-    catch(SyncErrorException | DatabaseException e)
-    {
-      // this exception avoids the insert or update on db because the external key reference is violated
-      // but it doesn't stop the elaboration of all other records
-      log.error(e.getMessage() + " Unable to import the record " + r.toString());
-    }
-  }
-
-  @Override
   protected boolean isSelect(FieldLinkInfoBean f)
   {
     return arKeys.containsKey(f.field.first) || f.primary;
   }
 
-  protected void updateCalTimestamp(String tableName, String key, String now, Connection con)
-     throws DatabaseException
+  protected boolean updateCalTimestamp(String tableName, String key, Date now, Connection con)
+     throws SQLException
   {
     // aggiornamento tabella dei timestamp; ATTENZIONE: la tabella esiste solo sul db principale
     String sSQL = ""
-       + "UPDATE " + RuleRunner.SYNC_TIMESTAMP_TABLE + "\n"
-       + "   SET LAST_UPDATE='" + now + "'\n"
-       + " WHERE TABLE_NAME='" + tableName + "'\n"
-       + "   AND SHARED_KEY='" + key + "'\n";
-    if(DbPeer.executeStatement(sSQL, con) == 0)
+       + "UPDATE " + RuleRunner.SYNC_TIMESTAMP_TABLE + " \n"
+       + "   SET LAST_UPDATE=? \n"
+       + " WHERE TABLE_NAME=? \n"
+       + "   AND SHARED_KEY=? \n";
+
+    try (PreparedStatement stmt = con.prepareStatement(sSQL))
     {
-      sSQL = ""
-         + "INSERT INTO " + RuleRunner.SYNC_TIMESTAMP_TABLE + "(TABLE_NAME, SHARED_KEY, LAST_UPDATE)\n"
-         + " VALUES('" + tableName + "','" + key + "','" + now + "')\n";
-      DbPeer.executeStatement(sSQL, con);
+      stmt.setTimestamp(1, DbUtils.cvtTimestamp(now));
+      stmt.setString(2, tableName);
+      stmt.setString(3, key);
+      if(stmt.executeUpdate() > 0)
+        return true;
     }
+
+    sSQL = ""
+       + "INSERT INTO " + RuleRunner.SYNC_TIMESTAMP_TABLE + "(TABLE_NAME, SHARED_KEY, LAST_UPDATE)\n"
+       + " VALUES(?,?,?)\n";
+
+    try (PreparedStatement stmt = con.prepareStatement(sSQL))
+    {
+      stmt.setString(1, tableName);
+      stmt.setString(2, key);
+      stmt.setTimestamp(3, DbUtils.cvtTimestamp(now));
+      if(stmt.executeUpdate() > 0)
+        return true;
+    }
+
+    return false;
   }
 
   protected String convertiChiave(
@@ -247,7 +170,10 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     {
       if(!isOkStr(f.second))
       {
-        f.second = findInSchema(f.first).type();
+        Column col = findInSchema(f.first);
+        // reimposta nome per avere il case corretto
+        f.first = col.name();
+        f.second = col.type();
       }
     }
   }

@@ -24,6 +24,7 @@ import it.infomed.sync.common.plugin.AbstractDelete;
 import it.infomed.sync.db.DbPeer;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.Pair;
@@ -329,9 +330,9 @@ public class DeleteStrategyGeneric extends AbstractDelete
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, String now,
+  public boolean confermaValoriRecord(Map r, Date now,
      String key, Map<String, String> arKeys,
-     Map<String, String> valoriSelect, Map<String, String> valoriUpdate, Map<String, String> valoriInsert,
+     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
      SyncContext context, Connection con)
      throws Exception
   {

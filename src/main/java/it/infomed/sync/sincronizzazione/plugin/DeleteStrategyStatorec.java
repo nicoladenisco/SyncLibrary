@@ -21,6 +21,7 @@ import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractDelete;
 import it.infomed.sync.db.DbPeer;
 import java.sql.Connection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
@@ -126,11 +127,14 @@ public class DeleteStrategyStatorec extends AbstractDelete
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, String now, String key, Map<String, String> arKeys, Map<String, String> valoriSelect, Map<String, String> valoriUpdate, Map<String, String> valoriInsert, SyncContext context, Connection con)
+  public boolean confermaValoriRecord(Map r, Date now,
+     String key, Map<String, String> arKeys,
+     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
+     SyncContext context, Connection con)
      throws Exception
   {
-    valoriInsert.put("STATO_REC", "0");
-    valoriUpdate.put("STATO_REC", "0");
+    valoriInsert.put("STATO_REC", 0);
+    valoriUpdate.put("STATO_REC", 0);
     return true;
   }
 

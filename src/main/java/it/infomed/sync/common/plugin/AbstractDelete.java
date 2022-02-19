@@ -18,6 +18,7 @@ import com.workingdogs.village.Record;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.Utils;
 import java.sql.Connection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +72,10 @@ public class AbstractDelete extends AbstractPlugin
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, String now, String key, Map<String, String> arKeys, Map<String, String> valoriSelect, Map<String, String> valoriUpdate, Map<String, String> valoriInsert, SyncContext context, Connection con)
+  public boolean confermaValoriRecord(Map r, Date now,
+     String key, Map<String, String> arKeys,
+     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
+     SyncContext context, Connection con)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
