@@ -101,7 +101,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       {
         FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
         if(f.adapter != null)
-          f.adapter.slaveSharedFetchData(tableName, databaseName, lsRecs, f, context);
+          f.adapter.slaveSharedFetchData(lsRecs, f, context);
       }
     }
 
@@ -182,7 +182,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   {
     Vector v = (Vector) context.getNotNull("records-data");
     if(!v.isEmpty())
-      salvaTuttiRecords(tableName, databaseName, v, context);
+      salvaTuttiRecords(v, context);
   }
 
   @Override
@@ -231,7 +231,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     {
       if(keysHaveAdapter)
         convertiChiavi(delete, context);
-      delStrategy.cancellaRecordsPerDelete(unknow, arKeys, context);
+      delStrategy.cancellaRecordsPerDelete(delete, arKeys, context);
     }
 
     if(!unknow.isEmpty())
@@ -239,17 +239,6 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       if(keysHaveAdapter)
         convertiChiavi(unknow, context);
       delStrategy.cancellaRecordsPerUnknow(unknow, arKeys, context);
-    }
-  }
-
-  protected void convertiChiavi(List<String> lsKeys, SyncContext context)
-     throws Exception
-  {
-    for(int i = 0; i < arKeys.size(); i++)
-    {
-      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
-      if(f.adapter != null)
-        f.adapter.slaveSharedConvertKeys(tableName, databaseName, lsKeys, f, i, context);
     }
   }
 
@@ -285,14 +274,14 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  protected void salvaTuttiRecords(String tableName, String databaseName, List<Map> lsRecs, SyncContext context)
+  protected void salvaTuttiRecords(List<Map> lsRecs, SyncContext context)
      throws Exception
   {
     if(isolateAllRecords)
     {
       try
       {
-        salvaTuttiRecordsInternal(tableName, databaseName, lsRecs, context);
+        salvaTuttiRecordsInternal(lsRecs, context);
       }
       catch(Throwable t)
       {
@@ -301,14 +290,14 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
     else
     {
-      salvaTuttiRecordsInternal(tableName, databaseName, lsRecs, context);
+      salvaTuttiRecordsInternal(lsRecs, context);
     }
   }
 
-  protected void salvaTuttiRecordsInternal(String tableName, String databaseName, List<Map> lsRecs, SyncContext context)
+  protected void salvaTuttiRecordsInternal(List<Map> lsRecs, SyncContext context)
      throws Exception
   {
-    prepareForSave(tableName, databaseName, lsRecs, context);
+    prepareForSave(lsRecs, context);
 
     try
     {
@@ -319,7 +308,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
         {
           try
           {
-            salvaRecord(r, tableName, databaseName, context);
+            salvaRecord(r, context);
           }
           catch(Throwable t)
           {
@@ -330,12 +319,12 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       else
       {
         for(Map r : lsRecs)
-          salvaRecord(r, tableName, databaseName, context);
+          salvaRecord(r, context);
       }
     }
     finally
     {
-      clearForSave(tableName, databaseName, lsRecs, context);
+      clearForSave(lsRecs, context);
     }
   }
 
@@ -348,17 +337,17 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context
    * @throws Exception
    */
-  protected void prepareForSave(String tableName1, String databaseName1, List<Map> lsRecs, SyncContext context)
+  protected void prepareForSave(List<Map> lsRecs, SyncContext context)
      throws Exception
   {
     if(recordValidator != null)
-      recordValidator.slavePreparaValidazione(tableName1, databaseName1, lsRecs, arFields, context);
+      recordValidator.slavePreparaValidazione(lsRecs, arFields, context);
 
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
       if(f.adapter != null)
-        f.adapter.slavePreparaValidazione(tableName1, databaseName1, lsRecs, arFields, f, context);
+        f.adapter.slavePreparaValidazione(lsRecs, arFields, f, context);
     }
   }
 
@@ -372,18 +361,18 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context
    * @throws Exception
    */
-  protected void clearForSave(String tableName1, String databaseName1, List<Map> lsRecs, SyncContext context)
+  protected void clearForSave(List<Map> lsRecs, SyncContext context)
      throws Exception
   {
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
       if(f.adapter != null)
-        f.adapter.slaveFineValidazione(tableName1, databaseName1, lsRecs, arFields, f, context);
+        f.adapter.slaveFineValidazione(lsRecs, arFields, f, context);
     }
 
     if(recordValidator != null)
-      recordValidator.slaveFineValidazione(tableName1, databaseName1, lsRecs, arFields, context);
+      recordValidator.slaveFineValidazione(lsRecs, arFields, context);
   }
 
   /**
@@ -391,29 +380,23 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * ATTENZIONE: ogni record deve essere salvato in una transazione
    * separata altrimenti un errore SQL su un record blocca il salvataggio degli altri.
    * @param r valori del record
-   * @param tableName nome tabella
-   * @param databaseName nome del database
    * @param lsNotNullFields lista di campi che non possono essere null
    * @param context the value of context
    * @throws Exception
    */
-  protected void salvaRecord(Map r,
-     String tableName, String databaseName,
-     SyncContext context)
+  protected void salvaRecord(Map r, SyncContext context)
      throws Exception
   {
     SqlTransactAgent.execute(databaseName, (con) ->
     {
       if(haveTs())
-        salvaRecordShared(r, tableName, databaseName, context, con);
+        salvaRecordShared(r, context, con);
       else
-        salvaRecord(r, tableName, databaseName, context, con);
+        salvaRecord(r, context, con);
     });
   }
 
-  protected void salvaRecord(Map r,
-     String tableName, String databaseName,
-     SyncContext context, Connection con)
+  protected void salvaRecord(Map r, SyncContext context, Connection con)
      throws Exception
   {
     try
@@ -428,13 +411,10 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       HashMap<String, Object> valoriSelect = new HashMap<>();
       HashMap<String, Object> valoriInsert = new HashMap<>();
 
-      if(!preparaValoriRecord(r,
-         tableName, databaseName, null,
+      if(!preparaValoriRecord(r, null,
          valoriSelect, valoriUpdate, valoriInsert,
          con))
         return;
-
-      preparaValoriNotNull(valoriInsert, now);
 
       if(delStrategy != null)
       {
@@ -445,7 +425,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
           return;
       }
 
-      createOrUpdateRecord(con, tableName, valoriUpdate, valoriSelect, valoriInsert);
+      createOrUpdateRecord(con, now, valoriUpdate, valoriSelect, valoriInsert);
     }
     catch(SyncIgnoreRecordException e)
     {
@@ -463,9 +443,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  protected void salvaRecordShared(Map r,
-     String tableName, String databaseName,
-     SyncContext context, Connection con)
+  protected void salvaRecordShared(Map r, SyncContext context, Connection con)
      throws Exception
   {
     if(arKeys.isEmpty())
@@ -491,8 +469,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
         valoriUpdate.put(timeStamp.first, now);
       }
 
-      if(!preparaValoriRecord(r,
-         tableName, databaseName, null,
+      if(!preparaValoriRecord(r, key,
          valoriSelect, valoriUpdate, valoriInsert,
          con))
         return;
@@ -500,8 +477,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       if(delStrategy != null)
       {
         // converte chiave per shared con adapter
-        String convertedKey = keysHaveAdapter ? convertiChiave(
-           tableName, databaseName, key, context) : key;
+        String convertedKey = keysHaveAdapter ? convertiChiave(key, context) : key;
 
         if(convertedKey != null)
         {
@@ -513,10 +489,10 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
         }
       }
 
-      createOrUpdateRecord(con, tableName, valoriUpdate, valoriSelect, valoriInsert);
+      createOrUpdateRecord(con, now, valoriUpdate, valoriSelect, valoriInsert);
 
       if(haveAutoTs)
-        updateCalTimestamp(tableName, key, now, con);
+        updateCalTimestamp(key, now, con);
     }
     catch(SyncIgnoreRecordException e)
     {
@@ -534,8 +510,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  protected boolean preparaValoriRecord(Map r,
-     String tableName, String databaseName, String key,
+  protected boolean preparaValoriRecord(Map r, String key,
      Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
      Connection con)
      throws Exception
@@ -598,7 +573,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  public void createOrUpdateRecord(Connection con, String tableName,
+  public void createOrUpdateRecord(Connection con, Date now,
      Map<String, Object> valoriUpdate, Map<String, Object> valoriSelect, Map<String, Object> valoriInsert)
      throws SQLException, DataSetException
   {
@@ -607,6 +582,9 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
     if(lsPrevious.isEmpty())
     {
+      // aggiunge eventuali campi not null
+      preparaValoriNotNull(valoriInsert, now);
+
       Record nuovo = tds.addRecord();
       nuovo.setValues(valoriInsert);
       nuovo.save();

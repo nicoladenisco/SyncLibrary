@@ -40,9 +40,9 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
 {
   private Element data;
   private String table, idfield, codicefield;
-  private Map<Integer, String> mapLocalId = new HashMap<>();
-  private Map<Integer, String> mapSharedId = new HashMap<>();
-  private Map<String, Integer> mapSharedCodice = new HashMap<>();
+  private final Map<Integer, String> mapLocalId = new HashMap<>();
+  private final Map<Integer, String> mapSharedId = new HashMap<>();
+  private final Map<String, Integer> mapSharedCodice = new HashMap<>();
   private HashtableRpc setup;
 
   @Override
@@ -77,7 +77,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
   }
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterPreparaValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -98,7 +98,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
     String sSQL = "SELECT " + idfield + "," + codicefield
        + " FROM " + table
        + " WHERE " + idfield + " IN (" + join(arallid, ',') + ")";
-    List<Record> lsr = DbPeer.executeQuery(sSQL, dbName);
+    List<Record> lsr = DbPeer.executeQuery(sSQL, getDbname());
 
     for(Record r : lsr)
     {
@@ -109,7 +109,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
   }
 
   @Override
-  public void masterFineValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterFineValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -124,7 +124,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
   }
 
   @Override
-  public void masterSharedFetchData(String uniqueName, String dbName, List<Record> lsRecs, FieldLinkInfoBean field, SyncContext context)
+  public void masterSharedFetchData(List<Record> lsRecs, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
     mapSharedId.clear();
@@ -144,7 +144,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
     String sSQL = "SELECT " + idfield + "," + codicefield
        + " FROM " + table
        + " WHERE " + idfield + " IN (" + join(arallid, ',') + ")";
-    List<Record> lsr = DbPeer.executeQuery(sSQL, dbName);
+    List<Record> lsr = DbPeer.executeQuery(sSQL, getDbname());
 
     // carica tutti i codici per gli ID richiesti
     for(Record r : lsr)
@@ -165,7 +165,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
   }
 
   @Override
-  public void masterSharedConvertKeys(String uniqueName, String dbName,
+  public void masterSharedConvertKeys(
      List<String> parametri, FieldLinkInfoBean field, int idxInKeys, SyncContext context)
      throws Exception
   {
@@ -184,5 +184,10 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
 
     parametri.clear();
     parametri.addAll(newparam);
+  }
+
+  private String getDbname()
+  {
+    return ((AgentGenericMaster) parentAgent).databaseName;
   }
 }

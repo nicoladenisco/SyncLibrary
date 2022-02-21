@@ -56,7 +56,7 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterPreparaValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -64,7 +64,7 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public void masterFineValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterFineValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -79,7 +79,7 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slavePreparaValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -87,7 +87,7 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public void slaveFineValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slaveFineValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -102,14 +102,14 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public void slaveSharedFetchData(String uniqueName, String dbName, List<Record> lsRecs, FieldLinkInfoBean field, SyncContext context)
+  public void slaveSharedFetchData(List<Record> lsRecs, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
     die("Questo adapter non può essere utilizzato insieme a shared. Implementare le funzionalità di sharing delle chiavi oppure usare un opportuno tableadapter.");
   }
 
   @Override
-  public void slaveSharedConvertKeys(String uniqueName, String dbName, List<String> parametri,
+  public void slaveSharedConvertKeys(List<String> parametri,
      FieldLinkInfoBean field, int idxInKeys, SyncContext context)
      throws Exception
   {
@@ -117,14 +117,14 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public void masterSharedFetchData(String uniqueName, String dbName, List<Record> lsRecs, FieldLinkInfoBean field, SyncContext context)
+  public void masterSharedFetchData(List<Record> lsRecs, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
     die("Questo adapter non può essere utilizzato insieme a shared. Implementare le funzionalità di sharing delle chiavi oppure usare un opportuno tableadapter.");
   }
 
   @Override
-  public void masterSharedConvertKeys(String uniqueName, String dbName, List<String> parametri, FieldLinkInfoBean field, int idxInKeys, SyncContext context)
+  public void masterSharedConvertKeys(List<String> parametri, FieldLinkInfoBean field, int idxInKeys, SyncContext context)
      throws Exception
   {
     die("Questo adapter non può essere utilizzato insieme a shared. Implementare le funzionalità di sharing delle chiavi oppure usare un opportuno tableadapter.");

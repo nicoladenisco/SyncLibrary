@@ -41,10 +41,10 @@ import org.rigel5.db.DbUtils;
 public class AgentSharedGenericSlave extends AgentGenericSlave
 {
   protected Pair<String, String> timeStamp;
-  protected ArrayMap<String, String> arKeys = new ArrayMap<>();
+  protected final ArrayMap<String, String> arKeys = new ArrayMap<>();
   protected boolean correct = false;
-  protected String correctTableName = null;
-  protected Map<String, Date> mapTimeStamps = new HashMap<>();
+  public String correctTableName = null;
+  protected final Map<String, Date> mapTimeStamps = new HashMap<>();
   protected boolean keysHaveAdapter = false;
 
   @Override
@@ -104,7 +104,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     return arKeys.containsKey(f.field.first) || f.primary;
   }
 
-  protected boolean updateCalTimestamp(String tableName, String key, Date now, Connection con)
+  protected boolean updateCalTimestamp(String key, Date now, Connection con)
      throws SQLException
   {
     // aggiornamento tabella dei timestamp; ATTENZIONE: la tabella esiste solo sul db principale
@@ -117,7 +117,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     try (PreparedStatement stmt = con.prepareStatement(sSQL))
     {
       stmt.setTimestamp(1, DbUtils.cvtTimestamp(now));
-      stmt.setString(2, tableName);
+      stmt.setString(2, correctTableName);
       stmt.setString(3, key);
       if(stmt.executeUpdate() > 0)
         return true;
@@ -129,7 +129,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
     try (PreparedStatement stmt = con.prepareStatement(sSQL))
     {
-      stmt.setString(1, tableName);
+      stmt.setString(1, correctTableName);
       stmt.setString(2, key);
       stmt.setTimestamp(3, DbUtils.cvtTimestamp(now));
       if(stmt.executeUpdate() > 0)
@@ -139,9 +139,17 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     return false;
   }
 
-  protected String convertiChiave(
-     String tableName, String databaseName, String key,
-     SyncContext context)
+  /**
+   * Converte una singola chiave attraverso l'adapter.
+   * E' utilizzata quando un campo shared ha anche un adapter.
+   * @param tableName
+   * @param databaseName
+   * @param key
+   * @param context
+   * @return
+   * @throws Exception
+   */
+  protected String convertiChiave(String key, SyncContext context)
      throws Exception
   {
     List<String> lsKeys = new ArrayList<>(1);
@@ -151,10 +159,30 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     {
       FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
       if(f.adapter != null)
-        f.adapter.slaveSharedConvertKeys(tableName, databaseName, lsKeys, f, i, context);
+        f.adapter.slaveSharedConvertKeys(lsKeys, f, i, context);
     }
 
     return lsKeys.isEmpty() ? null : lsKeys.get(0);
+  }
+
+  /**
+   * Converte una lista di chiavi attraverso l'adapter.
+   * E' utilizzata quando un campo shared ha anche un adapter.
+   * @param tableName
+   * @param databaseName
+   * @param lsKeys
+   * @param context
+   * @throws Exception
+   */
+  protected void convertiChiavi(List<String> lsKeys, SyncContext context)
+     throws Exception
+  {
+    for(int i = 0; i < arKeys.size(); i++)
+    {
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
+      if(f.adapter != null)
+        f.adapter.slaveSharedConvertKeys(lsKeys, f, i, context);
+    }
   }
 
   @Override

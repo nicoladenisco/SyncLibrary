@@ -76,6 +76,16 @@ public abstract class AbstractAgent extends AbstractPlugin
     this.filter = filter;
   }
 
+  public Schema getSchema()
+  {
+    return schema;
+  }
+
+  public void setSchema(Schema schema)
+  {
+    this.schema = schema;
+  }
+
   @Override
   public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
      throws Exception

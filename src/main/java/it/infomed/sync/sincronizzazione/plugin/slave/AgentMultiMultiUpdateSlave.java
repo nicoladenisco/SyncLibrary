@@ -43,6 +43,6 @@ public class AgentMultiMultiUpdateSlave extends AgentCopyUpdateSlave
 
     Vector v = (Vector) context.getNotNull("records-data");
     if(!v.isEmpty())
-      salvaTuttiRecords(tableName, databaseName, v, context);
+      salvaTuttiRecords(v, context);
   }
 }

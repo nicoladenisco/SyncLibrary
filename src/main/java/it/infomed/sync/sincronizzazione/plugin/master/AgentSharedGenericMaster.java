@@ -14,6 +14,7 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.master;
 
+import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
@@ -36,7 +37,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
   protected Pair<String, String> timeStamp;
   protected ArrayMap<String, String> arKeys = new ArrayMap<>();
   protected boolean correct = false;
-  protected String correctTableName = null;
+  public String correctTableName = null;
 
   @Override
   public void setXML(String location, Element data)
@@ -150,13 +151,21 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
     super.caricaTipiColonne(schema);
 
     if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
-      timeStamp.second = findInSchema(timeStamp.first).type();
+    {
+      Column col = findInSchema(timeStamp.first);
+      // anche nome per correggere il case
+      timeStamp.first = col.name();
+      timeStamp.second = col.type();
+    }
 
     for(Pair<String, String> f : arKeys.getAsList())
     {
       if(!isOkStr(f.second))
       {
-        f.second = findInSchema(f.first).type();
+        Column col = findInSchema(f.first);
+        // anche nome per correggere il case
+        f.first = col.name();
+        f.second = col.type();
       }
     }
   }

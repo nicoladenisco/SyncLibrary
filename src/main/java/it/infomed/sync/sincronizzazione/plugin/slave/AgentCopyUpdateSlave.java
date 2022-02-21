@@ -127,6 +127,6 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
 
     Vector v = (Vector) context.getNotNull("records-data");
     if(!v.isEmpty())
-      salvaTuttiRecords(tableName, databaseName, v, context);
+      salvaTuttiRecords(v, context);
   }
 }

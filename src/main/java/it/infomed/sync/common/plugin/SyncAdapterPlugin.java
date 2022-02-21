@@ -52,7 +52,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterPreparaValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
@@ -67,7 +67,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void masterFineValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterFineValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
@@ -95,7 +95,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slavePreparaValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
@@ -110,7 +110,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slaveFineValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slaveFineValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
@@ -138,7 +138,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slaveSharedFetchData(String uniqueName, String dbName, List<Record> lsRecs,
+  public void slaveSharedFetchData(List<Record> lsRecs,
      FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
@@ -153,7 +153,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slaveSharedConvertKeys(String uniqueName, String dbName, List<String> parametri,
+  public void slaveSharedConvertKeys(List<String> parametri,
      FieldLinkInfoBean field, int idxInKeys, SyncContext context)
      throws Exception;
 
@@ -168,7 +168,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void masterSharedFetchData(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterSharedFetchData(List<Record> lsRecs,
      FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
@@ -183,7 +183,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void masterSharedConvertKeys(String uniqueName, String dbName, List<String> parametri,
+  public void masterSharedConvertKeys(List<String> parametri,
      FieldLinkInfoBean field, int idxInKeys, SyncContext context)
      throws Exception;
 }

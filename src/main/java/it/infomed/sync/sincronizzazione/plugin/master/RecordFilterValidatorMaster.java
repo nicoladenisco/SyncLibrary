@@ -103,14 +103,14 @@ public class RecordFilterValidatorMaster extends AbstractValidator
   }
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName,
+  public void masterPreparaValidazione(
      List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void masterFineValidazione(String uniqueName, String dbName,
+  public void masterFineValidazione(
      List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {

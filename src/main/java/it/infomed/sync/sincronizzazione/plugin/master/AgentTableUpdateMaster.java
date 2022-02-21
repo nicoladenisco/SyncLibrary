@@ -81,7 +81,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     {
       FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
       if(f.adapter != null)
-        f.adapter.masterSharedFetchData(tableName, null, lsRecs, f, context);
+        f.adapter.masterSharedFetchData(lsRecs, f, context);
     }
 
     if(haveTs())
@@ -174,7 +174,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
       FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
 
       if(f.adapter != null)
-        f.adapter.masterSharedConvertKeys(tableName, "caleido", parametri, f, i, context);
+        f.adapter.masterSharedConvertKeys(parametri, f, i, context);
     }
 
     if(fetchAllData || arKeys.size() == 1)
@@ -225,7 +225,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     if(lsRecs.isEmpty())
       return;
 
-    popolaTuttiRecords(tableName, "caleido", lsRecs, arRealFields, v, context);
+    popolaTuttiRecords(lsRecs, arRealFields, v, context);
   }
 
   private void populateMultipleKey(String fields,
@@ -264,7 +264,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     // produce una nuova lista di record controllando i valori delle altre chiavi
     List<Record> lsRecsFlt = filtraRecors(lsRecs, parametri, context);
 
-    popolaTuttiRecords(tableName, "caleido", lsRecsFlt, arRealFields, v, context);
+    popolaTuttiRecords(lsRecsFlt, arRealFields, v, context);
   }
 
   /**

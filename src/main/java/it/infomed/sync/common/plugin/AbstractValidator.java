@@ -44,14 +44,14 @@ public class AbstractValidator extends AbstractPlugin
   }
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void masterPreparaValidazione(List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void masterFineValidazione(String uniqueName, String dbName, List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void masterFineValidazione(List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
@@ -65,14 +65,14 @@ public class AbstractValidator extends AbstractPlugin
   }
 
   @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slavePreparaValidazione(List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void slaveFineValidazione(String uniqueName, String dbName, List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slaveFineValidazione(List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");

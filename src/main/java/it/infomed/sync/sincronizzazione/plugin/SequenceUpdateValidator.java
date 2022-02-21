@@ -19,6 +19,10 @@ import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.plugin.AbstractValidator;
 import it.infomed.sync.db.DbPeer;
+import it.infomed.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import it.infomed.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
+import it.infomed.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
+import it.infomed.sync.sincronizzazione.plugin.slave.AgentSharedGenericSlave;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,7 @@ import org.jdom2.Element;
  */
 public class SequenceUpdateValidator extends AbstractValidator
 {
+  protected String tableName, dbName;
   protected String field, sequence;
   //  "SELECT pg_catalog.setval('stp.valori_normali_valori_normali_id_seq', 1, false);";
 
@@ -43,30 +48,54 @@ public class SequenceUpdateValidator extends AbstractValidator
   }
 
   @Override
-  public void masterFineValidazione(String tableName, String dbName,
-     List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void masterPreparaValidazione(List<Record> lsRecs,
+     List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    setSequence(tableName, dbName);
+    this.tableName = ((AgentSharedGenericMaster) parentAgent).correctTableName;
+    this.dbName = ((AgentGenericMaster) parentAgent).databaseName;
+
+    if(sequence == null)
+      sequence = tableName + "_" + field + "_seq";
   }
 
   @Override
-  public void slaveFineValidazione(String tableName, String dbName,
+  public void slavePreparaValidazione(List<Map> lsRecs,
+     List<FieldLinkInfoBean> arFields, SyncContext context)
+     throws Exception
+  {
+    this.tableName = ((AgentSharedGenericSlave) parentAgent).correctTableName;
+    this.dbName = ((AgentGenericSlave) parentAgent).databaseName;
+
+    if(sequence == null)
+      sequence = tableName + "_" + field + "_seq";
+  }
+
+  @Override
+  public void masterFineValidazione(
+     List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+     throws Exception
+  {
+    setSequence();
+  }
+
+  @Override
+  public void slaveFineValidazione(
      List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    setSequence(tableName, dbName);
+    setSequence();
   }
 
-  protected void setSequence(String tableName, String dbName)
+  protected void setSequence()
      throws Exception
   {
-    long val = getMax(tableName, dbName, field);
+    long val = getMax(field);
     String sSQL = "SELECT pg_catalog.setval('" + sequence + "', " + val + ", false);";
     DbPeer.executeQuery(sSQL, dbName);
   }
 
-  protected long getMax(String tableName, String dbName, String fieldName)
+  protected long getMax(String fieldName)
      throws Exception
   {
     String sSQL = "SELECT MAX(" + fieldName + ") FROM " + tableName;
@@ -75,22 +104,10 @@ public class SequenceUpdateValidator extends AbstractValidator
   }
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
-     throws Exception
-  {
-  }
-
-  @Override
   public int masterValidaRecord(String key, Record r, List<FieldLinkInfoBean> arFields)
      throws Exception
   {
     return 0;
-  }
-
-  @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
-     throws Exception
-  {
   }
 
   @Override

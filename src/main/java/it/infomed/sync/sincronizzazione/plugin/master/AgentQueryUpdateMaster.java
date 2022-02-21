@@ -173,7 +173,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
     if(lsRecs.isEmpty())
       return;
 
-    popolaTuttiRecords(tableName, databaseName, lsRecs, arRealFields, v, context);
+    popolaTuttiRecords(lsRecs, arRealFields, v, context);
   }
 
   /**

@@ -96,14 +96,14 @@ public class RecordFilterValidatorSlave extends AbstractValidator
   }
 
   @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName,
+  public void slavePreparaValidazione(
      List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slaveFineValidazione(String uniqueName, String dbName,
+  public void slaveFineValidazione(
      List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {

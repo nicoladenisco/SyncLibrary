@@ -37,7 +37,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
   protected ArrayList<FieldLinkInfoBean> arFields = new ArrayList<>();
   protected Element recordValidatorElement, delStrategyElement;
   protected SyncValidatorPlugin recordValidator;
-  protected String dataBlockName, databaseName;
+  public String dataBlockName, databaseName;
   // ----------- questi servono solo per lo slave abbinato ----------
   protected String ignoreInEmptyFields;
   protected boolean isolateRecord, isolateAllRecords;

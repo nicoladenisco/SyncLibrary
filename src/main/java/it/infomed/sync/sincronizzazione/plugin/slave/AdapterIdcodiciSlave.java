@@ -14,6 +14,7 @@
  */
 package it.infomed.sync.sincronizzazione.plugin.slave;
 
+import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
@@ -21,7 +22,7 @@ import it.infomed.sync.common.SyncIgnoreRecordException;
 import it.infomed.sync.common.SyncSetupErrorException;
 import it.infomed.sync.common.Utils;
 import it.infomed.sync.common.plugin.AbstractAdapter;
-import it.infomed.sync.db.Database;
+import it.infomed.sync.common.plugin.AbstractAgent;
 import it.infomed.sync.db.DbPeer;
 import it.infomed.sync.db.SqlTransactAgent;
 import java.sql.Connection;
@@ -48,9 +49,9 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 {
   private Element data;
   private String table, idfield, codicefield;
-  private HashMap<String, Integer> mapCodici = new HashMap<>();
-  private Map<Integer, String> mapSharedId = new HashMap<>();
-  private Map<String, Integer> mapSharedCodice = new HashMap<>();
+  private final Map<String, Integer> mapCodici = new HashMap<>();
+  private final Map<Integer, String> mapSharedId = new HashMap<>();
+  private final Map<String, Integer> mapSharedCodice = new HashMap<>();
   private HashtableRpc setup;
 
   @Override
@@ -79,7 +80,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slavePreparaValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -99,28 +100,23 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     if(arallcodici.length == 0)
       return;
 
-    SqlTransactAgent ta = new SqlTransactAgent(true, dbName)
+    // recupera info colonna dallo schema
+    Column col = ((AbstractAgent) parentAgent).getSchema().column(codicefield);
+
+    SqlTransactAgent.execute(getDbname(), (dbCon) ->
     {
-      @Override
-      public boolean run(Connection dbCon, boolean transactionSupported)
-         throws Exception
+      List<Record> lsr = fetchData(col.isNumericValue(), arallcodici, dbCon);
+
+      if(lsr != null)
       {
-        boolean isNumeric = Database.isNumeric(dbCon, table, codicefield);
-        List<Record> lsr = fetchData(isNumeric, arallcodici, dbCon);
-
-        if(lsr != null)
+        for(Record r : lsr)
         {
-          for(Record r : lsr)
-          {
-            int id = r.getValue(1).asInt();
-            String codice = r.getValue(2).asString();
-            mapCodici.put(codice, id);
-          }
+          int id = r.getValue(1).asInt();
+          String codice = r.getValue(2).asString();
+          mapCodici.put(codice, id);
         }
-
-        return true;
       }
-    };
+    });
   }
 
   protected List<Record> fetchData(boolean isNumeric, String[] arallcodici, Connection con)
@@ -152,8 +148,9 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 
     if(isOkStr(join))
     {
-      String sSQL = "SELECT " + idfield + "," + codicefield
-         + " FROM " + table
+      String sSQL
+         = "SELECT " + idfield + "," + codicefield
+         + "  FROM " + table
          + " WHERE " + codicefield + " IN (" + join + ")";
 
       return DbPeer.executeQuery(sSQL, false, con);
@@ -163,7 +160,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void slaveFineValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slaveFineValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -182,7 +179,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void slaveSharedFetchData(String uniqueName, String dbName, List<Record> lsRecs,
+  public void slaveSharedFetchData(List<Record> lsRecs,
      FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
@@ -199,10 +196,11 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     if(arallid.length == 0)
       return;
 
-    String sSQL = "SELECT " + idfield + "," + codicefield
-       + " FROM " + table
+    String sSQL
+       = "SELECT " + idfield + "," + codicefield
+       + "  FROM " + table
        + " WHERE " + idfield + " IN (" + join(arallid, ',') + ")";
-    List<Record> lsr = DbPeer.executeQuery(sSQL, dbName);
+    List<Record> lsr = DbPeer.executeQuery(sSQL, getDbname());
 
     // carica tutti i codici per gli ID richiesti
     for(Record r : lsr)
@@ -223,7 +221,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void slaveSharedConvertKeys(String uniqueName, String dbName, List<String> parametri,
+  public void slaveSharedConvertKeys(List<String> parametri,
      FieldLinkInfoBean field, int idxInKeys, SyncContext context)
      throws Exception
   {
@@ -242,5 +240,10 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 
     parametri.clear();
     parametri.addAll(newparam);
+  }
+
+  private String getDbname()
+  {
+    return ((AgentGenericSlave) parentAgent).databaseName;
   }
 }

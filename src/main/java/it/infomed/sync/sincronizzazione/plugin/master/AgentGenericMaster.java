@@ -43,7 +43,7 @@ abstract public class AgentGenericMaster extends AbstractAgent
   protected ArrayList<FieldLinkInfoBean> arFields = new ArrayList<>();
   protected Element recordValidatorElement, tableValidatorElement, delStrategyElement;
   protected SyncValidatorPlugin recordValidator, tableValidator;
-  protected String dataBlockName, databaseName;
+  public String dataBlockName, databaseName;
   // ----------- questi servono solo per lo slave abbinato ----------
   protected String ignoreInEmptyFields;
   protected boolean isolateRecord, isolateAllRecords;
@@ -187,18 +187,18 @@ abstract public class AgentGenericMaster extends AbstractAgent
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  protected void popolaTuttiRecords(String uniqueName, String dbName, List<Record> lsRecs,
+  protected void popolaTuttiRecords(List<Record> lsRecs,
      List<FieldLinkInfoBean> arRealFields, VectorRpc vResult, SyncContext context)
      throws Exception
   {
     if(recordValidator != null)
-      recordValidator.masterPreparaValidazione(uniqueName, dbName, lsRecs, arRealFields, context);
+      recordValidator.masterPreparaValidazione(lsRecs, arRealFields, context);
 
     for(int i = 0; i < arRealFields.size(); i++)
     {
       FieldLinkInfoBean f = arRealFields.get(i);
       if(f.adapter != null)
-        f.adapter.masterPreparaValidazione(uniqueName, dbName, lsRecs, arRealFields, f, context);
+        f.adapter.masterPreparaValidazione(lsRecs, arRealFields, f, context);
     }
 
     for(Record r : lsRecs)
@@ -213,11 +213,11 @@ abstract public class AgentGenericMaster extends AbstractAgent
     {
       FieldLinkInfoBean f = arRealFields.get(i);
       if(f.adapter != null)
-        f.adapter.masterFineValidazione(uniqueName, dbName, lsRecs, arRealFields, f, context);
+        f.adapter.masterFineValidazione(lsRecs, arRealFields, f, context);
     }
 
     if(recordValidator != null)
-      recordValidator.masterFineValidazione(uniqueName, dbName, lsRecs, arRealFields, context);
+      recordValidator.masterFineValidazione(lsRecs, arRealFields, context);
   }
 
   protected HashtableRpc popolaRecord(Record r, List<FieldLinkInfoBean> arRealFields, HashtableRpc hr)

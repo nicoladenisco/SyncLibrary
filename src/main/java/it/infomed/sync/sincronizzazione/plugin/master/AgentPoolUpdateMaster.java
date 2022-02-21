@@ -115,6 +115,6 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
     if(!fetchAllData && !pool.haveNativeFilter())
       lsRecs = filtraRecors(lsRecs, parametri, context);
 
-    popolaTuttiRecords(dataBlockName, databaseName, lsRecs, arRealFields, v, context);
+    popolaTuttiRecords(lsRecs, arRealFields, v, context);
   }
 }

@@ -85,7 +85,8 @@ public interface SyncRulePlugin extends SyncPlugin
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(String nome,
+     List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
      throws Exception;
 
   /**
@@ -97,7 +98,8 @@ public interface SyncRulePlugin extends SyncPlugin
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void aggiornaBlocco(String nome, List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(String nome,
+     List<String> parametri, SyncContext context)
      throws Exception;
 
   /**
@@ -116,7 +118,8 @@ public interface SyncRulePlugin extends SyncPlugin
    * @param context
    * @throws Exception
    */
-  public void pianificaAggiornamento(String nome, List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(String nome,
+     List<String> aggiorna, List<String> vInfo, SyncContext context)
      throws Exception;
 
   /**

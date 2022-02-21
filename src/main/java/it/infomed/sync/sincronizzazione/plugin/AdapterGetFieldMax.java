@@ -20,6 +20,10 @@ import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.plugin.AbstractAdapter;
 import it.infomed.sync.db.DbPeer;
+import it.infomed.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import it.infomed.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
+import it.infomed.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
+import it.infomed.sync.sincronizzazione.plugin.slave.AgentSharedGenericSlave;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -34,32 +38,32 @@ public class AdapterGetFieldMax extends AbstractAdapter
   protected String tableName, dbName;
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterPreparaValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    this.tableName = uniqueName;
-    this.dbName = dbName;
+    this.tableName = ((AgentSharedGenericMaster) parentAgent).correctTableName;
+    this.dbName = ((AgentGenericMaster) parentAgent).databaseName;
   }
 
   @Override
-  public void masterFineValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterFineValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slavePreparaValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    this.tableName = uniqueName;
-    this.dbName = dbName;
+    this.tableName = ((AgentSharedGenericSlave) parentAgent).correctTableName;
+    this.dbName = ((AgentGenericSlave) parentAgent).databaseName;
   }
 
   @Override
-  public void slaveFineValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slaveFineValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {

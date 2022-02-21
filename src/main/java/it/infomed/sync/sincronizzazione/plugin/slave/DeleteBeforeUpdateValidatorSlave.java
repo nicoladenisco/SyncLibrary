@@ -19,6 +19,8 @@ import it.infomed.sync.common.FieldLinkInfoBean;
 import it.infomed.sync.common.SyncContext;
 import it.infomed.sync.common.plugin.AbstractValidator;
 import it.infomed.sync.db.DbPeer;
+import it.infomed.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import it.infomed.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,7 @@ import org.jdom2.Element;
  */
 public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
 {
+  protected String tableName, dbName;
   protected String filter;
 
   @Override
@@ -45,22 +48,39 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
   }
 
   @Override
-  public void masterFineValidazione(String tableName, String dbName,
+  public void masterPreparaValidazione(List<Record> lsRecs,
+     List<FieldLinkInfoBean> arFields, SyncContext context)
+     throws Exception
+  {
+    this.tableName = ((AgentSharedGenericMaster) parentAgent).correctTableName;
+    this.dbName = ((AgentGenericMaster) parentAgent).databaseName;
+  }
+
+  @Override
+  public void slavePreparaValidazione(List<Map> lsRecs,
+     List<FieldLinkInfoBean> arFields, SyncContext context)
+     throws Exception
+  {
+    this.tableName = ((AgentSharedGenericSlave) parentAgent).correctTableName;
+    this.dbName = ((AgentGenericSlave) parentAgent).databaseName;
+
+    String sSQL = "DELETE FROM " + tableName;
+    if(isOkStr(filter))
+      sSQL += " WHERE " + filter;
+
+    DbPeer.executeStatement(sSQL, dbName);
+  }
+
+  @Override
+  public void masterFineValidazione(
      List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slaveFineValidazione(String tableName, String dbName,
+  public void slaveFineValidazione(
      List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
-     throws Exception
-  {
-  }
-
-  @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName,
-     List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
@@ -70,18 +90,6 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
      throws Exception
   {
     return 0;
-  }
-
-  @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName,
-     List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
-     throws Exception
-  {
-    String sSQL = "DELETE FROM " + uniqueName;
-    if(isOkStr(filter))
-      sSQL += " WHERE " + filter;
-
-    DbPeer.executeStatement(sSQL, dbName);
   }
 
   @Override

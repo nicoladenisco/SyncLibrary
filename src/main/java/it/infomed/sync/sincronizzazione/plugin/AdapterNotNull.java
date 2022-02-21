@@ -49,28 +49,28 @@ public class AdapterNotNull extends AbstractAdapter
   }
 
   @Override
-  public void masterPreparaValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterPreparaValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void masterFineValidazione(String uniqueName, String dbName, List<Record> lsRecs,
+  public void masterFineValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slavePreparaValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slavePreparaValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slaveFineValidazione(String uniqueName, String dbName, List<Map> lsRecs,
+  public void slaveFineValidazione(List<Map> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
