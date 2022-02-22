@@ -76,6 +76,7 @@ public interface SyncDeletePlugin extends SyncPlugin
    * @param r contenuto del record da validare
    * @param key
    * @param now
+   * @param arKeys
    * @param valoriSelect
    * @param valoriUpdate
    * @param valoriInsert

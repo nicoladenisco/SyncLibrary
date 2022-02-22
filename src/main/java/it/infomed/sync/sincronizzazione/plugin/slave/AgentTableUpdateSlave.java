@@ -578,7 +578,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
      throws SQLException, DataSetException
   {
     tds.setConnection(con);
-    List<Record> lsPrevious = tds.fetchByGenericValues(con, valoriSelect).fetchAllRecords();
+    List<Record> lsPrevious = tds.fetchByGenericValues(valoriSelect).fetchAllRecords();
 
     if(lsPrevious.isEmpty())
     {
