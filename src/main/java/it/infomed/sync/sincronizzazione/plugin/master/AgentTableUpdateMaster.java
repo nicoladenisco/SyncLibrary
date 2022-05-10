@@ -22,10 +22,14 @@ import it.infomed.sync.db.Database;
 import it.infomed.sync.db.DbPeer;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.commonlib5.utils.DateTime;
+import org.apache.torque.criteria.SqlEnum;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
+import org.rigel5.SetupHolder;
+import org.rigel5.db.sql.FiltroData;
+import org.rigel5.db.sql.QueryBuilder;
+import org.rigel5.table.RigelColumnDescriptor;
 
 /**
  * Adapter di sincronizzazione orientato alle tabelle.
@@ -96,29 +100,28 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     if(correct)
     {
       // corregge la condizione di ULT_MODIF a NULL: produce continui aggiornamenti dei records
-      StringBuilder su = new StringBuilder(128);
-      su.append("UPDATE ").append(correctTableName)
-         .append(" SET ").append(timeStamp.first).append("='").append(DateTime.formatIsoFull(new Date())).append("'")
-         .append(" WHERE ").append(timeStamp.first).append(" IS NULL");
-      DbPeer.executeStatement(su.toString(), databaseName);
+      FiltroData fd = new FiltroData();
+      fd.addUpdate(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, new Date());
+      fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.ISNULL, null);
+      QueryBuilder qb = SetupHolder.getQueryBuilder();
+      qb.setDeleteFrom(correctTableName);
+      String sqlUpdate = qb.queryForUpdate(fd);
+      DbPeer.executeStatement(sqlUpdate);
     }
 
-    StringBuilder sb = new StringBuilder();
-    sb.append("SELECT ");
-    sb.append(timeStamp.first).append(",STATO_REC");
-    arKeys.forEach((f) -> sb.append(',').append(f.first));
-    sb.append(" FROM ").append(tableName);
-    sb.append(" WHERE 1=1");
+    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    qb.setSelect(timeStamp.first + ",STATO_REC," + join(arKeys.keySet().iterator(), ','));
+    qb.setFrom(tableName);
 
+    FiltroData fd = new FiltroData();
     if(oldTimestamp != null)
-      sb.append(" AND ").append(timeStamp.first).append(">='")
-         .append(DateTime.formatIsoFull(oldTimestamp)).append('\'');
+      fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.GREATER_EQUAL, oldTimestamp);
 
     if(filter != null)
     {
       // aggiunge clausole del filtro
       for(String sql : filter.sqlFilterCompare)
-        sb.append(" AND (").append(sql).append(")");
+        fd.addFreeWhere(sql);
 
       // se richiesto aggiunge limitazione temporale
       if(filter.timeLimitCompare != 0)
@@ -126,32 +129,37 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
         Calendar cal = new GregorianCalendar();
         cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitCompare);
         Date firstDate = cal.getTime();
-        sb.append(" AND (").append(timeStamp.first).append(" >= '")
-           .append(DateTime.formatIsoFull(firstDate)).append("')");
+        fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.GREATER_EQUAL, firstDate);
       }
     }
 
-    return DbPeer.executeQuery(sb.toString(), databaseName);
+    if(fd.haveWhere())
+      qb.setFiltro(fd);
+
+    String sqlSelect = qb.makeSQLstring();
+    return DbPeer.executeQuery(sqlSelect);
   }
 
   protected List<Record> queryWithoutTimestamp()
      throws Exception
   {
-    StringBuilder sb = new StringBuilder();
-    sb.append("SELECT ");
-    sb.append("STATO_REC");
-    arKeys.forEach((f) -> sb.append(',').append(f.first));
-    sb.append(" FROM ").append(tableName);
-    sb.append(" WHERE 1=1");
+    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    qb.setSelect("STATO_REC," + join(arKeys.keySet().iterator(), ','));
+    qb.setFrom(tableName);
 
+    FiltroData fd = new FiltroData();
     if(filter != null)
     {
       // aggiunge clausole del filtro
       for(String sql : filter.sqlFilterCompare)
-        sb.append(" AND (").append(sql).append(")");
+        fd.addFreeWhere(sql);
     }
 
-    return DbPeer.executeQuery(sb.toString(), databaseName);
+    if(fd.haveWhere())
+      qb.setFiltro(fd);
+
+    String sqlSelect = qb.makeSQLstring();
+    return DbPeer.executeQuery(sqlSelect);
   }
 
   @Override
@@ -161,6 +169,13 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     VectorRpc v = new VectorRpc();
     context.put("records-data", v);
     boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
+
+    // cut-off per lista parametri eccessivamente lunga
+    if(parametri.size() >= limiteQueryParametri)
+    {
+      log.info("La richiesta verifica parametri eccede " + limiteQueryParametri + " records; tutti i records verranno ritornati.");
+      fetchAllData = true;
+    }
 
     // estrae i soli campi significativi
     List<FieldLinkInfoBean> arRealFields = arFields.stream()
@@ -177,55 +192,85 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
         f.adapter.masterSharedConvertKeys(parametri, f, i, context);
     }
 
-    if(fetchAllData || arKeys.size() == 1)
+    if(fetchAllData)
     {
-      populateSingleKey(fetchAllData, fields, parametri, arRealFields, v, context);
+      populateFetchAll(fields, arRealFields, v, context);
+      return;
+    }
+
+    if(arKeys.size() == 1)
+    {
+      populateSingleKey(fields, parametri, arRealFields, v, context);
       return;
     }
 
     populateMultipleKey(fields, parametri, arRealFields, v, context);
   }
 
-  private void populateSingleKey(boolean fetchAllData, String fields,
+  private void populateFetchAll(String fields,
+     List<FieldLinkInfoBean> arRealFields, VectorRpc v, SyncContext context)
+     throws Exception
+  {
+    List<Record> lsRecs = queryFetchAll(fields);
+    if(lsRecs.isEmpty())
+      return;
+
+    popolaTuttiRecords(lsRecs, arRealFields, v, context);
+  }
+
+  private void populateSingleKey(String fields,
      List<String> parametri, List<FieldLinkInfoBean> arRealFields, VectorRpc v, SyncContext context)
      throws Exception
   {
-    StringBuilder sb = new StringBuilder();
+    List<Record> lsRecs = queryUnaChiave(fields, arKeys.getKeyByIndex(0), parametri);
 
-    if(fetchAllData)
+    if(lsRecs.isEmpty())
+      return;
+
+    popolaTuttiRecords(lsRecs, arRealFields, v, context);
+  }
+
+  private List<Record> queryFetchAll(String fields)
+     throws Exception
+  {
+    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    qb.setSelect(fields);
+    qb.setFrom(tableName);
+    qb.setWhere("((STATO_REC IS NULL) OR (STATO_REC < 10))");
+
+    if(filter.timeLimitFetch > 0)
     {
-      sb.append("SELECT ");
-      sb.append(fields);
-      sb.append(" FROM ").append(tableName);
-      sb.append(" WHERE ((STATO_REC IS NULL) OR (STATO_REC < 10))");
+      GregorianCalendar cal = new GregorianCalendar();
+      cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
+      qb.addWhere(" AND (" + qb.adjCampoValue(RigelColumnDescriptor.PDT_TIMESTAMP, "ULT_MODIF", ">=", cal.getTime()) + ")");
     }
-    else
-    {
-      String fieldLink = arKeys.getKeyByIndex(0);
 
-      sb.append("SELECT ");
-      sb.append(fieldLink).append(',').append(fields);
-      sb.append(" FROM ").append(tableName);
-      sb.append(" WHERE ((STATO_REC IS NULL) OR (STATO_REC < 10))");
-      if(!parametri.isEmpty())
-      {
-        sb.append(" AND ").append(fieldLink).append(" IN (");
-        sb.append(join(parametri.iterator(), ',', '\'')).append(")");
-      }
+    String sSQL = qb.makeSQLstring();
+    return DbPeer.executeQuery(sSQL);
+  }
+
+  private List<Record> queryUnaChiave(String fields, String fieldLink, Collection<String> parametriLink)
+     throws Exception
+  {
+    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    qb.setSelect(fieldLink + "," + fields);
+    qb.setFrom(tableName);
+    qb.setWhere("((STATO_REC IS NULL) OR (STATO_REC < 10))");
+
+    if(!parametriLink.isEmpty())
+    {
+      qb.addWhere(" AND (" + fieldLink + " IN (" + join(parametriLink.iterator(), ',', '\'') + "))");
     }
 
     if(filter.timeLimitFetch > 0)
     {
       GregorianCalendar cal = new GregorianCalendar();
       cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
-      sb.append(" AND (ULT_MODIF >= '").append(DateTime.formatIsoFull(cal.getTime())).append("')");
+      qb.addWhere(" AND (" + qb.adjCampoValue(RigelColumnDescriptor.PDT_TIMESTAMP, "ULT_MODIF", ">=", cal.getTime()) + ")");
     }
 
-    List<Record> lsRecs = DbPeer.executeQuery(sb.toString(), databaseName);
-    if(lsRecs.isEmpty())
-      return;
-
-    popolaTuttiRecords(lsRecs, arRealFields, v, context);
+    String sSQL = qb.makeSQLstring();
+    return DbPeer.executeQuery(sSQL);
   }
 
   private void populateMultipleKey(String fields,
@@ -245,19 +290,8 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
       keyVals.add(key.substring(0, pos));
     }
 
-    // prepara la select utilizzando la prima delle chiavi
-    StringBuilder sb = new StringBuilder();
-    sb.append("SELECT ");
-    sb.append(fieldLink).append(',').append(fields);
-    sb.append(" FROM ").append(tableName);
-    if(!parametri.isEmpty())
-    {
-      sb.append(" WHERE ").append(fieldLink).append(" IN (");
-      sb.append(join(keyVals.iterator(), ',', '\'')).append(")");
-    }
-
     // estrae i records dove almeno la prima chiave è verificata
-    List<Record> lsRecs = DbPeer.executeQuery(sb.toString(), databaseName);
+    List<Record> lsRecs = queryUnaChiave(fields, fieldLink, keyVals);
     if(lsRecs.isEmpty())
       return;
 

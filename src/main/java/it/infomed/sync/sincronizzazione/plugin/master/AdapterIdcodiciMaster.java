@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration.Configuration;
 import org.commonlib5.lambda.LEU;
+import org.commonlib5.utils.ArrayOper;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 
@@ -95,6 +96,23 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
     if(arallid.length == 0)
       return;
 
+    if(arallid.length < limiteQueryParametri)
+    {
+      subQuery1(arallid);
+      return;
+    }
+
+    // protezione per evitare che la clausola IN diventi troppo lunga
+    List<List<Integer>> splitList = ArrayOper.splitList(ArrayOper.asList(arallid), limiteQueryParametri);
+    for(List<Integer> list : splitList)
+    {
+      subQuery1(ArrayOper.toArrayInt(list));
+    }
+  }
+
+  private void subQuery1(int[] arallid)
+     throws Exception
+  {
     String sSQL = "SELECT " + idfield + "," + codicefield
        + " FROM " + table
        + " WHERE " + idfield + " IN (" + join(arallid, ',') + ")";
@@ -128,6 +146,7 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
      throws Exception
   {
     mapSharedId.clear();
+    mapSharedCodice.clear();
     if(lsRecs.isEmpty())
       return;
 
@@ -141,6 +160,31 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
     if(arallid.length == 0)
       return;
 
+    if(arallid.length < limiteQueryParametri)
+    {
+      subQuery2(arallid);
+    }
+    else
+    {
+      List<List<Integer>> splitList = ArrayOper.splitList(ArrayOper.asList(arallid), limiteQueryParametri);
+      for(List<Integer> list : splitList)
+      {
+        subQuery2(ArrayOper.toArrayInt(list));
+      }
+    }
+
+    // sostrituisce il valore nel record da int (ID) a stringa (CODICE)
+    for(Record r : lsRecs)
+    {
+      int id = r.getValue(field.field.first).asInt();
+      if(id != 0)
+        r.setValue(field.field.first, mapSharedId.getOrDefault(id, ""));
+    }
+  }
+
+  private void subQuery2(int[] arallid)
+     throws Exception
+  {
     String sSQL = "SELECT " + idfield + "," + codicefield
        + " FROM " + table
        + " WHERE " + idfield + " IN (" + join(arallid, ',') + ")";
@@ -153,14 +197,6 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
       String codice = r.getValue(2).asString();
       mapSharedId.put(id, codice);
       mapSharedCodice.put(codice, id);
-    }
-
-    // sostrituisce il valore nel record da int (ID) a stringa (CODICE)
-    for(Record r : lsRecs)
-    {
-      int id = r.getValue(field.field.first).asInt();
-      if(id != 0)
-        r.setValue(field.field.first, mapSharedId.getOrDefault(id, ""));
     }
   }
 

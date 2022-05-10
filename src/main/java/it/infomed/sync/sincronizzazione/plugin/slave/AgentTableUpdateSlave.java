@@ -548,11 +548,11 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
       if(col.isNumericValue())
       {
-        valoriInsert.put(campo, "0");
+        valoriInsert.put(campo, 0);
       }
       else if(col.isStringValue())
       {
-        valoriInsert.put(campo, "''");
+        valoriInsert.put(campo, "");
       }
       else if(col.isDateValue())
       {
@@ -560,7 +560,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       }
       else
       {
-        valoriInsert.put(campo, "''");
+        valoriInsert.put(campo, "");
       }
     }
   }

@@ -34,12 +34,14 @@ public class AbstractPlugin extends StringOper
    implements SyncPlugin
 {
   protected Log log = LogFactory.getLog(getClass());
-  protected Date FAR_DATE = DateTime.mergeDataOra(1, 1, 1900, 0, 0, 0);
+  protected Date FAR_DATE = DateTime.parseIsoFull("1900-01-01 00:00:00", null);
+  protected int limiteQueryParametri = 990;
 
   @Override
   public void configure(Configuration cfg)
      throws Exception
   {
+    limiteQueryParametri = cfg.getInt("limiteQueryParametri", limiteQueryParametri);
   }
 
   @Override
