@@ -267,9 +267,6 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
   /**
    * Popola la lista record ottenuta.
-   * @param tableName nome tabella
-   * @param databaseName nome del database
-   * @param tableSchema the value of tableSchema
    * @param lsRecs lista dei records
    * @param context contesto dell'aggiornamento
    * @throws Exception
@@ -331,8 +328,6 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   /**
    * Operazioni preliminari per salvataggio dei records.
    * Inizializza validatori e adapter per le successive operazioni di salvataggio record.
-   * @param tableName1
-   * @param databaseName1
    * @param lsRecs
    * @param context
    * @throws Exception
@@ -355,8 +350,6 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * Operazioni di pulizia dopo salvataggio dei records.
    * Notifica a validatori e adapter la fine delle operazioni di salvataggio record.
    * Qui vengono rilasciate eventuali risorse accumulate prima e durante il salvataggio.
-   * @param tableName1
-   * @param databaseName1
    * @param lsRecs
    * @param context
    * @throws Exception
@@ -380,7 +373,6 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * ATTENZIONE: ogni record deve essere salvato in una transazione
    * separata altrimenti un errore SQL su un record blocca il salvataggio degli altri.
    * @param r valori del record
-   * @param lsNotNullFields lista di campi che non possono essere null
    * @param context the value of context
    * @throws Exception
    */
