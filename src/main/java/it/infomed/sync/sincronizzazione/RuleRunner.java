@@ -273,6 +273,8 @@ public abstract class RuleRunner
       if(!e.getMessage().contains("type \"datetime\" does not exist"))
         throw e;
     }
+
+    throw new DatabaseException("Generic error create timestamp table.");
   }
 
   public Date getOldTimestamp()
