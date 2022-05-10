@@ -41,7 +41,8 @@ public interface SyncClientInterface
      throws Exception;
 
   /**
-   * Scarica la strategia di aggiornamento.Ovvero l'elenco dei blocchi che verranno aggiornati.
+   * Scarica la strategia di aggiornamento.
+   * Ovvero l'elenco dei blocchi che verranno aggiornati.
    * Non viene effettuata ricerca: il nomeRegola determina la strategia.
    * @param nomeRegola nome della regola richiesta
    * @param context contesto da popolare con i risultati
