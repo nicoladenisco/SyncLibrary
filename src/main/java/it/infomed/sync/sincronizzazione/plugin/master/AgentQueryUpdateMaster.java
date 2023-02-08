@@ -130,7 +130,10 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 
     FiltroData fd = new FiltroData();
     if(oldTimestamp != null && !ignoreOldTimestamp)
-      fd.addWhere(RigelColumnDescriptor.PDT_STRING, timeStamp.first, SqlEnum.GREATER_THAN, DateTime.formatIsoFull(oldTimestamp));
+    {
+      //fd.addWhere(RigelColumnDescriptor.PDT_STRING, timeStamp.first, SqlEnum.GREATER_THAN, DateTime.formatIsoFull(oldTimestamp));
+      fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.GREATER_THAN, oldTimestamp);
+    }
 
     qb.setParametri(fd);
     String sSQL = qb.makeSQLstring();
@@ -183,9 +186,9 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   protected void caricaTipiColonne()
      throws Exception
   {
-    try (Connection con = Database.getConnection(databaseName))
+    try ( Connection con = Database.getConnection(databaseName))
     {
-      try (QueryDataSet qds = qb.buildQueryDataset(con, false))
+      try ( QueryDataSet qds = qb.buildQueryDataset(con, false))
       {
         schema = qds.schema();
       }

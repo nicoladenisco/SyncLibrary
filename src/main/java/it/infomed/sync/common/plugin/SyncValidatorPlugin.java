@@ -43,8 +43,6 @@ public interface SyncValidatorPlugin extends SyncPlugin
   /**
    * Prepara validazione di un blocco di records.
    * Generalmente implemetata solo lato master.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName the value of dbName
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param context contesto dell'aggiornamento
@@ -57,8 +55,6 @@ public interface SyncValidatorPlugin extends SyncPlugin
   /**
    * Completa validazione di un blocco di records.
    * Generalmente implemetata solo lato master.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName the value of dbName
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param context contesto dell'aggiornamento
@@ -82,8 +78,6 @@ public interface SyncValidatorPlugin extends SyncPlugin
   /**
    * Prepara validazione di un blocco di records.
    * Generalmente implemetata solo lato slave.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param context contesto dell'aggiornamento
@@ -96,8 +90,6 @@ public interface SyncValidatorPlugin extends SyncPlugin
   /**
    * Completa validazione di un blocco di records.
    * Generalmente implemetata solo lato slave.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param context contesto dell'aggiornamento

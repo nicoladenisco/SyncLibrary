@@ -118,7 +118,6 @@ public abstract class RuleRunner
       // crea un context locale per azzerare il context ad ogni iterazione
       SyncContext ctx = (SyncContext) context.clone();
 
-      List<String> aggiorna = new ArrayList<>();
       List<Pair<String, Date>> parametri = new ArrayList<>();
 
       // interroga il server per i candidati per l'aggiornamento
@@ -141,7 +140,7 @@ public abstract class RuleRunner
 
       // pianifica la richiesta dati per l'aggiornamento
       client.pianificaAggiornamento(nomeRegola, nomeBlocco, vInfo, ctx);
-      aggiorna = (List<String>) ctx.get("records-data");
+      List<String> aggiorna = (List<String>) ctx.get("records-data");
       if(aggiorna.isEmpty())
       {
         log.debug("Pianificazione slave non richiede record.");
@@ -184,7 +183,7 @@ public abstract class RuleRunner
       List<Pair<String, Date>> parametri = new ArrayList<>();
 
       // prepera dati per l'interrogazione al server
-      rule.verificaBlocco(nomeBlocco, parametri, oldTimestamp, ctx);
+      rule.verificaBlocco(nomeBlocco, parametri, null, ctx);
       log.debug("Verifica slave sottopone " + parametri.size() + " record al master.");
 
       // interroga il server con i candidati per l'aggiornamento
@@ -218,7 +217,7 @@ public abstract class RuleRunner
 
       Vector v = (Vector) ctx.get("records-data");
       if(v == null)
-        log.debug("Il master ha prodotto i dati richiesti.");
+        log.debug("Il master ha prodotto i dati richiesti ma nessun record è stato prodotto.");
       else
         log.debug("Il master ha prodotto " + v.size() + " record per aggiornare/inserire.");
 

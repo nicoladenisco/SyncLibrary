@@ -33,9 +33,9 @@ import org.jdom2.Element;
  */
 public class RecordFilterValidatorSlave extends AbstractValidator
 {
-  private Element data;
-  private List<FieldFilterBean> arFiltri = new ArrayList<>();
-  private HashtableRpc setup;
+  protected Element data;
+  protected List<FieldFilterBean> arFiltri = new ArrayList<>();
+  protected HashtableRpc setup;
 
   @Override
   public String getRole()

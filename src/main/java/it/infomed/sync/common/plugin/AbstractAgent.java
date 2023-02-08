@@ -107,169 +107,6 @@ public abstract class AbstractAgent extends AbstractPlugin
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
-// TODO: rimuovere
-//  protected String convertValue(Object valore, Pair<String, String> field, String tableName, Column col, boolean truncZeroes)
-//  {
-//    int tipo = col.typeEnum();
-//    String s = okStr(valore);
-//
-//    if(tipo == Types.BIT)
-//    {
-//      if(checkTrue(s))
-//        return "TRUE";
-//      if(checkFalse(s))
-//        return "FALSE";
-//
-//      int val = parse(s, -1);
-//      if(val != -1)
-//        return val > 0 ? "TRUE" : "FALSE";
-//
-//      log.error("Tipo campo BIT non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-//      return null;
-//    }
-//
-//    if(truncZeroes)
-//      s = removeZero(s);
-//
-//    if(col.isNumericValue())
-//    {
-//      if(!NumberUtils.isNumber(s))
-//      {
-//        log.error("Tipo campo NUMERICO non congruente [tabella:colonna:valore] " + tableName + ":" + field.first + ":" + valore);
-//        return null;
-//      }
-//      return s;
-//    }
-//
-//    if(col.isStringValue() || col.isDateValue())
-//    {
-//      if(isEquAny(s, "NULL", "''"))
-//        return s;
-//    }
-//
-//    return "'" + s.replace("'", "''") + "'";
-//  }
-//
-//  protected String convertNullValue(String now, Pair<String, String> field, Column col)
-//  {
-//    if(col.isNumericValue())
-//      return col.nullAllowed() ? "NULL" : "0";
-//
-//    if(col.isStringValue())
-//      return col.nullAllowed() ? "NULL" : "''";
-//
-//    if(col.isDateValue())
-//      return col.nullAllowed() ? "NULL" : "'" + now + "'";
-//
-//    return "NULL";
-//  }
-//
-//  public boolean createOrUpdateRecord(Connection con, String tableName,
-//     Map<String, String> valoriUpdate, Map<String, String> valoriSelect, Map<String, String> valoriInsert)
-//     throws SQLException
-//  {
-//    String sSQL;
-//
-//    if((sSQL = createUpdateStatement(tableName, valoriUpdate, valoriSelect)) != null)
-//    {
-//      try (Statement st = con.createStatement())
-//      {
-//        if(st.executeUpdate(sSQL) > 0)
-//          return true;
-//      }
-//    }
-//
-//    if((sSQL = createInsertStatement(tableName, valoriInsert)) != null)
-//    {
-//      try (Statement st = con.createStatement())
-//      {
-//        if(st.executeUpdate(sSQL) > 0)
-//          return true;
-//      }
-//    }
-//
-//    return false;
-//  }
-//
-//  /**
-//   * Costruzione di statement SQL.
-//   * @param tableName nome tabella
-//   * @param valori mappa dei valori convertiti in stringa
-//   * @return istruzione SQL
-//   */
-//  public String createInsertStatement(String tableName, Map<String, String> valori)
-//  {
-//    StringBuilder sb1 = new StringBuilder(512);
-//    StringBuilder sb2 = new StringBuilder(512);
-//
-//    for(Map.Entry<String, String> entry : valori.entrySet())
-//    {
-//      String key = okStr(entry.getKey());
-//      String value = okStr(entry.getValue());
-//
-//      sb1.append(",").append(key);
-//      sb2.append(",").append(value);
-//    }
-//
-//    if(sb1.length() == 0 || sb2.length() == 0)
-//      return null;
-//
-//    String sSQL
-//       = "INSERT INTO " + tableName + "(" + sb1.toString().substring(1) + ")"
-//       + " VALUES(" + sb2.toString().substring(1) + ")";
-//
-//    return sSQL;
-//  }
-//
-//  /**
-//   * Costruzione di statement SQL.
-//   * @param tableName nome tabella
-//   * @param valoriUpdate valori da aggiornare convertiti in stringa
-//   * @param valoriSelect valori di selezione convertiti in stringa
-//   * @return
-//   */
-//  public String createUpdateStatement(String tableName,
-//     Map<String, String> valoriUpdate, Map<String, String> valoriSelect)
-//  {
-//    StringBuilder sb1 = new StringBuilder(512);
-//    StringBuilder sb2 = new StringBuilder(512);
-//
-//    // ottimizzazione per unico campo da aggiornare
-//    // questa serve quando il datablock prevede
-//    // l'aggiornamento di un solo campo
-//    if(valoriSelect.size() == 1 && valoriUpdate.isEmpty())
-//      valoriUpdate.putAll(valoriSelect);
-//
-//    if(valoriUpdate != null && !valoriUpdate.isEmpty())
-//      mapToString(valoriUpdate, sb1, ",");
-//
-//    if(valoriSelect != null && !valoriSelect.isEmpty())
-//      mapToString(valoriSelect, sb2, ") AND (");
-//
-//    if(sb1.length() == 0)
-//      return null;
-//
-//    String sSQL
-//       = "UPDATE " + tableName
-//       + " SET " + sb1.toString().substring(1);
-//
-//    if(sb2.length() > 0)
-//      sSQL += " WHERE " + sb2.toString().substring(6) + ")";
-//
-//    return sSQL;
-//  }
-//
-//  private void mapToString(Map<String, String> valori, StringBuilder sb, String sep)
-//  {
-//    for(Map.Entry<String, String> entry : valori.entrySet())
-//    {
-//      String key = okStr(entry.getKey());
-//      String value = okStr(entry.getValue());
-//
-//      sb.append(sep).append(key);
-//      sb.append("=").append(value);
-//    }
-//  }
   public Column findInSchema(String nomeColonna)
      throws Exception
   {
@@ -288,6 +125,12 @@ public abstract class AbstractAgent extends AbstractPlugin
        nomeColonna));
   }
 
+  protected String okKey(Object key)
+  {
+    String rv = okStr(key);
+    return rv.isEmpty() ? null : rv.replace('^', '|');
+  }
+
   /**
    * Costruisce la chiave di scambio.
    * @param r record della query
@@ -300,25 +143,42 @@ public abstract class AbstractAgent extends AbstractPlugin
   {
     ASSERT(arKeys != null && !arKeys.isEmpty(), "arKeys != null && !arKeys.isEmpty()");
 
-    if(arKeys.size() == 1)
+    switch(arKeys.size())
     {
-      // ottimizzazione per campo singolo
-      return okStrNull(r.getValue(arKeys.getKeyByIndex(0)).asString());
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for(int i = 0; i < arKeys.size(); i++)
-    {
-      if(i > 0)
-        sb.append('^');
-
-      String value = okStrNull(r.getValue(arKeys.getKeyByIndex(i)).asString());
-      if(value == null)
+      case 0:
         return null;
 
-      sb.append(value.replace('^', '|'));
+      case 1:
+      {
+        // ottimizzazione per campo singolo
+        return okKey(r.getValue(arKeys.getKeyByIndex(0)).asString());
+      }
+
+      case 2:
+      {
+        // ottimizzazione per due campi
+        String v1 = okKey(r.getValue(arKeys.getKeyByIndex(0)).asString());
+        String v2 = okKey(r.getValue(arKeys.getKeyByIndex(1)).asString());
+        return v1 == null || v2 == null ? null : v1 + "^" + v2;
+      }
+
+      default:
+      {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < arKeys.size(); i++)
+        {
+          if(i > 0)
+            sb.append('^');
+
+          String value = okKey(r.getValue(arKeys.getKeyByIndex(i)).asString());
+          if(value == null)
+            return null;
+
+          sb.append(value);
+        }
+        return sb.toString();
+      }
     }
-    return sb.toString();
   }
 
   /**
@@ -333,25 +193,42 @@ public abstract class AbstractAgent extends AbstractPlugin
   {
     ASSERT(arKeys != null && !arKeys.isEmpty(), "arKeys != null && !arKeys.isEmpty()");
 
-    if(arKeys.size() == 1)
+    switch(arKeys.size())
     {
-      // ottimizzazione per campo singolo
-      return okStr(record.get(arKeys.getKeyByIndex(0)));
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for(int i = 0; i < arKeys.size(); i++)
-    {
-      if(i > 0)
-        sb.append('^');
-
-      String value = okStrNull(record.get(arKeys.getKeyByIndex(i)));
-      if(value == null)
+      case 0:
         return null;
 
-      sb.append(value.replace('^', '|'));
+      case 1:
+      {
+        // ottimizzazione per campo singolo
+        return okKey(record.get(arKeys.getKeyByIndex(0)));
+      }
+
+      case 2:
+      {
+        // ottimizzazione per due campi
+        String v1 = okKey(record.get(arKeys.getKeyByIndex(0)));
+        String v2 = okKey(record.get(arKeys.getKeyByIndex(1)));
+        return v1 == null || v2 == null ? null : v1 + "^" + v2;
+      }
+
+      default:
+      {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < arKeys.size(); i++)
+        {
+          if(i > 0)
+            sb.append('^');
+
+          String value = okKey(record.get(arKeys.getKeyByIndex(i)));
+          if(value == null)
+            return null;
+
+          sb.append(value);
+        }
+        return sb.toString();
+      }
     }
-    return sb.toString();
   }
 
   /**
@@ -406,10 +283,15 @@ public abstract class AbstractAgent extends AbstractPlugin
       else
       {
         // record già esistente: verifica per timestamp
-        if(timestamp.after(ts))
+        if(deleted)
         {
-          // record da aggiornare o cancellare
-          rv = deleted ? key + "/DELETE" : key + "/UPDATE";
+          // record da cancellare (in ogni caso)
+          rv = key + "/DELETE";
+        }
+        else if(timestamp.after(ts))
+        {
+          // record da aggiornare
+          rv = key + "/UPDATE";
         }
       }
 
