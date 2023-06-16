@@ -26,6 +26,7 @@ public interface SyncPlugin extends Cloneable
 {
   public static final String ROLE_MASTER = "master";
   public static final String ROLE_SLAVE = "slave";
+  public static final String FETCH_ALL_DATA_FLAG = "fetch-all-data";
 
   /**
    * Configura il plugin con i dati di setup.
