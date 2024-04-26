@@ -17,6 +17,7 @@ package org.sync.db;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.TableDataSet;
+import com.workingdogs.village.VillageUtils;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

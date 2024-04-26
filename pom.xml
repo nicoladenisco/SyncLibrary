@@ -17,6 +17,17 @@
       <artifactId>rigel5</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.village</groupId>
+      <artifactId>village</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-configuration2</artifactId>
+      <version>2.10.1</version>
+      <type>jar</type>
+    </dependency>
   </dependencies>
 
   <properties>

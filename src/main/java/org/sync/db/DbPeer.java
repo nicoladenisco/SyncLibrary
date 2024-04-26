@@ -18,6 +18,7 @@ import com.workingdogs.village.DataSet;
 import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
+import com.workingdogs.village.VillageUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;

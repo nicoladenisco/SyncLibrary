@@ -17,9 +17,7 @@ package org.sync.sincronizzazione.plugin.slave;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
-import org.sync.common.*;
-import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.RuleRunner;
+import com.workingdogs.village.VillageUtils;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -31,7 +29,9 @@ import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
-import org.rigel5.db.DbUtils;
+import org.sync.common.*;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.RuleRunner;
 
 /**
  * Classe base degli Agent con un concetto di campi condivisi e timestamp.
@@ -116,7 +116,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
     try (PreparedStatement stmt = con.prepareStatement(sSQL))
     {
-      stmt.setTimestamp(1, DbUtils.cvtTimestamp(now));
+      stmt.setTimestamp(1, VillageUtils.cvtTimestamp(now));
       stmt.setString(2, correctTableName);
       stmt.setString(3, key);
       if(stmt.executeUpdate() > 0)
@@ -131,7 +131,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
     {
       stmt.setString(1, correctTableName);
       stmt.setString(2, key);
-      stmt.setTimestamp(3, DbUtils.cvtTimestamp(now));
+      stmt.setTimestamp(3, VillageUtils.cvtTimestamp(now));
       if(stmt.executeUpdate() > 0)
         return true;
     }
