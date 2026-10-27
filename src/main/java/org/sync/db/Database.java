@@ -18,10 +18,12 @@ import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.TableDataSet;
 import com.workingdogs.village.VillageUtils;
+import java.io.BufferedReader;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -43,7 +45,8 @@ import org.jdom2.input.SAXBuilder;
 public class Database
 {
   private static String defaultDB = null;
-  private static Map<String, DatabaseInfo> mapInfo = new HashMap<>();
+  public static final int SB_SIZE = 8192;
+  private static final Map<String, DatabaseInfo> mapInfo = new HashMap<>();
   /** the log */
   protected static final Log log = LogFactory.getLog(Database.class);
   //
@@ -166,8 +169,7 @@ public class Database
     if(diaIstanza.isEmpty())
       info.jdbcUrl = "jdbc:jtds:sqlserver://" + diaIndirizzo + ":" + diaPorta + "/" + diaDatabase;
     else
-      info.jdbcUrl
-         = "jdbc:jtds:sqlserver://" + diaIndirizzo + ":" + diaPorta + "/" + diaDatabase + ";instance=" + diaIstanza;
+      info.jdbcUrl = "jdbc:jtds:sqlserver://" + diaIndirizzo + ":" + diaPorta + "/" + diaDatabase + ";instance=" + diaIstanza;
 
     info.user = user;
     info.password = password;
@@ -233,7 +235,7 @@ public class Database
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, VIEWS_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(null, null, null, VIEWS_FILTER))
     {
       while(rSet.next())
       {
@@ -258,8 +260,8 @@ public class Database
      throws Exception
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
-    ArrayList<String> tableNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, TABLES_FILTER))
+    ArrayList<String> tableNames = new ArrayList<>();
+    try(ResultSet rSet = databaseMetaData.getTables(null, null, null, TABLES_FILTER))
     {
       while(rSet.next())
       {
@@ -367,7 +369,7 @@ public class Database
       nomeTabella = nomeTabella.substring(pos + 1);
     }
 
-    try (ResultSet rSet = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try(ResultSet rSet = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
       while(rSet.next())
       {
@@ -409,7 +411,7 @@ public class Database
      String nomeSchema, String nomeTabella, String nomeColonna)
      throws SQLException
   {
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -427,7 +429,7 @@ public class Database
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
       while(rs.next())
       {
@@ -446,7 +448,7 @@ public class Database
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try(ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
       while(rs.next())
       {
@@ -561,7 +563,7 @@ public class Database
   public static Schema schemaTable(String nomeDatabase, String nomeTabella)
      throws Exception
   {
-    try (Connection con = getConnection(nomeDatabase))
+    try(Connection con = getConnection(nomeDatabase))
     {
       return schemaTable(con, nomeTabella);
     }
@@ -570,9 +572,79 @@ public class Database
   public static Schema schemaTable(String nomeTabella)
      throws Exception
   {
-    try (Connection con = getConnection())
+    try(Connection con = getConnection())
     {
       return schemaTable(con, nomeTabella);
     }
+  }
+
+  /**
+   * Esegue uno script SQL.
+   * Ogni query viene riconosciuta dal terminatore ';'.
+   * La lettura dello script avviene una linea per volta.
+   * I commenti (--) vengono ignorati.
+   * @param con connessione al db
+   * @param r reader da cui leggere lo script
+   * @param ignoreErrors se vero log degli errori senza interruzione
+   * @return numero di query eseguite
+   * @throws Exception
+   */
+  public static int executeSqlScriptByLine(Connection con, BufferedReader r, boolean ignoreErrors)
+     throws Exception
+  {
+    int count = 0;
+    StringBuilder sb = new StringBuilder(SB_SIZE);
+    String s;
+
+    while((s = r.readLine()) != null)
+    {
+      s = s.trim();
+
+      if(s.isEmpty())
+        continue;
+      if(s.startsWith("--"))
+        continue;
+
+      sb.append(s).append("\n");
+      if(s.endsWith(";"))
+      {
+        count += executeBuffer(con, sb, ignoreErrors);
+        sb.setLength(0);
+      }
+    }
+
+    // eventuale residuo non consumato
+    executeBuffer(con, sb, ignoreErrors);
+
+    return count;
+  }
+
+  public static int executeBuffer(Connection con, StringBuilder sb, boolean ignoreErrors)
+     throws Exception
+  {
+    String sSQL = sb.toString().trim();
+
+    // rimuove ';' finale: su alcuni db non � tollerato
+    if(sSQL.endsWith(";"))
+      sSQL = sSQL.substring(0, sSQL.length() - 1);
+
+    if(!sSQL.isEmpty())
+    {
+      try(PreparedStatement ps = con.prepareStatement(sSQL))
+      {
+        return ps.executeUpdate();
+      }
+      catch(Exception ex)
+      {
+        if(ignoreErrors)
+        {
+          log.warn("Ignored SQL error: " + ex.getMessage());
+        }
+        else
+          throw ex;
+      }
+    }
+
+    return 0;
   }
 }

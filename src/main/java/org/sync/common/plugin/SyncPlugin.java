@@ -46,6 +46,7 @@ public interface SyncPlugin extends Cloneable
   /**
    * Imposta l'elemento XML che rappresenta questo plugin.
    * Il plugin estrarrà tutti i dati di setup di cui ha bisogno.
+   * @param location local o foreign
    * @param data elemento xml
    * @throws Exception
    */

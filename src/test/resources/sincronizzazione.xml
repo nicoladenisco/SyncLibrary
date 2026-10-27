@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Il tipo dati (types) può essere una delle costanti indicate di seguito oppure il suo valore numerico.
+    BIT             =  -7;
+    TINYINT         =  -6;
+    SMALLINT        =   5;
+    INTEGER         =   4;
+    BIGINT          =  -5;
+    FLOAT           =   6;
+    REAL            =   7;
+    DOUBLE          =   8;
+    NUMERIC         =   2;
+    DECIMAL         =   3;
+    CHAR            =   1;
+    VARCHAR         =  12;
+    LONGVARCHAR     =  -1;
+    DATE            =  91;
+    TIME            =  92;
+    TIMESTAMP       =  93;
+    BINARY          =  -2;
+    VARBINARY       =  -3;
+    LONGVARBINARY   =  -4;
+    NULL            =   0;
+    BLOB            = 2004;
+    CLOB            = 2005;
+    BOOLEAN         =  16;
+-->
+
+<rules>
+  <rule name="setup" type="generic" application="myapplication" server-role="master" target="all" merge="no">
+    <data-pools>
+      <master>
+        <pool name="setup" agent="custom">
+          <classname>TestDataPool</classname>
+
+          <!-- blocca la categoria prestazioni prelievo -->
+          <!-- codice categorie perstazioni da bloccare separti da ',' -->
+          <blocca-cat-prest>PREL</blocca-cat-prest>
+
+          <!-- numero di giorni di interesse per le accettazioni -->
+          <!-- verifica il campo ultima_modifica per oggi - giorni-query -->
+          <giorni-query>120</giorni-query>
+
+          <!-- blocca una tipologia di risultati (parametri) -->
+          <!-- codice tipo risultato (LIS_DBTIPIRISULTATI) da bloccare separti da ',' -->
+          <blocca-tipo-risultati>NES</blocca-tipo-risultati>
+        </pool>
+      </master>
+    </data-pools>
+
+    <data-blocks>
+      <data name="siti" agent="tableSync" ignore="false" isolateRecord="false">
+        <tables>
+          <local name="ORIGIN_SITI"/>
+          <foreign name="TARGET_SITI" database="pcsdm"/>
+        </tables>
+        <use-timestamps correct-local="true">
+          <local name="ULT_MODIF"/>
+          <foreign name="ULT_MODIF"/>
+        </use-timestamps>
+        <fields>
+          <field shared="true">
+            <local name="CODICE"/>
+            <foreign name="CODICE"/>
+          </field>
+          <field>
+            <local name="DESCRIZIONE"/>
+            <foreign name="DESCRIZIONE"/>
+          </field>
+        </fields>
+      </data>
+
+      <data name="reparti" agent="tableSync" ignore="false" isolateRecord="false">
+        <tables>
+          <local name="ORIGIN_REPARTI"/>
+          <foreign name="TARGET_REPARTI" database="pcsdm"/>
+        </tables>
+        <use-timestamps correct-local="true">
+          <local name="ULT_MODIF"/>
+          <foreign name="ULT_MODIF"/>
+        </use-timestamps>
+        <fields>
+          <field shared="true">
+            <local name="CODICE"/>
+            <foreign name="CODICE"/>
+          </field>
+          <field>
+            <local name="DESCRIZIONE"/>
+            <foreign name="DESCRIZIONE"/>
+          </field>
+        </fields>
+      </data>
+
+      <data name="zone" agent="tableSync" ignore="false" isolateRecord="false">
+        <tables>
+          <local name="ORIGIN_ZONE"/>
+          <foreign name="TARGET_ZONE" database="pcsdm"/>
+        </tables>
+        <use-timestamps correct-local="true">
+          <local name="ULT_MODIF"/>
+          <foreign name="ULT_MODIF"/>
+        </use-timestamps>
+        <fields>
+          <field shared="true">
+            <local name="CODICE"/>
+            <foreign name="CODICE"/>
+          </field>
+          <field>
+            <local name="DESCRIZIONE"/>
+            <foreign name="DESCRIZIONE"/>
+          </field>
+        </fields>
+      </data>
+
+      <data name="stampantiEtichette" agent="tableSync" ignore="false" isolateRecord="false">
+        <tables>
+          <local name="ORIGIN_STAMPANTI"/>
+          <foreign name="TARGET_STAMPANTI" database="pcsdm"/>
+        </tables>
+        <use-timestamps correct-local="true">
+          <local name="ULT_MODIF"/>
+          <foreign name="ULT_MODIF"/>
+        </use-timestamps>
+        <fields>
+          <field shared="true">
+            <local name="CODICE"/>
+            <foreign name="CODICE"/>
+          </field>
+          <field name="DESCRIZIONE" />
+          <field name="TIPO" />
+          <field name="IPCLIENT" />
+          <field name="NOMECLIENT" />
+          <field name="PERCORSOSTAMPANTE" />
+          <field name="TEMPLATE1" />
+          <field name="TEMPLATE2" />
+          <field name="ORDINESTAMPA" />
+          <field name="ESAMIPERETIC" />
+        </fields>
+      </data>
+
+      <data name="tipiEtichette" agent="poolSync" ignore="false" isolateRecord="false">
+        <tables>
+          <pool-local name="setup" data="tipiEtichette" />
+          <foreign name="TARGET_TIPIETICHETTE" database="pcsdm"/>
+        </tables>
+        <use-timestamps>
+          <local name="ULT_MODIF"/>
+          <foreign name="ULT_MODIF"/>
+        </use-timestamps>
+        <fields>
+          <field shared="true">
+            <local name="CODICE"/>
+            <foreign name="CODICE"/>
+          </field>
+          <field name="DESCRIZIONE" />
+          <field name="CAPACITA" />
+          <field name="COLORE" />
+
+          <field>
+            <local name="codsta"/>
+            <foreign name="ID_STAMPANTE_DEFAULT"/>
+            <foreign-adapter name="syncIdAttraversoCodici">
+              <param name="foreign-table">TARGET_STAMPANTI</param>
+              <param name="foreign-id">STAMPANTI_ID</param>
+              <param name="foreign-codice">CODICE</param>
+            </foreign-adapter>
+          </field>
+        </fields>
+      </data>
+    </data-blocks>
+
+    <delete-strategy name="statorec"/>
+    <sql-filter>
+      <fetch-keys>
+        <sql><![CDATA[((STATO_REC IS NULL) OR (STATO_REC < 10))]]></sql>
+      </fetch-keys>
+      <compare-keys></compare-keys>
+    </sql-filter>
+  </rule>
+</rules>
