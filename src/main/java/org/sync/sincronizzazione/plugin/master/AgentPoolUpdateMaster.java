@@ -16,10 +16,6 @@ package org.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.SyncSetupErrorException;
-import org.sync.common.plugin.SyncPoolPlugin;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +23,11 @@ import java.util.stream.Collectors;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.SyncSetupErrorException;
+import org.sync.common.plugin.SyncPoolPlugin;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Agent di sincronizzazione con utilizzo di un poolElement di dati.
@@ -39,7 +40,7 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
   protected String poolName, poolData;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Optional;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -48,17 +47,20 @@ public class SyncClientTest extends RuleRunner
   public void init()
      throws Exception
   {
-    cfg = getConfiguration();
-
-    try(InputStream is = this.getClass().getResourceAsStream("/sincronizzazione.xml"))
+    if(!initalized)
     {
-      SAXBuilder builder = new SAXBuilder();
-      doc = builder.build(is);
-    }
+      cfg = getConfiguration();
 
-    // inizializza factory dei vari plugin
-    SyncPluginFactory.getInstance().configure(cfg);
-    super.init();
+      try(InputStream is = this.getClass().getResourceAsStream("/sincronizzazione.xml"))
+      {
+        SAXBuilder builder = new SAXBuilder();
+        doc = builder.build(is);
+      }
+
+      // inizializza factory dei vari plugin
+      SyncPluginFactory.getInstance().configure(cfg);
+      super.init();
+    }
   }
 
   private Configuration getConfiguration()
@@ -77,54 +79,13 @@ public class SyncClientTest extends RuleRunner
   public Element acquisiciStrategia(String nomeRegola, SyncContext context)
      throws Exception
   {
-    return findPlugin(nomeRegola, "");
-  }
+    Element e = findPlugin(nomeRegola, doc);
 
-  protected Element findPlugin(String application, String target)
-     throws Exception
-  {
-    // cerca una regola controllando gli attributi
-    // application="diamante" master="caleido" target="all"
-    Optional<Element> rule = doc.getRootElement().getChildren("rule").stream()
-       .filter((e) -> SyncServerTest.CU.isEquAny(e.getAttributeValue("application"), "any", application)
-          && SyncServerTest.CU.isEquAny(e.getAttributeValue("target"), "any", target))
-       .findFirst();
+    // nel test il server è master il client è slave
+    context.put("rule-name", nomeRegola);
+    context.put("your-role", "slave");
+    context.put("rule-type", "generic");
 
-    if(!rule.isPresent())
-      die(String.format("Nessuna regola corrisponde ai parametri."));
-
-    return rule.get();
-  }
-
-  protected synchronized SyncRulePlugin findPlugin(String nomeRegola)
-     throws Exception
-  {
-    // cerca una regola controllando gli attributi
-    // application="diamante" master="caleido" target="all"
-    Optional<Element> rule = doc.getRootElement().getChildren("rule").stream()
-       .filter((e) -> SyncServerTest.CU.isEqu(nomeRegola, e.getAttributeValue("name")))
-       .findFirst();
-
-    if(!rule.isPresent())
-      die(String.format("La regola %s non esiste; rivedere setup.", nomeRegola));
-
-    Element re = rule.get();
-
-    SyncRulePlugin plugin = ruleMap.get(nomeRegola);
-    if(plugin != null)
-      return plugin;
-
-    String ruleType = SyncServerTest.CU.okStr(re.getAttributeValue("type"));
-    String roleType = SyncServerTest.CU.okStr(re.getAttributeValue("caleido-role"));
-    plugin = SyncPluginFactory.getInstance().buildRule(roleType, ruleType);
-    plugin.setXML("master", rule.get());
-
-    ruleMap.put(nomeRegola, plugin);
-    return plugin;
-  }
-
-  private void die(String format)
-  {
-    throw new RuntimeException(format);
+    return e;
   }
 }

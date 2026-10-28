@@ -15,12 +15,13 @@
 package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Classe base dei gestori di cancellazione.
@@ -45,10 +46,10 @@ public class AbstractDelete extends AbstractPlugin
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
     // la cancellazione avviene solo lato slave
-    return "SLAVE";
+    return RoleType.SLAVE;
   }
 
   @Override

@@ -14,17 +14,19 @@
  */
 package org.sync.sincronizzazione.plugin.slave;
 
-import org.sync.common.FieldFilterBean;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
-import org.sync.common.plugin.AbstractValidator;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
+import org.sync.common.FieldFilterBean;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractValidator;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Filtra record in ingresso in base a valori predefiniti.
@@ -38,13 +40,13 @@ public class RecordFilterValidatorSlave extends AbstractValidator
   protected HashtableRpc setup;
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_SLAVE;
+    return RoleType.SLAVE;
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     this.data = data;

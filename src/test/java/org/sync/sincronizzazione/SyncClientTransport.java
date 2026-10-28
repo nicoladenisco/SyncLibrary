@@ -54,6 +54,7 @@ public class SyncClientTransport implements SyncClientInterface
   public Element acquisiciStrategia(String nomeRegola, SyncContext context)
      throws Exception
   {
+    server.acquisiciStrategia(nomeRegola, context);
     return client.acquisiciStrategia(nomeRegola, context);
   }
 

@@ -15,11 +15,6 @@
 package org.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.SyncSetupErrorException;
-import org.sync.db.Database;
-import org.sync.db.DbPeer;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.torque.criteria.SqlEnum;
@@ -30,6 +25,13 @@ import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.FiltroData;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.RigelColumnDescriptor;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.SyncSetupErrorException;
+import org.sync.db.Database;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Adapter di sincronizzazione orientato alle tabelle.
@@ -42,7 +44,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   protected String tableName;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -51,7 +53,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     if(tables == null)
       throw new SyncSetupErrorException(0, "tables");
 
-    if((tblElement = tables.getChild(location)) == null)
+    if((tblElement = tables.getChild(location.getFunction())) == null)
       throw new SyncSetupErrorException(0, "tables/" + location);
 
     if((tableName = okStrNull(tblElement.getAttributeValue("name"))) == null)
@@ -64,9 +66,9 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_MASTER;
+    return RoleType.MASTER;
   }
 
   @Override
@@ -100,13 +102,12 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     if(correct)
     {
       // corregge la condizione di ULT_MODIF a NULL: produce continui aggiornamenti dei records
-      FiltroData fd = new FiltroData();
-      fd.addUpdate(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, new Date());
-      fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.ISNULL, null);
-      QueryBuilder qb = SetupHolder.getQueryBuilder();
-      qb.setDeleteFrom(correctTableName);
-      String sqlUpdate = qb.queryForUpdate(fd);
-      DbPeer.executeStatement(sqlUpdate);
+      String sSQL
+         = "UPDATE " + correctTableName
+         + "   SET " + timeStamp.first + "=?"
+         + " WHERE " + timeStamp.first + " IS NULL";
+
+      DbPeer.executeStatement(sSQL, Arrays.asList(Database.currentTimestamp()));
     }
 
     QueryBuilder qb = SetupHolder.getQueryBuilder();

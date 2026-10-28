@@ -15,12 +15,13 @@
 package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.SyncContext;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
+import org.sync.common.SyncContext;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Plugin per logica di cancellazione di default.
@@ -30,7 +31,7 @@ import org.jdom2.Element;
 public class DeleteStrategyNothing extends AbstractDelete
 {
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
   }

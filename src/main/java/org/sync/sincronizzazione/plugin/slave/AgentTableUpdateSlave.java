@@ -18,17 +18,19 @@ import com.workingdogs.village.Column;
 import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.TableDataSet;
-import org.sync.common.*;
-import org.sync.db.Database;
-import org.sync.db.DatabaseException;
-import org.sync.db.DbPeer;
-import org.sync.db.SqlTransactAgent;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.*;
+import org.sync.db.Database;
+import org.sync.db.DatabaseException;
+import org.sync.db.DbPeer;
+import org.sync.db.SqlTransactAgent;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Adapter di sincronizzazione orientato alle tabelle.
@@ -42,7 +44,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   protected TableDataSet tds;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -51,7 +53,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     if(tables == null)
       throw new SyncSetupErrorException(0, "tables");
 
-    if((tblElement = tables.getChild(location)) == null)
+    if((tblElement = tables.getChild(location.getFunction())) == null)
       throw new SyncSetupErrorException(0, "tables/" + location);
 
     if((tableName = okStrNull(tblElement.getAttributeValue("name"))) == null)
@@ -64,9 +66,9 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_SLAVE;
+    return RoleType.SLAVE;
   }
 
   @Override
@@ -249,7 +251,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   protected void caricaTipiColonne()
      throws Exception
   {
-    try (Connection conn = Database.getConnection(databaseName))
+    try(Connection conn = Database.getConnection(databaseName))
     {
       tds = new TableDataSet(conn, tableName);
       schema = tds.schema();
@@ -380,11 +382,11 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
      throws Exception
   {
     SqlTransactAgent.execute(databaseName, (con) ->
-    {
-      if(haveTs())
-        salvaRecordShared(r, context, con);
-      else
-        salvaRecord(r, context, con);
+       {
+         if(haveTs())
+           salvaRecordShared(r, context, con);
+         else
+           salvaRecord(r, context, con);
     });
   }
 

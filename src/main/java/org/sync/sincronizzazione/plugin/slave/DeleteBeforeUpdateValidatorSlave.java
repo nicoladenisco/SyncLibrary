@@ -15,16 +15,17 @@
 package org.sync.sincronizzazione.plugin.slave;
 
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.plugin.AbstractValidator;
-import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
-import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.plugin.AbstractValidator;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 
 /**
  * Cancella il contenuto di una tabella prima dell'inizio dell'aggiornamento.
@@ -41,7 +42,7 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
   protected String filter;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     filter = data.getAttributeValue("filter");

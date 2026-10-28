@@ -24,6 +24,8 @@ import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Element;
 import org.sync.common.SyncErrorException;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Classe base di tutti i plugin di aggiornamento.
@@ -45,13 +47,13 @@ public class AbstractPlugin extends StringOper
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");

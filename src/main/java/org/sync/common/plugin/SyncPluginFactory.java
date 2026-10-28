@@ -13,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.commonlib5.utils.ClassOper;
 import org.commonlib5.utils.StringOper;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Factory dei plugin di sincronizzazione workstation refertazione.
@@ -22,12 +23,12 @@ import org.commonlib5.utils.StringOper;
 public class SyncPluginFactory
 {
   /** Logging */
-  private static Log log = LogFactory.getLog(SyncPluginFactory.class);
+  private static final Log log = LogFactory.getLog(SyncPluginFactory.class);
 
   private String basePath = null;
   private String[] vPaths = null;
   private Configuration cfg = null;
-  private static SyncPluginFactory theInstance = new SyncPluginFactory();
+  private static final SyncPluginFactory theInstance = new SyncPluginFactory();
 
   private SyncPluginFactory()
   {
@@ -45,12 +46,12 @@ public class SyncPluginFactory
     vPaths = cfg.getStringArray("classpath");
   }
 
-  private String getSetupSegment(String type, String role, String nome)
+  private String getSetupSegment(String type, RoleType role, String nome)
   {
     return "sync.plugin." + type + "." + role + "." + nome;
   }
 
-  private <T extends SyncPlugin> T buildGeneric(String type, String role, String nome, Class<T> cls)
+  private <T extends SyncPlugin> T buildGeneric(String type, RoleType role, String nome, Class<T> cls)
      throws Exception
   {
     if((nome = StringOper.okStrNull(nome)) == null)
@@ -67,43 +68,43 @@ public class SyncPluginFactory
     return sp;
   }
 
-  public SyncRulePlugin buildRule(String role, String nome)
+  public SyncRulePlugin buildRule(RoleType role, String nome)
      throws Exception
   {
     return buildGeneric("rule", role, nome, SyncRulePlugin.class);
   }
 
-  public SyncPoolPlugin buildPool(String role, String nome)
+  public SyncPoolPlugin buildPool(RoleType role, String nome)
      throws Exception
   {
     return buildGeneric("pool", role, nome, SyncPoolPlugin.class);
   }
 
-  public SyncAgentPlugin buildAgent(String role, String nome)
+  public SyncAgentPlugin buildAgent(RoleType role, String nome)
      throws Exception
   {
     return buildGeneric("agent", role, nome, SyncAgentPlugin.class);
   }
 
-  public SyncAdapterPlugin buildAdapter(String role, String nome)
+  public SyncAdapterPlugin buildAdapter(RoleType role, String nome)
      throws Exception
   {
     return buildGeneric("adapter", role, nome, SyncAdapterPlugin.class);
   }
 
-  public SyncValidatorPlugin buildValidator(String role, String nome)
+  public SyncValidatorPlugin buildValidator(RoleType role, String nome)
      throws Exception
   {
     return buildGeneric("validator", role, nome, SyncValidatorPlugin.class);
   }
 
-  public SyncDeletePlugin buildDeleteStrategy(String role, String nome)
+  public SyncDeletePlugin buildDeleteStrategy(RoleType role, String nome)
      throws Exception
   {
     return buildGeneric("delete", role, nome, SyncDeletePlugin.class);
   }
 
-  private Object loadClass(String role, String className)
+  private Object loadClass(RoleType role, String className)
      throws Exception
   {
     try

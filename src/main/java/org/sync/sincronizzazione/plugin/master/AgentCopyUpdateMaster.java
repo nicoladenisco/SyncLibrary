@@ -15,6 +15,7 @@
 package org.sync.sincronizzazione.plugin.master;
 
 import org.jdom2.Element;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Adapter per la copia di tabelle.
@@ -26,7 +27,7 @@ public class AgentCopyUpdateMaster extends AgentTableUpdateMaster
   protected Element sqlStatements;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);

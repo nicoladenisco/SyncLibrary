@@ -16,15 +16,6 @@ package org.sync.sincronizzazione.plugin.slave;
 
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.SyncIgnoreRecordException;
-import org.sync.common.SyncSetupErrorException;
-import org.sync.common.Utils;
-import org.sync.common.plugin.AbstractAdapter;
-import org.sync.common.plugin.AbstractAgent;
-import org.sync.db.DbPeer;
-import org.sync.db.SqlTransactAgent;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,6 +25,17 @@ import java.util.Map;
 import org.commonlib5.lambda.LEU;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.SyncIgnoreRecordException;
+import org.sync.common.SyncSetupErrorException;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractAdapter;
+import org.sync.common.plugin.AbstractAgent;
+import org.sync.db.DbPeer;
+import org.sync.db.SqlTransactAgent;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Adapter per mappare id attraverso i codici.
@@ -55,13 +57,13 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   private HashtableRpc setup;
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_SLAVE;
+    return RoleType.SLAVE;
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     this.data = data;
@@ -104,18 +106,18 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     Column col = ((AbstractAgent) parentAgent).getSchema().column(codicefield);
 
     SqlTransactAgent.execute(getDbname(), (dbCon) ->
-    {
-      List<Record> lsr = fetchData(col.isNumericValue(), arallcodici, dbCon);
+       {
+         List<Record> lsr = fetchData(col.isNumericValue(), arallcodici, dbCon);
 
-      if(lsr != null)
-      {
-        for(Record r : lsr)
-        {
-          int id = r.getValue(1).asInt();
-          String codice = r.getValue(2).asString();
-          mapCodici.put(codice, id);
-        }
-      }
+         if(lsr != null)
+         {
+           for(Record r : lsr)
+           {
+             int id = r.getValue(1).asInt();
+             String codice = r.getValue(2).asString();
+             mapCodici.put(codice, id);
+           }
+         }
     });
   }
 

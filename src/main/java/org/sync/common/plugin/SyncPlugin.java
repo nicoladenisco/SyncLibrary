@@ -16,6 +16,8 @@ package org.sync.common.plugin;
 
 import org.apache.commons.configuration2.Configuration;
 import org.jdom2.Element;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Interfaccia comune a tutti i plugin.
@@ -24,8 +26,6 @@ import org.jdom2.Element;
  */
 public interface SyncPlugin extends Cloneable
 {
-  public static final String ROLE_MASTER = "master";
-  public static final String ROLE_SLAVE = "slave";
   public static final String FETCH_ALL_DATA_FLAG = "fetch-all-data";
 
   /**
@@ -41,7 +41,7 @@ public interface SyncPlugin extends Cloneable
    * In genere una delle due costanti 'master' o 'slave'
    * @return ruolo nella sincronizzazione
    */
-  public String getRole();
+  public RoleType getRole();
 
   /**
    * Imposta l'elemento XML che rappresenta questo plugin.
@@ -50,7 +50,7 @@ public interface SyncPlugin extends Cloneable
    * @param data elemento xml
    * @throws Exception
    */
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception;
 
   /**

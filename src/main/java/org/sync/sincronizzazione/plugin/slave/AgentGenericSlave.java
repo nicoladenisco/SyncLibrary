@@ -25,6 +25,8 @@ import org.sync.common.plugin.AbstractAgent;
 import org.sync.common.plugin.SyncDeletePlugin;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.common.plugin.SyncValidatorPlugin;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Classe base degli Agent.
@@ -49,13 +51,13 @@ abstract public class AgentGenericSlave extends AbstractAgent
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_SLAVE;
+    return RoleType.SLAVE;
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     this.data = data;
@@ -109,7 +111,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     isolateAllRecords = checkTrueFalse(data.getAttributeValue("isolateAllRecords"), false);
   }
 
-  private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, String location)
+  private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, FunctionType location)
      throws Exception
   {
     populateFieldName(ef, fi, location);
@@ -131,7 +133,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     return fi;
   }
 
-  private void populateFieldName(Element ef, FieldLinkInfoBean fi, String location)
+  private void populateFieldName(Element ef, FieldLinkInfoBean fi, FunctionType location)
      throws SyncSetupErrorException
   {
     Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
@@ -150,7 +152,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
       return;
     }
 
-    String tmp1 = okStrNull(ef.getAttributeValue(location));
+    String tmp1 = okStrNull(ef.getAttributeValue(location.getFunction()));
     if(tmp1 != null)
     {
       fi.field = new Pair<>(tmp1, null);
@@ -158,7 +160,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
       return;
     }
 
-    fi.field = Utils.parseNameTypeIgnore(ef.getChild(location));
+    fi.field = Utils.parseNameTypeIgnore(ef.getChild(location.getFunction()));
     fi.shareFieldName = okStrNull(ef.getAttributeValue("foreign"));
   }
 

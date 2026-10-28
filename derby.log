@@ -1,0 +1,16 @@
+----------------------------------------------------------------
+Wed Oct 28 17:57:01 CET 2026:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-01a1-8371-96cb-00001c8dc400 
+on database directory /tmp/test-sync-library.db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@55054057 
+Loaded from file:/home/nicola/.m2/repository/org/apache/derby/derby/10.14.2.0/derby-10.14.2.0.jar
+java.vendor=Ubuntu
+java.runtime.version=11.0.32.1+1-post-1ubuntu1-26.04-Ubuntu
+user.dir=/home/nicola/cvsgithub/SyncLibrary
+os.name=Linux
+os.arch=amd64
+os.version=7.0.0-38-generic
+derby.system.home=null
+Database Class Loader started - derby.database.classpath=''
+----------------------------------------------------------------
+Wed Oct 28 17:59:39 CET 2026:
+Shutting down instance a816c00e-01a1-8371-96cb-00001c8dc400 on database directory /tmp/test-sync-library.db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@55054057 

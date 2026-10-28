@@ -14,6 +14,14 @@
  */
 package org.sync.common.plugin;
 
+import com.workingdogs.village.QueryDataSetMacro;
+import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
+import java.sql.Connection;
+import java.util.List;
+import java.util.Map;
+import org.commonlib5.utils.Pair;
+
 /**
  * Classe base di tutti i data pool.
  *
@@ -40,5 +48,14 @@ public abstract class AbstractDataPool extends AbstractPlugin
   public boolean haveNativeFilter()
   {
     return false;
+  }
+
+  protected Pair<List<Record>, Schema> query(String sSQL, Map<String, String> params, Connection con)
+     throws Exception
+  {
+    try(QueryDataSetMacro qds = new QueryDataSetMacro(con, sSQL, params))
+    {
+      return new Pair<>(qds.fetchAllRecords(), qds.schema());
+    }
   }
 }

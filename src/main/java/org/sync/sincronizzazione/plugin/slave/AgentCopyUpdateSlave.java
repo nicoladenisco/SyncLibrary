@@ -14,14 +14,16 @@
  */
 package org.sync.sincronizzazione.plugin.slave;
 
-import org.sync.common.SyncContext;
-import org.sync.db.DbPeer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.SyncContext;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Adapter di copia completa tabelle.
@@ -44,7 +46,7 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
   protected final List<String> statements = new ArrayList<>();
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -63,9 +65,9 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_SLAVE;
+    return RoleType.SLAVE;
   }
 
   @Override

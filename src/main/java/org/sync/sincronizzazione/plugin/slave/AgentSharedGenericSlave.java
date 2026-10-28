@@ -31,6 +31,7 @@ import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.*;
 import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
 import org.sync.sincronizzazione.RuleRunner;
 
 /**
@@ -48,7 +49,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   protected boolean keysHaveAdapter = false;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -57,7 +58,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
     if((useTs = data.getChild("use-timestamps")) != null)
     {
-      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location));
+      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location.getFunction()));
       correct = checkTrueFalse(useTs.getAttributeValue("correct-" + location), correct);
       correctTableName = useTs.getAttributeValue("correct-table-" + location);
     }
@@ -114,7 +115,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
        + " WHERE TABLE_NAME=? \n"
        + "   AND SHARED_KEY=? \n";
 
-    try (PreparedStatement stmt = con.prepareStatement(sSQL))
+    try(PreparedStatement stmt = con.prepareStatement(sSQL))
     {
       stmt.setTimestamp(1, VillageUtils.cvtTimestamp(now));
       stmt.setString(2, correctTableName);
@@ -127,7 +128,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
        + "INSERT INTO " + RuleRunner.SYNC_TIMESTAMP_TABLE + "(TABLE_NAME, SHARED_KEY, LAST_UPDATE)\n"
        + " VALUES(?,?,?)\n";
 
-    try (PreparedStatement stmt = con.prepareStatement(sSQL))
+    try(PreparedStatement stmt = con.prepareStatement(sSQL))
     {
       stmt.setString(1, correctTableName);
       stmt.setString(2, key);
@@ -142,8 +143,6 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   /**
    * Converte una singola chiave attraverso l'adapter.
    * E' utilizzata quando un campo shared ha anche un adapter.
-   * @param tableName
-   * @param databaseName
    * @param key
    * @param context
    * @return
@@ -168,8 +167,6 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   /**
    * Converte una lista di chiavi attraverso l'adapter.
    * E' utilizzata quando un campo shared ha anche un adapter.
-   * @param tableName
-   * @param databaseName
    * @param lsKeys
    * @param context
    * @throws Exception

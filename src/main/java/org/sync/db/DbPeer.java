@@ -19,7 +19,9 @@ import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.VillageUtils;
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.torque.om.NumberKey;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.StringOper;
 
@@ -505,7 +508,7 @@ public class DbPeer
       return 0;
     }
 
-    try (Statement statement = con.createStatement())
+    try(Statement statement = con.createStatement())
     {
       if(debug)
         log.debug(statementString);
@@ -534,7 +537,7 @@ public class DbPeer
     {
       dbName = StringOper.isOkStr(dbName) ? dbName : Database.getDefaultDB();
       con = Database.getConnection(dbName);
-      try (Statement statement = con.createStatement())
+      try(Statement statement = con.createStatement())
       {
         rowCount = statement.executeUpdate(statementString);
       }
@@ -627,5 +630,124 @@ public class DbPeer
      throws Exception
   {
     return existTable(nomeTabella, Database.getDefaultDB());
+  }
+
+  public static int executeStatement(String sSQL, final List<Object> replacements)
+     throws Exception
+  {
+    try(Connection con = Database.getConnection())
+    {
+      return executeStatement(sSQL, replacements, con);
+    }
+  }
+
+  public static int executeStatement(String sSQL, final List<Object> replacements, Connection con)
+     throws Exception
+  {
+    try(PreparedStatement st = con.prepareStatement(sSQL))
+    {
+      setPreparedStatementReplacements(st, replacements, 0);
+      return st.executeUpdate();
+    }
+  }
+
+  /**
+   * Sets the prepared statement replacements into a query, possibly
+   * modifying the type if required by DB Drivers.
+   *
+   * @param statement the statement to set the parameters in, not null.
+   * @param replacements the replacements to set, not null.
+   * @param offset the offset on the parameters, 0 for no offset.
+   *
+   * @return the parameters set.
+   *
+   * @throws SQLException if setting the parameter fails.
+   */
+  public static List<Object> setPreparedStatementReplacements(
+     final PreparedStatement statement,
+     final List<Object> replacements,
+     final int offset)
+     throws SQLException
+  {
+    List<Object> result = new ArrayList<>(replacements.size());
+    int i = 1 + offset;
+    for(Object param : replacements)
+    {
+      if(param instanceof java.sql.Timestamp)
+      {
+        statement.setTimestamp(i, (java.sql.Timestamp) param);
+        result.add(param);
+      }
+      else if(param instanceof java.sql.Date)
+      {
+        statement.setDate(i, (java.sql.Date) param);
+        result.add(param);
+      }
+      else if(param instanceof java.sql.Time)
+      {
+        statement.setTime(i, (java.sql.Time) param);
+        result.add(param);
+      }
+      else if(param instanceof java.util.Date)
+      {
+        java.sql.Timestamp sqlDate = new java.sql.Timestamp(
+           ((java.util.Date) param).getTime());
+        statement.setTimestamp(i, sqlDate);
+        result.add(sqlDate);
+      }
+      else if(param instanceof NumberKey)
+      {
+        BigDecimal bigDecimal = ((NumberKey) param).getValue();
+        statement.setBigDecimal(i, bigDecimal);
+        result.add(bigDecimal);
+      }
+      else if(param instanceof Integer)
+      {
+        statement.setInt(i, ((Integer) param).intValue());
+        result.add(param);
+      }
+      else if(param instanceof Long)
+      {
+        statement.setLong(i, ((Long) param).longValue());
+        result.add(param);
+      }
+      else if(param instanceof BigDecimal)
+      {
+        statement.setBigDecimal(i, (BigDecimal) param);
+        result.add(param);
+      }
+      else if(param instanceof Boolean)
+      {
+        statement.setBoolean(i, ((Boolean) param).booleanValue());
+        result.add(param);
+      }
+      else if(param instanceof Short)
+      {
+        statement.setShort(i, ((Short) param).shortValue());
+        result.add(param);
+      }
+      else if(param instanceof Byte)
+      {
+        statement.setByte(i, ((Byte) param).byteValue());
+        result.add(param);
+      }
+      else if(param instanceof Float)
+      {
+        statement.setFloat(i, ((Float) param).floatValue());
+        result.add(param);
+      }
+      else if(param instanceof Double)
+      {
+        statement.setDouble(i, ((Double) param).doubleValue());
+        result.add(param);
+      }
+      else
+      {
+        statement.setString(i, param.toString());
+        result.add(param.toString());
+      }
+      ++i;
+    }
+    return result;
   }
 }

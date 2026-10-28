@@ -27,23 +27,11 @@
 -->
 
 <rules>
-  <rule name="setup" type="generic" application="myapplication" server-role="master" target="all" merge="no">
+  <rule name="setup" type="generic" application="test" target="all" merge="no">
     <data-pools>
       <master>
         <pool name="setup" agent="custom">
           <classname>TestDataPool</classname>
-
-          <!-- blocca la categoria prestazioni prelievo -->
-          <!-- codice categorie perstazioni da bloccare separti da ',' -->
-          <blocca-cat-prest>PREL</blocca-cat-prest>
-
-          <!-- numero di giorni di interesse per le accettazioni -->
-          <!-- verifica il campo ultima_modifica per oggi - giorni-query -->
-          <giorni-query>120</giorni-query>
-
-          <!-- blocca una tipologia di risultati (parametri) -->
-          <!-- codice tipo risultato (LIS_DBTIPIRISULTATI) da bloccare separti da ',' -->
-          <blocca-tipo-risultati>NES</blocca-tipo-risultati>
         </pool>
       </master>
     </data-pools>
@@ -140,7 +128,7 @@
 
       <data name="tipiEtichette" agent="poolSync" ignore="false" isolateRecord="false">
         <tables>
-          <pool-local name="setup" data="tipiEtichette" />
+          <pool name="setup" data="tipiEtichette" />
           <foreign name="TARGET_TIPIETICHETTE" database="pcsdm"/>
         </tables>
         <use-timestamps>

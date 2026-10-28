@@ -22,14 +22,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.util.HashMap;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.rigel5.SetupHolder;
 import org.sync.db.Database;
 
 /**
@@ -40,7 +42,7 @@ import org.sync.db.Database;
 public class RuleRunnerTest
 {
   private static final String DATABASE_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
-  private static final String DATABASE_URL = "jdbc:derby:/tmp/test-sync-library.db;create=true";
+  private static final String DATABASE_URL = "jdbc:derby:/tmp/test-sync-library.db";
 
   public RuleRunnerTest()
   {
@@ -50,8 +52,10 @@ public class RuleRunnerTest
   public static void setUpClass()
      throws Exception
   {
-    Database.addDatabaseInfo("test", DATABASE_DRIVER, DATABASE_URL, "", "");
+    Database.addDatabaseInfo("test", DATABASE_DRIVER, DATABASE_URL + ";create=true", "", "");
     Database.setDefaultDB("test");
+
+    SetupHolder.setQueryBuilderClassName("DerbyQueryBuilder");
   }
 
   @AfterClass
@@ -68,7 +72,7 @@ public class RuleRunnerTest
       try(Connection con = Database.getConnection())
       {
         List<String> allTables = Database.getAllTables(con);
-        if(allTables.isEmpty())
+        if(!allTables.stream().anyMatch((s) -> "origin_siti".equalsIgnoreCase(s)))
           creaDatabaseTest(con);
       }
     }
@@ -81,6 +85,24 @@ public class RuleRunnerTest
   @After
   public void tearDown()
   {
+    try
+    {
+      try
+      {
+        DriverManager.getConnection(DATABASE_URL + ";shutdown=true");
+      }
+      catch(SQLException e)
+      {
+        if(!"08006".equals(e.getSQLState()))
+        {
+          throw e;
+        }
+      }
+    }
+    catch(Exception ex)
+    {
+      ex.printStackTrace();
+    }
   }
 
   @Test
@@ -97,8 +119,7 @@ public class RuleRunnerTest
     server.init();
 
     String regola = "setup";
-    Map<String, String> extraFilter = new HashMap<>();
-    client.doRun(regola, transport, extraFilter);
+    client.doRun(regola, transport, Collections.EMPTY_MAP);
     System.out.println("Test completato");
   }
 
@@ -108,7 +129,13 @@ public class RuleRunnerTest
     try(InputStream is = getClass().getResourceAsStream("/testdb.sql");
        BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
     {
-      Database.executeSqlScriptByLine(con, r, true);
+      Database.executeSqlScriptByLine(con, r, false);
     }
+
+    Database.executeFileCsvResource("origin_siti", "siti_id", "/siti.csv", con);
+    Database.executeFileCsvResource("origin_reparti", "reparti_id", "/reparti.csv", con);
+    Database.executeFileCsvResource("origin_stampanti", "stampanti_id", "/stampanti.csv", con);
+    Database.executeFileCsvResource("origin_tipietichette", "tipietichette_id", "/tipietichette.csv", con);
+    Database.executeFileCsvResource("origin_zone", "zone_id", "/zone.csv", con);
   }
 }

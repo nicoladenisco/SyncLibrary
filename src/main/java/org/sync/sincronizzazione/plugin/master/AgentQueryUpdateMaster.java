@@ -16,12 +16,6 @@ package org.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.QueryDataSet;
 import com.workingdogs.village.Record;
-import org.sync.SyncMacroResolver;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.SyncSetupErrorException;
-import org.sync.db.Database;
-import org.sync.db.DbPeer;
 import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,6 +28,13 @@ import org.rigel5.SetupHolder;
 import org.rigel5.db.sql.FiltroData;
 import org.rigel5.db.sql.QueryBuilder;
 import org.rigel5.table.RigelColumnDescriptor;
+import org.sync.SyncMacroResolver;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.SyncSetupErrorException;
+import org.sync.db.Database;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Agent di sincronizzazione orientato alle query.
@@ -49,7 +50,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   protected final SyncMacroResolver resolver = new SyncMacroResolver();
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -186,9 +187,9 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   protected void caricaTipiColonne()
      throws Exception
   {
-    try ( Connection con = Database.getConnection(databaseName))
+    try(Connection con = Database.getConnection(databaseName))
     {
-      try ( QueryDataSet qds = qb.buildQueryDataset(con, false))
+      try(QueryDataSet qds = qb.buildQueryDataset(con, false))
       {
         schema = qds.schema();
       }

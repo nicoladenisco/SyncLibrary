@@ -26,6 +26,8 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractValidator;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Filtra record in ingresso in base a valori predefiniti.
@@ -45,13 +47,13 @@ public class RecordFilterValidatorMaster extends AbstractValidator
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_MASTER;
+    return RoleType.MASTER;
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     this.data = data;

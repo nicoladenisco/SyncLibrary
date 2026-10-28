@@ -31,6 +31,8 @@ import org.sync.common.SyncSetupErrorException;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Adapter per mappare id attraverso i codici.
@@ -53,13 +55,13 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_MASTER;
+    return RoleType.MASTER;
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     this.data = data;

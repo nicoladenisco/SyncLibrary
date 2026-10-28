@@ -16,15 +16,16 @@ package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.Record;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
-import org.sync.common.plugin.AbstractDelete;
-import org.sync.db.DbPeer;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractDelete;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Cancellazione logica per stato_rec.
@@ -36,7 +37,7 @@ public class DeleteStrategyStatorec extends AbstractDelete
   private String databaseNameForeign, tableNameForeign;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
   }

@@ -23,6 +23,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -30,8 +31,10 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
+import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.sync.common.SyncContext;
+import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.common.plugin.SyncRulePlugin;
 
@@ -72,6 +75,39 @@ public class SyncServerTest
     FileBasedConfigurationBuilder<PropertiesConfiguration> builder = configs.fileBasedBuilder(PropertiesConfiguration.class, resource);
 
     return builder.getConfiguration();
+  }
+
+  public Element findPlugin(String nomeRegola, Document doc)
+     throws Exception
+  {
+    // cerca una regola controllando gli attributi
+    // application="diamante" master="caleido" target="all"
+    Optional<Element> rule = doc.getRootElement().getChildren("rule").stream()
+       .filter((e) -> StringOper.isEqu(nomeRegola, e.getAttributeValue("name")))
+       .findFirst();
+
+    if(!rule.isPresent())
+      throw new SyncSetupErrorException(String.format("La regola %s non esiste; rivedere setup.", nomeRegola));
+
+    return rule.get();
+  }
+
+  public Element acquisiciStrategia(String nomeRegola, SyncContext context)
+     throws Exception
+  {
+    Element e = findPlugin(nomeRegola, doc);
+
+    // nel test il server è master il client è slave
+    context.put("rule-name", nomeRegola);
+    context.put("your-role", "master");
+    context.put("rule-type", "generic");
+
+    // carica regola e la salva nella cache regole
+    SyncRulePlugin rule = SyncPluginFactory.getInstance().buildRule(RoleType.MASTER, "generic");
+    rule.setXML(FunctionType.LOCAL, e);
+    ruleMap.put(nomeRegola, rule);
+
+    return e;
   }
 
   public void verificaBlocco(String nomeRegola, String nome,

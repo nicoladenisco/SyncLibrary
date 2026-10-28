@@ -28,6 +28,8 @@ import org.sync.common.plugin.SyncAgentPlugin;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.common.plugin.SyncPoolPlugin;
 import org.sync.db.Database;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Plugin di sincronizzazione per Diamante via XML-RPC.
@@ -48,13 +50,13 @@ public class RuleMaster extends AbstractRule
   }
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_MASTER;
+    return RoleType.MASTER;
   }
 
   @Override
-  public void setXML(String location, Element rule)
+  public void setXML(FunctionType location, Element rule)
      throws Exception
   {
     this.rule = rule;
@@ -78,7 +80,7 @@ public class RuleMaster extends AbstractRule
     createDataBlocks(location);
   }
 
-  protected void createDataPools(String location)
+  protected void createDataPools(FunctionType location)
      throws Exception
   {
     Element pools = rule.getChild("data-pools");
@@ -109,7 +111,7 @@ public class RuleMaster extends AbstractRule
     }
   }
 
-  protected void createDataBlocks(String location)
+  protected void createDataBlocks(FunctionType location)
      throws Exception
   {
     Element blocks = rule.getChild("data-blocks");

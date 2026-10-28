@@ -16,14 +16,15 @@ package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
-import org.sync.common.plugin.AbstractAdapter;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractAdapter;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Adapter per generazione valore computando il massimo di un campo.
@@ -36,7 +37,7 @@ public class AdapterNotNull extends AbstractAdapter
   protected Map setup;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     setup = Utils.parseParams(data);

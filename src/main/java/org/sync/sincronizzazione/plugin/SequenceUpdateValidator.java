@@ -15,18 +15,19 @@
 package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.plugin.AbstractValidator;
-import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
-import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
-import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
-import org.sync.sincronizzazione.plugin.slave.AgentSharedGenericSlave;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.plugin.AbstractValidator;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
+import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
+import org.sync.sincronizzazione.plugin.slave.AgentSharedGenericSlave;
 
 /**
  * Reimposta sequenza al valore massimo di un campo.
@@ -40,7 +41,7 @@ public class SequenceUpdateValidator extends AbstractValidator
   //  "SELECT pg_catalog.setval('stp.valori_normali_valori_normali_id_seq', 1, false);";
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     field = data.getAttributeValue("field");

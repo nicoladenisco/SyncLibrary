@@ -18,14 +18,15 @@ import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
 import java.util.*;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Classe base degli Agent con un concetto di campi condivisi e timestamp.
@@ -40,7 +41,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
   public String correctTableName = null;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -49,7 +50,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
 
     if((useTs = data.getChild("use-timestamps")) != null)
     {
-      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location));
+      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location.getFunction()));
       correct = checkTrueFalse(useTs.getAttributeValue("correct-" + location), correct);
       correctTableName = useTs.getAttributeValue("correct-table-" + location);
     }

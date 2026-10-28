@@ -14,12 +14,18 @@
  */
 package org.sync.db;
 
+import com.workingdogs.village.Column;
 import com.workingdogs.village.QueryDataSet;
+import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.TableDataSet;
 import com.workingdogs.village.VillageUtils;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -28,6 +34,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.commonlib5.utils.ArrayMap;
@@ -44,11 +53,11 @@ import org.jdom2.input.SAXBuilder;
  */
 public class Database
 {
+  private static final Log log = LogFactory.getLog(Database.class);
+
   private static String defaultDB = null;
   public static final int SB_SIZE = 8192;
   private static final Map<String, DatabaseInfo> mapInfo = new HashMap<>();
-  /** the log */
-  protected static final Log log = LogFactory.getLog(Database.class);
   //
   public static final String[] TABLES_FILTER = new String[]
   {
@@ -311,6 +320,30 @@ public class Database
   }
 
   /**
+   * Ritorna i tipi delle colonne di una query.
+   *
+   * @param con connessione al db
+   * @param query query sul db
+   * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
+   * @throws Exception
+   */
+  public static ArrayMap<String, Integer> getTipiColonneQuery(Connection con, String query)
+     throws Exception
+  {
+    Schema sc = schemaQuery(con, query);
+    int nc = sc.numberOfColumns();
+    ArrayMap<String, Integer> rv = new ArrayMap<>();
+
+    for(int i = 1; i <= nc; i++)
+    {
+      Column c = sc.column(i);
+      rv.add(new Pair<>(c.name(), c.typeEnum()));
+    }
+
+    return rv;
+  }
+
+  /**
    * Ritorna le colonne della chiave primaria di una tabella.
    * La ricerca del nome tabella è case insensitive.
    * @param con connessione al db
@@ -404,7 +437,7 @@ public class Database
    */
   public static boolean isSchemaPublic(String nomeSchema)
   {
-    return StringOper.isEquNocaseAny(nomeSchema, "public", "dbo");
+    return StringOper.isEquNocaseAny(nomeSchema, "public", "dbo", "app");
   }
 
   public static Integer getTipoColonna(Connection con,
@@ -646,5 +679,104 @@ public class Database
     }
 
     return 0;
+  }
+
+  public static String purgeNome(String nomeCampo)
+  {
+    String s = StringOper.okStrNull(nomeCampo);
+    if(s == null)
+      throw new RuntimeException("Errore di sintassi: campo vuoto nell'header.");
+
+    if(s.startsWith("\""))
+    {
+      s = s.substring(1);
+      if(s.endsWith("\""))
+        return s.substring(0, s.length() - 1);
+
+      throw new RuntimeException("Errore di sintassi: campo " + nomeCampo + " errato nell'header.");
+    }
+
+    if(s.startsWith("\'"))
+    {
+      s = s.substring(1);
+      if(s.endsWith("\'"))
+        return s.substring(0, s.length() - 1);
+
+      throw new RuntimeException("Errore di sintassi: campo " + nomeCampo + " errato nell'header.");
+    }
+
+    return s;
+  }
+
+  public static void executeFileCsv(String tabella, String chiave, File csvFile, Connection con)
+     throws Exception
+  {
+    try(Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
+    {
+      executeFileCsv(tabella, chiave, in, con);
+    }
+  }
+
+  public static void executeFileCsvResource(String tabella, String chiave, String nomeRisorsa, Connection con)
+     throws Exception
+  {
+    try(InputStream is = Database.class.getResourceAsStream(nomeRisorsa);
+       Reader in = new InputStreamReader(is, "UTF-8"))
+    {
+      Database.executeFileCsv(tabella, chiave, in, con);
+    }
+  }
+
+  public static void executeFileCsv(String tabella, String chiave, Reader in, Connection con)
+     throws Exception
+  {
+    CSVParser parser = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+    Map<String, Integer> headers = parser.getHeaderMap();
+
+    try(TableDataSet tds = new TableDataSet(con, tabella))
+    {
+      for(CSVRecord csvRecord : parser)
+      {
+        String valoreChiave = manipolaCampo(StringOper.okStrNull(csvRecord.get(chiave)));
+        if(valoreChiave == null)
+          throw new RuntimeException("Chiave primaria non definita nel record " + csvRecord.getRecordNumber());
+
+        Record r = tds.fetchOneRecordOrNew(chiave + "=" + valoreChiave, true);
+
+        if(r.isNew())
+          r.setValue(chiave, valoreChiave);
+
+        for(Map.Entry<String, Integer> entry : headers.entrySet())
+        {
+          String nomeCampo = purgeNome(entry.getKey());
+          int indiceCampo = entry.getValue();
+
+          String valoreCampo = manipolaCampo(StringOper.okStrNull(csvRecord.get(indiceCampo)));
+          r.setValue(nomeCampo, valoreCampo);
+        }
+
+        r.save();
+      }
+    }
+  }
+
+  public static String manipolaCampo(String valore)
+     throws Exception
+  {
+    if(valore == null)
+      return null;
+
+    if(valore.startsWith("\""))
+      valore = valore.substring(1);
+
+    if(valore.endsWith("\""))
+      valore = valore.substring(0, valore.length() - 1);
+
+    return valore;
+  }
+
+  public static java.sql.Timestamp currentTimestamp()
+  {
+    return new java.sql.Timestamp(System.currentTimeMillis());
   }
 }

@@ -17,11 +17,6 @@ package org.sync.sincronizzazione.plugin;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.Record;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
-import org.sync.common.plugin.AbstractAgent;
-import org.sync.common.plugin.AbstractDelete;
-import org.sync.db.DbPeer;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,6 +24,12 @@ import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractAgent;
+import org.sync.common.plugin.AbstractDelete;
+import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Informazioni sulla logica di cancellazione.
@@ -111,7 +112,7 @@ public class DeleteStrategyGeneric extends AbstractDelete
   }
 
   @Override
-  public void setXML(String location, Element eds)
+  public void setXML(FunctionType location, Element eds)
      throws Exception
   {
     {

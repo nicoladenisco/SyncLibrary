@@ -1,0 +1,10 @@
+reparti_id,codice,descrizione,stato_rec,id_user,id_ucrea,ult_modif,creazione
+0,0,Nessuno/indefinito,10,0,0,NULL,NULL
+1,SITO1,Reparto Sito 1,10,0,0,2025-10-16 15:08:24,NULL
+2,SITO2,Reparto Sito 2,10,0,0,2025-10-16 15:08:24,NULL
+3,SITO3,Reparto Sito 3,10,0,0,2025-10-16 15:08:24,NULL
+4,RAD,Radiologia,0,0,0,2025-10-16 15:08:24,NULL
+16,SVI,Sviluppo,0,0,0,2026-02-09 10:15:05,NULL
+17,ASS,Assistenza,0,0,0,2026-02-09 10:15:05,NULL
+18,LAB,CANALE LAB,0,0,0,2025-11-11 15:12:31,NULL
+23,ISCC,ISCC,0,0,0,2025-12-12 11:31:47,NULL

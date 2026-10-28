@@ -28,6 +28,8 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.AbstractDataPool;
 import org.sync.common.plugin.SyncPoolPlugin;
+import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Pool dati custom.
@@ -44,9 +46,9 @@ public class CustomDataPoolMaster extends AbstractDataPool
   private Configuration cfg = null;
 
   @Override
-  public String getRole()
+  public RoleType getRole()
   {
-    return ROLE_MASTER;
+    return RoleType.MASTER;
   }
 
   @Override
@@ -61,7 +63,7 @@ public class CustomDataPoolMaster extends AbstractDataPool
   }
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     if((className = okStrNull(data.getChildText("classname"))) == null)

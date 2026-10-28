@@ -16,16 +16,17 @@ package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.Utils;
-import org.sync.common.plugin.AbstractAdapter;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jdom2.Element;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractAdapter;
+import org.sync.sincronizzazione.FunctionType;
 
 /**
  * Adapter per limitare dimensioni delle stringhe.
@@ -39,7 +40,7 @@ public class AdapterMaxLength extends AbstractAdapter
   private Map setup;
 
   @Override
-  public void setXML(String location, Element data)
+  public void setXML(FunctionType location, Element data)
      throws Exception
   {
     setup = Utils.parseParams(data);
