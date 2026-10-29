@@ -28,7 +28,7 @@ import org.sync.common.plugin.AbstractRule;
 import org.sync.common.plugin.SyncAgentPlugin;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.db.Database;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -56,7 +56,7 @@ public class RuleSlave extends AbstractRule
   }
 
   @Override
-  public void setXML(FunctionType location, Element rule)
+  public void setXML(LocationType location, Element rule)
      throws Exception
   {
     this.rule = rule;
@@ -79,7 +79,7 @@ public class RuleSlave extends AbstractRule
     createDataBlocks(location);
   }
 
-  protected void createDataBlocks(FunctionType location)
+  protected void createDataBlocks(LocationType location)
      throws Exception
   {
     Element blocks = rule.getChild("data-blocks");

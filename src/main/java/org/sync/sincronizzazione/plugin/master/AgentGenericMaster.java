@@ -19,7 +19,6 @@ import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
 import java.util.*;
 import org.apache.commons.configuration2.Configuration;
-import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
@@ -31,7 +30,7 @@ import org.sync.common.plugin.AbstractAgent;
 import org.sync.common.plugin.SyncDeletePlugin;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.common.plugin.SyncValidatorPlugin;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -63,7 +62,7 @@ abstract public class AgentGenericMaster extends AbstractAgent
   }
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     this.data = data;
@@ -126,59 +125,59 @@ abstract public class AgentGenericMaster extends AbstractAgent
     isolateAllRecords = checkTrueFalse(data.getAttributeValue("isolateAllRecords"), false);
   }
 
-  private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, FunctionType location)
-     throws Exception
-  {
-    populateFieldName(ef, fi, location);
-
-    fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
-
-    fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
-    fi.primary = checkTrueFalse(ef.getAttributeValue("primary"), false);
-    fi.identityOff = checkTrueFalse(ef.getAttributeValue("identityOff"), false);
-    fi.truncZeroes = checkTrueFalse(ef.getAttributeValue("truncZeroes"), false);
-
-    if(fi.adapterElement != null)
-    {
-      fi.adapter = SyncPluginFactory.getInstance().buildAdapter(
-         getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
-      fi.adapter.setXML(location, fi.adapterElement);
-    }
-
-    return fi;
-  }
-
-  private void populateFieldName(Element ef, FieldLinkInfoBean fi, FunctionType location)
-     throws SyncSetupErrorException
-  {
-    Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
-    if(uniquename != null)
-    {
-      fi.field = new Pair<>(uniquename.first, uniquename.second);
-      fi.shareFieldName = fi.field.first;
-      return;
-    }
-
-    String tmp = okStrNull(ef.getAttributeValue("name"));
-    if(tmp != null)
-    {
-      fi.field = new Pair<>(tmp, null);
-      fi.shareFieldName = fi.field.first;
-      return;
-    }
-
-    String tmp1 = okStrNull(ef.getAttributeValue(location.getFunction()));
-    if(tmp1 != null)
-    {
-      fi.field = new Pair<>(tmp1, null);
-      fi.shareFieldName = okStrNull(ef.getAttributeValue("foreign"));
-      return;
-    }
-
-    fi.field = Utils.parseNameTypeIgnore(ef.getChild(location.getFunction()));
-    fi.shareFieldName = okStrNull(ef.getAttributeValue("foreign"));
-  }
-
+//  private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, LocationType location)
+//     throws Exception
+//  {
+//    populateFieldName(ef, fi, location);
+//
+//    fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
+//
+//    fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
+//    fi.primary = checkTrueFalse(ef.getAttributeValue("primary"), false);
+//    fi.identityOff = checkTrueFalse(ef.getAttributeValue("identityOff"), false);
+//    fi.truncZeroes = checkTrueFalse(ef.getAttributeValue("truncZeroes"), false);
+//
+//    if(fi.adapterElement != null)
+//    {
+//      fi.adapter = SyncPluginFactory.getInstance().buildAdapter(
+//         getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
+//      fi.adapter.setXML(location, fi.adapterElement);
+//      fi.shareFieldName = getOppositeField(location, ef).field.first;
+//    }
+//
+//    return fi;
+//  }
+//
+//  private void populateFieldName(Element ef, FieldLinkInfoBean fi, LocationType location)
+//     throws SyncSetupErrorException
+//  {
+//    Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
+//    if(uniquename != null)
+//    {
+//      fi.field = new Pair<>(uniquename.first, uniquename.second);
+//      fi.shareFieldName = fi.field.first;
+//      return;
+//    }
+//
+//    String tmp = okStrNull(ef.getAttributeValue("name"));
+//    if(tmp != null)
+//    {
+//      fi.field = new Pair<>(tmp, null);
+//      fi.shareFieldName = fi.field.first;
+//      return;
+//    }
+//
+//    String tmp1 = okStrNull(ef.getAttributeValue(location.getFunction()));
+//    if(tmp1 != null)
+//    {
+//      fi.field = new Pair<>(tmp1, null);
+//      fi.shareFieldName = fi.field.first;
+//      return;
+//    }
+//
+//    fi.field = Utils.parseNameTypeIgnore(ef.getChild(location.getFunction()));
+//    fi.shareFieldName = fi.field.first;
+//  }
   /**
    * Popola la lista record ottenuta.
    * @param lsRecs lista dei records

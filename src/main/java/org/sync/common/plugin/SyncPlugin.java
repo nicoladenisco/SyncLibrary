@@ -16,7 +16,7 @@ package org.sync.common.plugin;
 
 import org.apache.commons.configuration2.Configuration;
 import org.jdom2.Element;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -50,7 +50,7 @@ public interface SyncPlugin extends Cloneable
    * @param data elemento xml
    * @throws Exception
    */
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception;
 
   /**

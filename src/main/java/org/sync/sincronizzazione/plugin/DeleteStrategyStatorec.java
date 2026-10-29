@@ -25,7 +25,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractDelete;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Cancellazione logica per stato_rec.
@@ -37,7 +37,7 @@ public class DeleteStrategyStatorec extends AbstractDelete
   private String databaseNameForeign, tableNameForeign;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
   }

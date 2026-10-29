@@ -19,22 +19,19 @@ import com.workingdogs.village.Record;
 import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.torque.criteria.SqlEnum;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
+import org.commonlib5.utils.StringJoin;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
-import org.rigel5.SetupHolder;
-import org.rigel5.db.sql.FiltroData;
-import org.rigel5.db.sql.QueryBuilder;
-import org.rigel5.table.RigelColumnDescriptor;
 import org.sync.SyncMacroResolver;
 import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.db.Database;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.db.QueryParamsBean;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Agent di sincronizzazione orientato alle query.
@@ -45,12 +42,12 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 {
   protected Element queryElement;
   protected String tableName, databaseName;
-  protected QueryBuilder qb;
   protected boolean ignoreOldTimestamp;
   protected final SyncMacroResolver resolver = new SyncMacroResolver();
+  protected final QueryParamsBean qb = new QueryParamsBean();
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -64,7 +61,6 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 
     preparaLimitiDate();
 
-    qb = SetupHolder.getQueryBuilder();
     qb.setSelect(resolver.resolveMacro(okStr(queryElement.getChildText("select"))));
     qb.setFrom(resolver.resolveMacro(okStr(queryElement.getChildText("from"))));
     qb.setWhere(resolver.resolveMacro(okStr(queryElement.getChildText("where"))));
@@ -129,17 +125,15 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
     if(!haveTs())
       return;
 
-    FiltroData fd = new FiltroData();
+    QueryParamsBean qc = (QueryParamsBean) qb.clone();
     if(oldTimestamp != null && !ignoreOldTimestamp)
     {
-      //fd.addWhere(RigelColumnDescriptor.PDT_STRING, timeStamp.first, SqlEnum.GREATER_THAN, DateTime.formatIsoFull(oldTimestamp));
-      fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.GREATER_THAN, oldTimestamp);
+      qc.addWhere(timeStamp.first + " >= ${oldTimestamp:ts}");
+      qc.addValues("oldTimestamp", oldTimestamp);
     }
 
-    qb.setParametri(fd);
-    String sSQL = qb.makeSQLstring();
-
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, databaseName);
+    String sSQL = qc.makeSQLstring();
+    List<Record> lsRecs = DbPeer.executeQuery(sSQL, qc.getValuesMap(), databaseName);
     if(lsRecs.isEmpty())
       return;
 
@@ -153,7 +147,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
     VectorRpc v = new VectorRpc();
     context.put("records-data", v);
     boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
-    FiltroData fd = new FiltroData();
+    QueryParamsBean qc = (QueryParamsBean) qb.clone();
 
     // estrae i soli campi significativi
     List<FieldLinkInfoBean> arRealFields = arFields.stream()
@@ -164,16 +158,21 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
     {
       // per ora il link è solo su campo singolo
       String fieldLink = arKeys.getKeyByIndex(0);
+      StringJoin sj = StringJoin.build().add(parametri);
+
       if("INTEGER".equalsIgnoreCase(arKeys.getPairByIndex(0).second))
-        fd.addWhere(RigelColumnDescriptor.PDT_INTEGER, fieldLink, SqlEnum.IN, parametri);
+      {
+        qc.addWhere(fieldLink + " IN (" + sj.join() + ")");
+      }
       else
-        fd.addWhere(RigelColumnDescriptor.PDT_STRING, fieldLink, SqlEnum.IN, parametri);
+      {
+        sj.setDelimitatore("\'");
+        qc.addWhere(fieldLink + " IN (" + sj.join() + ")");
+      }
     }
 
-    qb.setParametri(fd);
-    String sSQL = qb.makeSQLstring();
-
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, databaseName);
+    String sSQL = qc.makeSQLstring();
+    List<Record> lsRecs = DbPeer.executeQuery(sSQL, qc.getValuesMap(), databaseName);
     if(lsRecs.isEmpty())
       return;
 
@@ -189,7 +188,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   {
     try(Connection con = Database.getConnection(databaseName))
     {
-      try(QueryDataSet qds = qb.buildQueryDataset(con, false))
+      try(QueryDataSet qds = qb.buildQueryDataset(con))
       {
         schema = qds.schema();
       }

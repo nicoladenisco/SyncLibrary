@@ -23,7 +23,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractValidator;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 
@@ -42,7 +42,7 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
   protected String filter;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     filter = data.getAttributeValue("filter");

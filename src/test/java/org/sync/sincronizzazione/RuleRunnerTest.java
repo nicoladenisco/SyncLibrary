@@ -31,7 +31,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.rigel5.SetupHolder;
 import org.sync.db.Database;
 
 /**
@@ -54,8 +53,6 @@ public class RuleRunnerTest
   {
     Database.addDatabaseInfo("test", DATABASE_DRIVER, DATABASE_URL + ";create=true", "", "");
     Database.setDefaultDB("test");
-
-    SetupHolder.setQueryBuilderClassName("DerbyQueryBuilder");
   }
 
   @AfterClass
@@ -109,7 +106,7 @@ public class RuleRunnerTest
   public void testDoRun()
      throws Exception
   {
-    System.out.println("doRun");
+    System.out.println("ESEGUO test doRun");
 
     SyncClientTest client = new SyncClientTest();
     SyncServerTest server = new SyncServerTest();

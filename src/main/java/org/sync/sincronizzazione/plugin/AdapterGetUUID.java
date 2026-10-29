@@ -16,6 +16,10 @@ package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
+import java.sql.Connection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractAdapter;
@@ -24,10 +28,6 @@ import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
 import org.sync.sincronizzazione.plugin.slave.AgentSharedGenericSlave;
-import java.sql.Connection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Adapter per la generazione di un UUID.
@@ -68,7 +68,7 @@ public class AdapterGetUUID extends AbstractAdapter
          = "SELECT " + f.field.first
          + "  FROM " + tableName
          + " WHERE " + f.field.first + " = '" + randomUUIDString + "'";
-      List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true);
+      List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName);
       if(lsRecs.isEmpty())
         return randomUUIDString;
     }
@@ -86,7 +86,7 @@ public class AdapterGetUUID extends AbstractAdapter
          = "SELECT " + f.field.first
          + "  FROM " + tableName
          + " WHERE " + f.field.first + " = '" + randomUUIDString + "'";
-      List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true, con);
+      List<Record> lsRecs = DbPeer.executeQuery(sSQL, con);
       if(lsRecs.isEmpty())
         return randomUUIDString;
     }

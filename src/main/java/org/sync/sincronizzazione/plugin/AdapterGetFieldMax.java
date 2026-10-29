@@ -16,6 +16,9 @@ package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
+import java.sql.Connection;
+import java.util.List;
+import java.util.Map;
 import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractAdapter;
@@ -24,9 +27,6 @@ import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
 import org.sync.sincronizzazione.plugin.slave.AgentSharedGenericSlave;
-import java.sql.Connection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Adapter per generazione valore computando il massimo di un campo.
@@ -74,7 +74,7 @@ public class AdapterGetFieldMax extends AbstractAdapter
      throws Exception
   {
     String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true);
+    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName);
     return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
   }
 
@@ -83,7 +83,7 @@ public class AdapterGetFieldMax extends AbstractAdapter
      throws Exception
   {
     String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true, con);
+    List<Record> lsRecs = DbPeer.executeQuery(sSQL, con);
     return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
   }
 }

@@ -82,7 +82,7 @@ public abstract class RuleRunner
       String ruleType = context.getAsString("rule-type", "generic");
 
       SyncRulePlugin rule = SyncPluginFactory.getInstance().buildRule(RoleType.fromString(roleType), ruleType);
-      rule.setXML(FunctionType.FOREIGN, xmlSetup);
+      rule.setXML(LocationType.FOREIGN, xmlSetup);
 
       try
       {

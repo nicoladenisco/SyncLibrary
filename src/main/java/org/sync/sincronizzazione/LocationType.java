@@ -23,14 +23,14 @@ package org.sync.sincronizzazione;
  *
  * @author Nicola De Nisco
  */
-public enum FunctionType
+public enum LocationType
 {
   LOCAL("local"),
   FOREIGN("foreign");
 
   private final String function;
 
-  FunctionType(String value)
+  LocationType(String value)
   {
     this.function = value;
   }
@@ -40,9 +40,9 @@ public enum FunctionType
     return function;
   }
 
-  public static FunctionType fromString(String value)
+  public static LocationType fromString(String value)
   {
-    for(FunctionType type : values())
+    for(LocationType type : values())
     {
       if(type.function.equalsIgnoreCase(value))
         return type;
@@ -55,5 +55,20 @@ public enum FunctionType
   public String toString()
   {
     return function;
+  }
+
+  public LocationType getOpposite()
+  {
+    switch(this)
+    {
+      case LOCAL:
+        return FOREIGN;
+
+      case FOREIGN:
+        return LOCAL;
+
+      default:
+        throw new IllegalArgumentException("Valore non definito: " + this);
+    }
   }
 }

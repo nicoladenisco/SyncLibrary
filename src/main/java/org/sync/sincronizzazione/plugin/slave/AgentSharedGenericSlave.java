@@ -31,7 +31,7 @@ import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.*;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RuleRunner;
 
 /**
@@ -49,7 +49,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   protected boolean keysHaveAdapter = false;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     super.setXML(location, data);

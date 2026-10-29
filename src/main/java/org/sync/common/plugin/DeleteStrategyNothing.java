@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
 import org.sync.common.SyncContext;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Plugin per logica di cancellazione di default.
@@ -31,7 +31,7 @@ import org.sync.sincronizzazione.FunctionType;
 public class DeleteStrategyNothing extends AbstractDelete
 {
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
   }

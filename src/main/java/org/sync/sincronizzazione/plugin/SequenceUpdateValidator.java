@@ -23,7 +23,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractValidator;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
@@ -41,7 +41,7 @@ public class SequenceUpdateValidator extends AbstractValidator
   //  "SELECT pg_catalog.setval('stp.valori_normali_valori_normali_id_seq', 1, false);";
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     field = data.getAttributeValue("field");
@@ -100,7 +100,7 @@ public class SequenceUpdateValidator extends AbstractValidator
      throws Exception
   {
     String sSQL = "SELECT MAX(" + fieldName + ") FROM " + tableName;
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName, true);
+    List<Record> lsRecs = DbPeer.executeQuery(sSQL, dbName);
     return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
   }
 

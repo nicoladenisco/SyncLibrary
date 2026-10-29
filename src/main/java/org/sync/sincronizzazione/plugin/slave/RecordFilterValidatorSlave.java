@@ -25,7 +25,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractValidator;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -46,7 +46,7 @@ public class RecordFilterValidatorSlave extends AbstractValidator
   }
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     this.data = data;

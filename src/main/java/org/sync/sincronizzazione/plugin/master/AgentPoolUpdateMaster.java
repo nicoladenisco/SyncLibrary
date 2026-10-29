@@ -27,7 +27,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.SyncPoolPlugin;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Agent di sincronizzazione con utilizzo di un poolElement di dati.
@@ -40,7 +40,7 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
   protected String poolName, poolData;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     super.setXML(location, data);

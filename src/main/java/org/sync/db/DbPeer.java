@@ -15,10 +15,9 @@
 package org.sync.db;
 
 import com.workingdogs.village.DataSet;
-import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.QueryDataSet;
+import com.workingdogs.village.QueryDataSetMacro;
 import com.workingdogs.village.Record;
-import com.workingdogs.village.VillageUtils;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,9 +26,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.torque.om.NumberKey;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.StringOper;
 
@@ -142,7 +141,7 @@ public class DbPeer
   public static List<Record> executeQuery(String queryString)
      throws DatabaseException
   {
-    return executeQuery(queryString, Database.getDefaultDB(), false);
+    return executeQuery(queryString, Database.getDefaultDB());
   }
 
   /**
@@ -159,57 +158,13 @@ public class DbPeer
   public static List<Record> executeQuery(String queryString, String dbName)
      throws DatabaseException
   {
-    return executeQuery(queryString, dbName, false);
+    return executeQuery(queryString, Collections.EMPTY_MAP, dbName);
   }
 
   /**
    * Method for performing a SELECT. Returns all results.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param dbName The database to connect to.
-   * @param singleRecord Whether or not we want to select only a
-   * single record.
-   * @return List of Record objects.
-   * @throws DatabaseException Any exceptions caught during processing will be
-   * rethrown wrapped into a DatabaseException.
-   */
-  public static List<Record> executeQuery(
-     String queryString,
-     String dbName,
-     boolean singleRecord)
-     throws DatabaseException
-  {
-    return executeQuery(queryString, 0, -1, dbName, singleRecord);
-  }
-
-  /**
-   * Method for performing a SELECT. Returns all results.
-   *
-   * @param queryString A String with the sql statement to execute.
-   * @param dbName The database to connect to.
-   * @param singleRecord Whether or not we want to select only a
-   * @param con A Connection.
-   * single record.
-   * @return List of Record objects.
-   * @throws DatabaseException Any exceptions caught during processing will be
-   * rethrown wrapped into a DatabaseException.
-   */
-  public static List<Record> executeQuery(
-     String queryString,
-     String dbName,
-     boolean singleRecord,
-     Connection con)
-     throws DatabaseException
-  {
-    return executeQuery(queryString, 0, -1, singleRecord, con);
-  }
-
-  /**
-   * Method for performing a SELECT. Returns all results.
-   *
-   * @param queryString A String with the sql statement to execute.
-   * @param singleRecord Whether or not we want to select only a
-   * single record.
    * @param con A Connection.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
@@ -217,32 +172,26 @@ public class DbPeer
    */
   public static List<Record> executeQuery(
      String queryString,
-     boolean singleRecord,
      Connection con)
      throws DatabaseException
   {
-    return executeQuery(queryString, 0, -1, singleRecord, con);
+    return executeQuery(queryString, Collections.EMPTY_MAP, con);
   }
 
   /**
    * Method for performing a SELECT.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param start The first row to return.
-   * @param numberOfResults The number of rows to return.
+   * @param values mappa sostituzioni per macro
    * @param dbName The database to connect to.
-   * @param singleRecord Whether or not we want to select only a
-   * single record.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
    * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(
      String queryString,
-     int start,
-     int numberOfResults,
-     String dbName,
-     boolean singleRecord)
+     Map<String, ? extends Object> values,
+     String dbName)
      throws DatabaseException
   {
     Connection con = null;
@@ -251,12 +200,7 @@ public class DbPeer
     {
       con = Database.getConnection(dbName);
       // execute the query
-      results = executeQuery(
-         queryString,
-         start,
-         numberOfResults,
-         singleRecord,
-         con);
+      results = executeQuery(queryString, values, con);
     }
     finally
     {
@@ -269,10 +213,7 @@ public class DbPeer
    * Method for performing a SELECT. Returns all results.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param start The first row to return.
-   * @param numberOfResults The number of rows to return.
-   * @param singleRecord Whether or not we want to select only a
-   * single record.
+   * @param values mappa sostituzioni per macro
    * @param con A Connection.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
@@ -280,38 +221,20 @@ public class DbPeer
    */
   public static List<Record> executeQuery(
      String queryString,
-     int start,
-     int numberOfResults,
-     boolean singleRecord,
+     Map<String, ? extends Object> values,
      Connection con)
      throws DatabaseException
   {
-    QueryDataSet qds = null;
-    List<Record> results = Collections.EMPTY_LIST;
-    try
+    try(QueryDataSetMacro qds = new QueryDataSetMacro(con, queryString, values))
     {
-      // execute the query
-//      long startTime = System.currentTimeMillis();
-      qds = new QueryDataSet(con, queryString);
-
-//      if(log.isDebugEnabled())
-//      {
-//        log.debug("Elapsed time="
-//           + (System.currentTimeMillis() - startTime) + " ms");
-//      }
-      results = getSelectResults(
-         qds, start, numberOfResults, singleRecord);
+      return qds.fetchAllRecords();
     }
-    catch(DataSetException | SQLException e)
+    catch(Exception e)
     {
       log.error(queryString);
       throwTorqueException(e);
+      return null;
     }
-    finally
-    {
-      VillageUtils.close(qds);
-    }
-    return results;
   }
 
   /**
@@ -695,12 +618,12 @@ public class DbPeer
         statement.setTimestamp(i, sqlDate);
         result.add(sqlDate);
       }
-      else if(param instanceof NumberKey)
-      {
-        BigDecimal bigDecimal = ((NumberKey) param).getValue();
-        statement.setBigDecimal(i, bigDecimal);
-        result.add(bigDecimal);
-      }
+//      else if(param instanceof NumberKey)
+//      {
+//        BigDecimal bigDecimal = ((NumberKey) param).getValue();
+//        statement.setBigDecimal(i, bigDecimal);
+//        result.add(bigDecimal);
+//      }
       else if(param instanceof Integer)
       {
         statement.setInt(i, ((Integer) param).intValue());

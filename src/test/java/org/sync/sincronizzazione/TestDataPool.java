@@ -45,7 +45,7 @@ public class TestDataPool extends AbstractDataPool
   }
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
   }
@@ -88,8 +88,9 @@ public class TestDataPool extends AbstractDataPool
       case "tipietichette":
       {
         String sSQL
-           = "SELECT T.*,T.codice codtipoeti\n"
+           = "SELECT T.*,S.codice codsta\n"
            + "  FROM origin_tipietichette T\n"
+           + "    INNER JOIN origin_stampanti S ON T.id_stampante_default=S.stampanti_id\n"
            + " WHERE (T.stato_rec IS NULL OR T.stato_rec < 10)";
 
         return query(sSQL, extraFilter, con);

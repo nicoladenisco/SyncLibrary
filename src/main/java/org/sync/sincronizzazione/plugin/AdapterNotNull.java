@@ -24,7 +24,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Adapter per generazione valore computando il massimo di un campo.
@@ -37,7 +37,7 @@ public class AdapterNotNull extends AbstractAdapter
   protected Map setup;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     setup = Utils.parseParams(data);

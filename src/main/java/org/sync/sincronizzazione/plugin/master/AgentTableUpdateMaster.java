@@ -17,20 +17,16 @@ package org.sync.sincronizzazione.plugin.master;
 import com.workingdogs.village.Record;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.apache.torque.criteria.SqlEnum;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
-import org.rigel5.SetupHolder;
-import org.rigel5.db.sql.FiltroData;
-import org.rigel5.db.sql.QueryBuilder;
-import org.rigel5.table.RigelColumnDescriptor;
 import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.db.Database;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.db.QueryParamsBean;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -44,7 +40,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   protected String tableName;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -110,19 +106,21 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
       DbPeer.executeStatement(sSQL, Arrays.asList(Database.currentTimestamp()));
     }
 
-    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    QueryParamsBean qb = new QueryParamsBean();
     qb.setSelect(timeStamp.first + ",STATO_REC," + join(arKeys.keySet().iterator(), ','));
     qb.setFrom(tableName);
 
-    FiltroData fd = new FiltroData();
     if(oldTimestamp != null)
-      fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.GREATER_EQUAL, oldTimestamp);
+    {
+      qb.addWhere(timeStamp.first + " >= ${ts:oldTimestamp}");
+      qb.addValues("oldTimestamp", oldTimestamp);
+    }
 
     if(filter != null)
     {
       // aggiunge clausole del filtro
       for(String sql : filter.sqlFilterCompare)
-        fd.addFreeWhere(sql);
+        qb.addWhere(sql);
 
       // se richiesto aggiunge limitazione temporale
       if(filter.timeLimitCompare != 0)
@@ -130,37 +128,31 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
         Calendar cal = new GregorianCalendar();
         cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitCompare);
         Date firstDate = cal.getTime();
-        fd.addWhere(RigelColumnDescriptor.PDT_TIMESTAMP, timeStamp.first, SqlEnum.GREATER_EQUAL, firstDate);
+        qb.addWhere(timeStamp.first + " >= ${firstDate:ts}");
+        qb.addValues("firstDate", firstDate);
       }
     }
 
-    if(fd.haveWhere())
-      qb.setFiltro(fd);
-
     String sqlSelect = qb.makeSQLstring();
-    return DbPeer.executeQuery(sqlSelect);
+    return DbPeer.executeQuery(sqlSelect, qb.getValuesMap(), databaseName);
   }
 
   protected List<Record> queryWithoutTimestamp()
      throws Exception
   {
-    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    QueryParamsBean qb = new QueryParamsBean();
     qb.setSelect("STATO_REC," + join(arKeys.keySet().iterator(), ','));
     qb.setFrom(tableName);
 
-    FiltroData fd = new FiltroData();
     if(filter != null)
     {
       // aggiunge clausole del filtro
       for(String sql : filter.sqlFilterCompare)
-        fd.addFreeWhere(sql);
+        qb.addWhere(sql);
     }
 
-    if(fd.haveWhere())
-      qb.setFiltro(fd);
-
     String sqlSelect = qb.makeSQLstring();
-    return DbPeer.executeQuery(sqlSelect);
+    return DbPeer.executeQuery(sqlSelect, qb.getValuesMap(), databaseName);
   }
 
   @Override
@@ -234,7 +226,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   private List<Record> queryFetchAll(String fields)
      throws Exception
   {
-    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    QueryParamsBean qb = new QueryParamsBean();
     qb.setSelect(fields);
     qb.setFrom(tableName);
     qb.setWhere("((STATO_REC IS NULL) OR (STATO_REC < 10))");
@@ -243,35 +235,37 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
     {
       GregorianCalendar cal = new GregorianCalendar();
       cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
-      qb.addWhere(" AND (" + qb.adjCampoValue(RigelColumnDescriptor.PDT_TIMESTAMP, "ULT_MODIF", ">=", cal.getTime()) + ")");
+      qb.addWhere("ULT_MODIF >= ${timelimit:ts}");
+      qb.addValues("timelimit", cal.getTime());
     }
 
     String sSQL = qb.makeSQLstring();
-    return DbPeer.executeQuery(sSQL);
+    return DbPeer.executeQuery(sSQL, qb.getValuesMap(), databaseName);
   }
 
   private List<Record> queryUnaChiave(String fields, String fieldLink, Collection<String> parametriLink)
      throws Exception
   {
-    QueryBuilder qb = SetupHolder.getQueryBuilder();
+    QueryParamsBean qb = new QueryParamsBean();
     qb.setSelect(fieldLink + "," + fields);
     qb.setFrom(tableName);
     qb.setWhere("((STATO_REC IS NULL) OR (STATO_REC < 10))");
 
     if(!parametriLink.isEmpty())
     {
-      qb.addWhere(" AND (" + fieldLink + " IN (" + join(parametriLink.iterator(), ',', '\'') + "))");
+      qb.addWhere(fieldLink + " IN (" + join(parametriLink.iterator(), ',', '\'') + ")");
     }
 
     if(filter.timeLimitFetch > 0)
     {
       GregorianCalendar cal = new GregorianCalendar();
       cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
-      qb.addWhere(" AND (" + qb.adjCampoValue(RigelColumnDescriptor.PDT_TIMESTAMP, "ULT_MODIF", ">=", cal.getTime()) + ")");
+      qb.addWhere("ULT_MODIF >= ${timelimit:ts}");
+      qb.addValues("timelimit", cal.getTime());
     }
 
     String sSQL = qb.makeSQLstring();
-    return DbPeer.executeQuery(sSQL);
+    return DbPeer.executeQuery(sSQL, qb.getValuesMap(), databaseName);
   }
 
   private void populateMultipleKey(String fields,

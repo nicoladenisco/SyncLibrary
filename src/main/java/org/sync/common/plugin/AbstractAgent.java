@@ -17,7 +17,6 @@ package org.sync.common.plugin;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
-import org.sync.common.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +24,11 @@ import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.okStrNull;
 import org.commonlib5.xmlrpc.VectorRpc;
+import org.jdom2.Element;
+import org.sync.common.*;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Classe base di tutti gli agent.
@@ -376,5 +379,65 @@ public abstract class AbstractAgent extends AbstractPlugin
         return new String(ar, i, ar.length);
     }
     return "";
+  }
+
+  protected FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, LocationType location)
+     throws Exception
+  {
+    populateFieldName(ef, fi, location);
+
+    fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
+
+    fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
+    fi.primary = checkTrueFalse(ef.getAttributeValue("primary"), false);
+    fi.identityOff = checkTrueFalse(ef.getAttributeValue("identityOff"), false);
+    fi.truncZeroes = checkTrueFalse(ef.getAttributeValue("truncZeroes"), false);
+
+    if(fi.adapterElement != null)
+    {
+      fi.adapter = SyncPluginFactory.getInstance().buildAdapter(
+         getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
+      fi.adapter.setXML(location, fi.adapterElement);
+      fi.shareFieldName = getOppositeField(location, ef).field.first;
+    }
+
+    return fi;
+  }
+
+  protected void populateFieldName(Element ef, FieldLinkInfoBean fi, LocationType location)
+     throws SyncSetupErrorException
+  {
+    Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
+    if(uniquename != null)
+    {
+      fi.field = new Pair<>(uniquename.first, uniquename.second);
+      fi.shareFieldName = fi.field.first;
+      return;
+    }
+
+    String tmp = okStrNull(ef.getAttributeValue("name"));
+    if(tmp != null)
+    {
+      fi.field = new Pair<>(tmp, null);
+      fi.shareFieldName = fi.field.first;
+      return;
+    }
+
+    String tmp1 = okStrNull(ef.getAttributeValue(location.getFunction()));
+    if(tmp1 != null)
+    {
+      fi.field = new Pair<>(tmp1, null);
+      fi.shareFieldName = fi.field.first;
+      return;
+    }
+
+    fi.field = Utils.parseNameTypeIgnore(ef.getChild(location.getFunction()));
+    fi.shareFieldName = fi.field.first;
+  }
+
+  protected FieldLinkInfoBean getOppositeField(LocationType location, Element ef)
+     throws Exception
+  {
+    return populateField(ef, new FieldLinkInfoBean(), location.getOpposite());
   }
 }

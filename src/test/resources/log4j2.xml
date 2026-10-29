@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+  <Appenders>
+    <Console name="console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d [%t] %-5p | %c{1} - %m%n"/>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="org.sync" additivity="false" level="DEBUG">
+      <AppenderRef ref="console"/>
+    </Logger>
+
+    <Root level="ERROR">
+      <AppenderRef ref="console"/>
+    </Root>
+  </Loggers>
+</Configuration>

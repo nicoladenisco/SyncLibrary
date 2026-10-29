@@ -24,7 +24,7 @@ import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Element;
 import org.sync.common.SyncErrorException;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -53,7 +53,7 @@ public class AbstractPlugin extends StringOper
   }
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");

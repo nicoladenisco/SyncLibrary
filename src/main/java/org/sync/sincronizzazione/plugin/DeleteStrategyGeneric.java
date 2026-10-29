@@ -29,7 +29,7 @@ import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAgent;
 import org.sync.common.plugin.AbstractDelete;
 import org.sync.db.DbPeer;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 
 /**
  * Informazioni sulla logica di cancellazione.
@@ -112,7 +112,7 @@ public class DeleteStrategyGeneric extends AbstractDelete
   }
 
   @Override
-  public void setXML(FunctionType location, Element eds)
+  public void setXML(LocationType location, Element eds)
      throws Exception
   {
     {

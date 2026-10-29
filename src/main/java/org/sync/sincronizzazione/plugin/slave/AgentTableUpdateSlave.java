@@ -28,8 +28,8 @@ import org.sync.common.*;
 import org.sync.db.Database;
 import org.sync.db.DatabaseException;
 import org.sync.db.DbPeer;
-import org.sync.db.SqlTransactAgent;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.db.SqlTransactionHelper;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -44,7 +44,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   protected TableDataSet tds;
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     super.setXML(location, data);
@@ -381,13 +381,15 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   protected void salvaRecord(Map r, SyncContext context)
      throws Exception
   {
-    SqlTransactAgent.execute(databaseName, (con) ->
-       {
-         if(haveTs())
-           salvaRecordShared(r, context, con);
-         else
-           salvaRecord(r, context, con);
-    });
+    try(SqlTransactionHelper th = new SqlTransactionHelper(databaseName))
+    {
+      if(haveTs())
+        salvaRecordShared(r, context, th.getConnection());
+      else
+        salvaRecord(r, context, th.getConnection());
+
+      th.commit();
+    }
   }
 
   protected void salvaRecord(Map r, SyncContext context, Connection con)
@@ -429,7 +431,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       else
         log.info(e.getMessage());
     }
-    catch(SyncErrorException | DatabaseException e)
+    catch(SyncErrorException | DatabaseException | SQLException e)
     {
       // this exception avoids the insert or update on db because the external key reference is violated
       // but it doesn't stop the elaboration of all other records
@@ -496,7 +498,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       else
         log.info(e.getMessage());
     }
-    catch(SyncErrorException | DatabaseException e)
+    catch(SyncErrorException | DatabaseException | SQLException e)
     {
       // this exception avoids the insert or update on db because the external key reference is violated
       // but it doesn't stop the elaboration of all other records
@@ -540,7 +542,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   {
     // aggiunge campi obbligatori per la tabella
     Column[] columns = schema.getColumns();
-    for(int i = 0; i < columns.length; i++)
+    for(int i = 1; i < columns.length; i++)
     {
       Column col = columns[i];
       String campo = col.name();

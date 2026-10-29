@@ -104,7 +104,7 @@ public class SyncServerTest
 
     // carica regola e la salva nella cache regole
     SyncRulePlugin rule = SyncPluginFactory.getInstance().buildRule(RoleType.MASTER, "generic");
-    rule.setXML(FunctionType.LOCAL, e);
+    rule.setXML(LocationType.LOCAL, e);
     ruleMap.put(nomeRegola, rule);
 
     return e;

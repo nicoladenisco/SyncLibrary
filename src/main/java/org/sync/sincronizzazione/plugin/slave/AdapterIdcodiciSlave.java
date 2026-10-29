@@ -33,8 +33,7 @@ import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.common.plugin.AbstractAgent;
 import org.sync.db.DbPeer;
-import org.sync.db.SqlTransactAgent;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -63,14 +62,14 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     this.data = data;
     setup = Utils.parseParams(data);
     String name = data.getName();
 
-    if(isEquNocaseAny(name, "adapter", location + "adapter"))
+    if(isEquNocaseAny(name, "adapter", location + "-adapter"))
     {
       if((table = setup.getAsString(location + "table")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "table");
@@ -105,23 +104,20 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     // recupera info colonna dallo schema
     Column col = ((AbstractAgent) parentAgent).getSchema().column(codicefield);
 
-    SqlTransactAgent.execute(getDbname(), (dbCon) ->
-       {
-         List<Record> lsr = fetchData(col.isNumericValue(), arallcodici, dbCon);
+    List<Record> lsr = fetchData(col.isNumericValue(), arallcodici);
 
-         if(lsr != null)
-         {
-           for(Record r : lsr)
-           {
-             int id = r.getValue(1).asInt();
-             String codice = r.getValue(2).asString();
-             mapCodici.put(codice, id);
-           }
-         }
-    });
+    if(lsr != null)
+    {
+      for(Record r : lsr)
+      {
+        int id = r.getValue(1).asInt();
+        String codice = r.getValue(2).asString();
+        mapCodici.put(codice, id);
+      }
+    }
   }
 
-  protected List<Record> fetchData(boolean isNumeric, String[] arallcodici, Connection con)
+  protected List<Record> fetchData(boolean isNumeric, String[] arallcodici)
      throws Exception
   {
     String join;
@@ -155,7 +151,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
          + "  FROM " + table
          + " WHERE " + codicefield + " IN (" + join + ")";
 
-      return DbPeer.executeQuery(sSQL, false, con);
+      return DbPeer.executeQuery(sSQL, getDbname());
     }
 
     return null;
@@ -173,6 +169,9 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
+    if(v == null)
+      return 0;
+
     Object val = mapCodici.get(okStr(v));
     if(val != null)
       return val;

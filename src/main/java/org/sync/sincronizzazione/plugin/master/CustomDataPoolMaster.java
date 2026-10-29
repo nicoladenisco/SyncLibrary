@@ -28,7 +28,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.AbstractDataPool;
 import org.sync.common.plugin.SyncPoolPlugin;
-import org.sync.sincronizzazione.FunctionType;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 
 /**
@@ -63,7 +63,7 @@ public class CustomDataPoolMaster extends AbstractDataPool
   }
 
   @Override
-  public void setXML(FunctionType location, Element data)
+  public void setXML(LocationType location, Element data)
      throws Exception
   {
     if((className = okStrNull(data.getChildText("classname"))) == null)
