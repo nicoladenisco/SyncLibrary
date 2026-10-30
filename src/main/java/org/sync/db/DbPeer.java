@@ -24,11 +24,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.commonlib5.lambda.LEU;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.StringOper;
 
@@ -689,5 +691,25 @@ public class DbPeer
       ++i;
     }
     return result;
+  }
+
+  /**
+   * Estrazione di interi da una collezioni di oggetti.
+   * @param <T>
+   * @param objs collezione di oggetti
+   * @param fun espressione lambda per l'estrazione interi
+   * @return array di interi senza duplicazioni e senza 0
+   * @throws java.lang.Exception
+   */
+  public static <T> int[] extractIntArray(Collection<T> objs,
+     LEU.ToIntFunction_WithExceptions<T, Exception> fun)
+     throws Exception
+  {
+    return objs.stream()
+       .mapToInt(LEU.rethrowFunctionInt(fun))
+       .filter((i) -> i != 0)
+       .distinct()
+       .sorted()
+       .toArray();
   }
 }

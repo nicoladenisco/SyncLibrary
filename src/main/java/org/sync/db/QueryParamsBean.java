@@ -19,12 +19,14 @@ package org.sync.db;
 
 import com.workingdogs.village.QueryDataSetMacro;
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.commonlib5.utils.Pair;
 
 /**
  * Bean per mantenere i parametri di una query.
@@ -192,5 +194,14 @@ public class QueryParamsBean implements Serializable, Cloneable
      throws Exception
   {
     return QueryDataSetMacro.fetchAllRecords(con, makeSQLstring(), valuesMap);
+  }
+
+  public Pair<List<Record>, Schema> fetchAllRecordsSchema(Connection con)
+     throws Exception
+  {
+    try(QueryDataSetMacro qds = new QueryDataSetMacro(con, makeSQLstring(), valuesMap))
+    {
+      return new Pair<>(qds.fetchAllRecords(), qds.schema());
+    }
   }
 }
