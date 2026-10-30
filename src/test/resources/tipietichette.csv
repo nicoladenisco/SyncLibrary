@@ -1,4 +1,4 @@
 tipietichette_id,codice,descrizione,id_stampante_default,capacita,colore,stato_rec,id_user,id_ucrea,ult_modif,creazione
-0,NULL,Nessuno/indefinito,0,0.0,NULL,10,0,0,NULL,NULL
-1,AGEN,NORMALE - eti default,1,0.0,NULL,0,0,0,NULL,NULL
-2,BRC,BARCODE,2,0.0,NULL,0,0,0,NULL,NULL
+0,NULL,Nessuno/indefinito,0,0.0,NULL,10,0,0,2024-10-16 15:08:24,2024-10-16 15:08:24
+1,AGEN,NORMALE - eti default,1,0.0,NULL,0,0,0,2024-10-16 15:08:24,2024-10-16 15:08:24
+2,BRC,BARCODE,2,0.0,NULL,0,0,0,2024-10-16 15:08:24,2024-10-16 15:08:24

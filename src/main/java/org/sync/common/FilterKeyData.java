@@ -15,7 +15,13 @@
 package org.sync.common;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import org.commonlib5.utils.DateTime;
+import org.commonlib5.utils.StringOper;
+import org.sync.db.QueryParamsBean;
 
 /**
  * Filtro per le chiavi.
@@ -44,9 +50,163 @@ import java.util.List;
  */
 public class FilterKeyData
 {
-  public int timeLimitFetch = 0;
-  public List<String> sqlFilterFetch = new ArrayList<>();
+  private int timeLimitFetch = 0;
+  private final List<String> sqlFilterFetch = new ArrayList<>();
 
-  public int timeLimitCompare = 0;
-  public List<String> sqlFilterCompare = new ArrayList<>();
+  private int timeLimitCompare = 0;
+  private final List<String> sqlFilterCompare = new ArrayList<>();
+
+  public void clear()
+  {
+    timeLimitCompare = timeLimitFetch = 0;
+    sqlFilterCompare.clear();
+    sqlFilterFetch.clear();
+  }
+
+  public int getTimeLimitFetch()
+  {
+    return timeLimitFetch;
+  }
+
+  public void setTimeLimitFetch(int timeLimitFetch)
+  {
+    this.timeLimitFetch = timeLimitFetch;
+  }
+
+  public int getTimeLimitCompare()
+  {
+    return timeLimitCompare;
+  }
+
+  public void setTimeLimitCompare(int timeLimitCompare)
+  {
+    this.timeLimitCompare = timeLimitCompare;
+  }
+
+  public void addSqlFilterFetch(String sqlFilterFetch)
+  {
+    this.sqlFilterFetch.add(sqlFilterFetch);
+  }
+
+  public void addSqlFilterCompare(String sqlFilterCompare)
+  {
+    this.sqlFilterCompare.add(sqlFilterCompare);
+  }
+
+  public void addWhereFetch(QueryParamsBean qb)
+  {
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterFetch)
+      qb.addWhere(sql);
+  }
+
+  public void addWhereFetch(QueryParamsBean qb, String campoTestLimit)
+     throws Exception
+  {
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterFetch)
+      qb.addWhere(sql);
+
+    // se richiesto aggiunge limitazione temporale
+    if(timeLimitFetch != 0 && StringOper.isOkStr(campoTestLimit))
+
+    {
+      Calendar cal = new GregorianCalendar();
+      cal.add(Calendar.DAY_OF_YEAR, -timeLimitFetch);
+      Date firstDate = cal.getTime();
+      qb.addWhere(campoTestLimit + " >= ${campoTestLimit:ts}");
+      qb.addValues("campoTestLimit", firstDate);
+    }
+  }
+
+  public String createWhereFetch()
+     throws Exception
+  {
+    String sSQL = "";
+
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterFetch)
+      sSQL += " AND (" + sql + ")";
+
+    return sSQL;
+  }
+
+  public String createWhereFetch(String campoTestLimit)
+     throws Exception
+  {
+    String sSQL = "";
+
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterFetch)
+      sSQL += " AND (" + sql + ")";
+
+    // se richiesto aggiunge limitazione temporale
+    if(timeLimitFetch != 0 && StringOper.isOkStr(campoTestLimit))
+    {
+      Calendar cal = new GregorianCalendar();
+      cal.add(Calendar.DAY_OF_YEAR, -timeLimitFetch);
+      Date firstDate = cal.getTime();
+      sSQL += " AND (" + campoTestLimit + " >= '" + DateTime.formatIsoFull(firstDate) + "')";
+    }
+
+    return sSQL;
+  }
+
+  public void addWhereCompare(QueryParamsBean qb)
+  {
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterCompare)
+      qb.addWhere(sql);
+  }
+
+  public void addWhereCompare(QueryParamsBean qb, String campoTestLimit)
+     throws Exception
+  {
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterCompare)
+      qb.addWhere(sql);
+
+    // se richiesto aggiunge limitazione temporale
+    if(timeLimitCompare != 0 && StringOper.isOkStr(campoTestLimit))
+    {
+      Calendar cal = new GregorianCalendar();
+      cal.add(Calendar.DAY_OF_YEAR, -timeLimitCompare);
+      Date firstDate = cal.getTime();
+      qb.addWhere(campoTestLimit + " >= ${campoTestLimit:ts}");
+      qb.addValues("campoTestLimit", firstDate);
+    }
+  }
+
+  public String createWhereCompare()
+     throws Exception
+  {
+    String sSQL = "";
+
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterCompare)
+      sSQL += " AND (" + sql + ")";
+
+    return sSQL;
+  }
+
+  public String createWhereCompare(String campoTestLimit)
+     throws Exception
+  {
+    String sSQL = "";
+
+    // aggiunge clausole del filtro
+    for(String sql : sqlFilterCompare)
+      sSQL += " AND (" + sql + ")";
+
+    // se richiesto aggiunge limitazione temporale
+    if(timeLimitCompare != 0 && StringOper.isOkStr(campoTestLimit))
+    {
+      Calendar cal = new GregorianCalendar();
+      cal.add(Calendar.DAY_OF_YEAR, -timeLimitCompare);
+      Date firstDate = cal.getTime();
+      sSQL += " AND (" + campoTestLimit + " >= '" + DateTime.formatIsoFull(firstDate) + "')";
+    }
+
+    return sSQL;
+  }
 }

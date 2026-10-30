@@ -21,13 +21,13 @@ import com.workingdogs.village.TableDataSet;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.*;
 import org.sync.db.Database;
 import org.sync.db.DatabaseException;
 import org.sync.db.DbPeer;
+import org.sync.db.QueryParamsBean;
 import org.sync.db.SqlTransactionHelper;
 import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
@@ -116,66 +116,53 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   protected List<Record> queryWithTimestamp(String fkeys, String fwhere, Date oldTimestamp)
      throws Exception
   {
-    String sSQL;
+    QueryParamsBean qb = new QueryParamsBean();
 
-    switch(timeStamp.first)
+    switch(timeStamp)
     {
+      case "":
+        throw new SyncSetupErrorException("Valore campo timestamps non dichiarato a setup di " + dataBlockName);
+
       case "AUTO":
         caricaTimestamps(tableName);
       case "NONE":
-        sSQL
-           = "SELECT " + fkeys
-           + "  FROM " + tableName
-           + " WHERE " + fwhere;
+        qb.setSelect(fkeys);
+        qb.setFrom(tableName);
+        qb.setWhere(fwhere);
         break;
 
       default:
-        sSQL
-           = "SELECT " + timeStamp.first + "," + fkeys
-           + " FROM " + tableName
-           + " WHERE " + fwhere;
+        qb.setSelect(timeStamp + "," + fkeys);
+        qb.setFrom(tableName);
+        qb.setWhere(fwhere);
 
         if(oldTimestamp != null)
-          sSQL += " AND (" + timeStamp.first + " > '" + DateTime.formatIsoFull(oldTimestamp) + "')";
+        {
+          qb.addWhere(timeStamp + " >= ${oldTimestamp:ts}");
+          qb.addValues("oldTimestamp", oldTimestamp);
+        }
 
         break;
     }
 
     if(filter != null)
-    {
-      // aggiunge clausole del filtro
-      for(String sql : filter.sqlFilterFetch)
-        sSQL += " AND (" + sql + ")";
+      filter.addWhereFetch(qb, timeStamp);
 
-      // se richiesto aggiunge limitazione temporale
-      if(filter.timeLimitFetch != 0)
-      {
-        Calendar cal = new GregorianCalendar();
-        cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
-        Date firstDate = cal.getTime();
-        sSQL += " AND (" + timeStamp.first + " >= '" + DateTime.formatIsoFull(firstDate) + "')";
-      }
-    }
-
-    return DbPeer.executeQuery(sSQL, databaseName);
+    return DbPeer.executeQuery(qb, databaseName);
   }
 
   protected List<Record> queryWithoutTimestamp(String fkeys, String fwhere)
      throws Exception
   {
-    String sSQL
-       = "SELECT " + fkeys
-       + "  FROM " + tableName
-       + " WHERE " + fwhere;
+    QueryParamsBean qb = new QueryParamsBean();
+    qb.setSelect(fkeys);
+    qb.setFrom(tableName);
+    qb.setWhere(fwhere);
 
     if(filter != null)
-    {
-      // aggiunge clausole del filtro
-      for(String sql : filter.sqlFilterFetch)
-        sSQL += " AND (" + sql + ")";
-    }
+      filter.addWhereFetch(qb);
 
-    return DbPeer.executeQuery(sSQL, databaseName);
+    return DbPeer.executeQuery(qb, databaseName);
   }
 
   @Override
@@ -447,7 +434,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
     try
     {
-      boolean haveAutoTs = isEquNocase(timeStamp.first, "auto");
+      boolean haveAutoTs = isEquNocase(timeStamp, "auto");
       String key = buildKey(r, arKeys);
       Date now = new Date();
 
@@ -461,8 +448,8 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
       if(!haveAutoTs)
       {
-        valoriInsert.put(timeStamp.first, now);
-        valoriUpdate.put(timeStamp.first, now);
+        valoriInsert.put(timeStamp, now);
+        valoriUpdate.put(timeStamp, now);
       }
 
       if(!preparaValoriRecord(r, key,

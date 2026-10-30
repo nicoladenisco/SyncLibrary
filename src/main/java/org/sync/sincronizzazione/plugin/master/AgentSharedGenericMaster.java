@@ -14,13 +14,10 @@
  */
 package org.sync.sincronizzazione.plugin.master;
 
-import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
-import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
 import java.util.*;
 import org.commonlib5.utils.ArrayMap;
-import org.commonlib5.utils.Pair;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
@@ -35,7 +32,7 @@ import org.sync.sincronizzazione.LocationType;
  */
 public class AgentSharedGenericMaster extends AgentGenericMaster
 {
-  protected Pair<String, String> timeStamp;
+  protected String timeStamp;
   protected ArrayMap<String, String> arKeys = new ArrayMap<>();
   protected boolean correct = false;
   public String correctTableName = null;
@@ -50,7 +47,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
 
     if((useTs = data.getChild("use-timestamps")) != null)
     {
-      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location.getFunction()));
+      timeStamp = Utils.parseNameOnly(useTs.getChild(location.getFunction()));
       correct = checkTrueFalse(useTs.getAttributeValue("correct-" + location), correct);
       correctTableName = useTs.getAttributeValue("correct-table-" + location);
     }
@@ -66,7 +63,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
 
   public boolean haveTs()
   {
-    return timeStamp != null && !arKeys.isEmpty();
+    return isOkStr(timeStamp) && !arKeys.isEmpty();
   }
 
   @Override
@@ -113,7 +110,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
     if(arKeys.size() == 1)
     {
       // versione ottimizzata per chiave singola
-      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(0));
+      FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(0), arFields);
       for(Record r : lsRecs)
       {
         String value = r.getValue(f.field.first).asString();
@@ -128,7 +125,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
         StringBuilder sbKey = new StringBuilder();
         for(int i = 0; i < arKeys.size(); i++)
         {
-          FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i));
+          FieldLinkInfoBean f = findField(arKeys.getKeyByIndex(i), arFields);
           String value = r.getValue(f.field.first).asString();
 
           if(i > 0)
@@ -143,31 +140,5 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
     }
 
     return lsRecsFlt;
-  }
-
-  @Override
-  protected void caricaTipiColonne(Schema schema)
-     throws Exception
-  {
-    super.caricaTipiColonne(schema);
-
-    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
-    {
-      Column col = findInSchema(timeStamp.first);
-      // anche nome per correggere il case
-      timeStamp.first = col.name();
-      timeStamp.second = col.type();
-    }
-
-    for(Pair<String, String> f : arKeys.getAsList())
-    {
-      if(!isOkStr(f.second))
-      {
-        Column col = findInSchema(f.first);
-        // anche nome per correggere il case
-        f.first = col.name();
-        f.second = col.type();
-      }
-    }
   }
 }

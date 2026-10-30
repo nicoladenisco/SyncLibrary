@@ -15,7 +15,6 @@
 package org.sync.sincronizzazione.plugin.master;
 
 import com.workingdogs.village.Record;
-import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
 import java.util.*;
 import org.apache.commons.configuration2.Configuration;
@@ -238,39 +237,5 @@ abstract public class AgentGenericMaster extends AbstractAgent
     }
 
     return hr;
-  }
-
-  protected Object popolaValore(String key, Record r, Value v, FieldLinkInfoBean f)
-     throws Exception
-  {
-    Object rv;
-    if(f.adapter != null && (rv = f.adapter.masterValidaValore(key, r, v, f)) != null)
-      return rv;
-
-    return Utils.mapVillageToObject(v);
-  }
-
-  protected FieldLinkInfoBean findField(String nomeCampo)
-  {
-    for(FieldLinkInfoBean f : arFields)
-    {
-      if(isEqu(nomeCampo, f.field.first))
-        return f;
-    }
-    return null;
-  }
-
-  protected void caricaTipiColonne(Schema schema)
-     throws Exception
-  {
-    this.schema = schema;
-
-    for(FieldLinkInfoBean f : arFields)
-    {
-      if(!isOkStr(f.field.second))
-      {
-        f.field.second = findInSchema(f.field.first).type();
-      }
-    }
   }
 }

@@ -41,7 +41,7 @@ import org.sync.sincronizzazione.RuleRunner;
  */
 public class AgentSharedGenericSlave extends AgentGenericSlave
 {
-  protected Pair<String, String> timeStamp;
+  protected String timeStamp;
   protected final ArrayMap<String, String> arKeys = new ArrayMap<>();
   protected boolean correct = false;
   public String correctTableName = null;
@@ -58,7 +58,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
     if((useTs = data.getChild("use-timestamps")) != null)
     {
-      timeStamp = Utils.parseNameTypeIgnore(useTs.getChild(location.getFunction()));
+      timeStamp = Utils.parseNameOnly(useTs.getChild(location.getFunction()));
       correct = checkTrueFalse(useTs.getAttributeValue("correct-" + location), correct);
       correctTableName = useTs.getAttributeValue("correct-table-" + location);
     }
@@ -96,7 +96,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
 
   public boolean haveTs()
   {
-    return timeStamp != null && !arKeys.isEmpty();
+    return isOkStr(timeStamp) && !arKeys.isEmpty();
   }
 
   @Override
@@ -187,9 +187,6 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
      throws Exception
   {
     super.caricaTipiColonne(schema);
-
-    if(timeStamp != null && !isOkStr(timeStamp.second) && isEquNocase(timeStamp.first, "AUTO"))
-      timeStamp.second = findInSchema(timeStamp.first).type();
 
     for(Pair<String, String> f : arKeys.getAsList())
     {

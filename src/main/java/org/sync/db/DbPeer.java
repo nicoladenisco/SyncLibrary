@@ -162,6 +162,23 @@ public class DbPeer
   }
 
   /**
+   * Utility method which executes a given sql statement. This
+   * method should be used for select statements only. Use
+   * executeStatement for update, insert, and delete operations.
+   *
+   * @param qb parametri della query
+   * @param dbName The database to connect to.
+   * @return List of Record objects.
+   * @throws DatabaseException Any exceptions caught during processing will be
+   * rethrown wrapped into a DatabaseException.
+   */
+  public static List<Record> executeQuery(QueryParamsBean qb, String dbName)
+     throws DatabaseException
+  {
+    return executeQuery(qb.makeSQLstring(), qb.getValuesMap(), dbName);
+  }
+
+  /**
    * Method for performing a SELECT. Returns all results.
    *
    * @param queryString A String with the sql statement to execute.

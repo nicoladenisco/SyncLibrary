@@ -1,7 +1,7 @@
 stampanti_id,codice,descrizione,tipo,ipclient,nomeclient,percorsostampante,template1,template2,ordinestampa,esamiperetic,stato_rec,id_user,id_ucrea,ult_modif,creazione
-0,NULL,Nessuno/indefinito,NULL,NULL,NULL,NULL,NULL,NULL,0,0,10,0,0,NULL,NULL
-1,ST1,PPCANALE,generic,0.0.0.0,satellite,SATELLITE/Acc_Lab/Etichette,NULL,NULL,0,1,0,0,0,2025-10-16 15:08:25,NULL
-2,ST20,PPVINELLI,generic,0.0.0.0,satellite,SATELLITE/ACC_VINELLI/ETI_VINELLI,NULL,NULL,0,0,0,0,0,2025-10-16 15:08:25,NULL
-3,st30,PPSESTRI,generic,0.0.0.0,satellite,SATELLITE/ACC_SESTRI/PPSESTRI,NULL,NULL,0,0,0,0,0,2025-10-16 15:08:25,NULL
-4,FIT,FITTIZIA,generic,0.0.0.0,etiagent,NULL,NULL,NULL,0,0,0,0,0,2025-10-22 10:34:07,NULL
-5,ASS,Assistenza,generic,0.0.0.0,satellite,SATELLITE/Mik/eti_assistenza,NULL,NULL,0,0,0,0,0,2025-10-24 13:11:23,NULL
+0,NULL,Nessuno/indefinito,NULL,NULL,NULL,NULL,NULL,NULL,0,0,10,0,0,2024-10-16 15:08:24,2024-10-16 15:08:24
+1,ST1,PPCANALE,generic,0.0.0.0,satellite,SATELLITE/Acc_Lab/Etichette,NULL,NULL,0,1,0,0,0,2025-10-16 15:08:25,2024-10-16 15:08:24
+2,ST20,PPVINELLI,generic,0.0.0.0,satellite,SATELLITE/ACC_VINELLI/ETI_VINELLI,NULL,NULL,0,0,0,0,0,2025-10-16 15:08:25,2024-10-16 15:08:24
+3,st30,PPSESTRI,generic,0.0.0.0,satellite,SATELLITE/ACC_SESTRI/PPSESTRI,NULL,NULL,0,0,0,0,0,2025-10-16 15:08:25,2024-10-16 15:08:24
+4,FIT,FITTIZIA,generic,0.0.0.0,etiagent,NULL,NULL,NULL,0,0,0,0,0,2025-10-22 10:34:07,2024-10-16 15:08:24
+5,ASS,Assistenza,generic,0.0.0.0,satellite,SATELLITE/Mik/eti_assistenza,NULL,NULL,0,0,0,0,0,2025-10-24 13:11:23,2024-10-16 15:08:24

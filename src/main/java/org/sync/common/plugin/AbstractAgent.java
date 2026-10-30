@@ -17,6 +17,8 @@ package org.sync.common.plugin;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
+import com.workingdogs.village.Value;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
+import static org.commonlib5.utils.StringOper.isEqu;
 import static org.commonlib5.utils.StringOper.okStrNull;
 import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
@@ -302,7 +305,7 @@ public abstract class AbstractAgent extends AbstractPlugin
         vResult.add(rv);
     }
 
-    // segnala records non presenti nella equivalente tabella di caleido
+    // segnala records non presenti nella equivalente tabella del master
     for(Pair<String, Date> p : parametri)
     {
       if(!allKeys.contains(p.first))
@@ -327,7 +330,7 @@ public abstract class AbstractAgent extends AbstractPlugin
   protected void compilaBloccoSlave(
      ArrayMap<String, String> arKeys, List<Pair<String, Date>> parametri,
      List<Record> lsRecs, Date oldTimestamp,
-     Pair<String, String> timeStampField, Map<String, Date> mapTimeStamps)
+     String timeStampField, Map<String, Date> mapTimeStamps)
      throws Exception
   {
     if(lsRecs.isEmpty())
@@ -335,7 +338,7 @@ public abstract class AbstractAgent extends AbstractPlugin
 
     int tsIndex = -1;
     if(timeStampField != null)
-      tsIndex = Utils.getFieldIndex(timeStampField.first, lsRecs.get(0));
+      tsIndex = Utils.getFieldIndex(timeStampField, lsRecs.get(0));
 
     if(tsIndex == -1)
     {
@@ -397,6 +400,7 @@ public abstract class AbstractAgent extends AbstractPlugin
     {
       fi.adapter = SyncPluginFactory.getInstance().buildAdapter(
          getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
+      fi.adapter.setParentAgent(this);
       fi.adapter.setXML(location, fi.adapterElement);
       fi.shareFieldName = getOppositeField(location, ef).field.first;
     }
@@ -407,11 +411,18 @@ public abstract class AbstractAgent extends AbstractPlugin
   protected void populateFieldName(Element ef, FieldLinkInfoBean fi, LocationType location)
      throws SyncSetupErrorException
   {
+    populateFieldName2(ef, fi, location);
+    if(fi.field != null && fi.shareFieldName == null)
+      fi.shareFieldName = fi.field.first;
+  }
+
+  private void populateFieldName2(Element ef, FieldLinkInfoBean fi, LocationType location)
+     throws SyncSetupErrorException
+  {
     Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
     if(uniquename != null)
     {
       fi.field = new Pair<>(uniquename.first, uniquename.second);
-      fi.shareFieldName = fi.field.first;
       return;
     }
 
@@ -419,7 +430,6 @@ public abstract class AbstractAgent extends AbstractPlugin
     if(tmp != null)
     {
       fi.field = new Pair<>(tmp, null);
-      fi.shareFieldName = fi.field.first;
       return;
     }
 
@@ -427,17 +437,49 @@ public abstract class AbstractAgent extends AbstractPlugin
     if(tmp1 != null)
     {
       fi.field = new Pair<>(tmp1, null);
-      fi.shareFieldName = fi.field.first;
       return;
     }
 
     fi.field = Utils.parseNameTypeIgnore(ef.getChild(location.getFunction()));
-    fi.shareFieldName = fi.field.first;
   }
 
   protected FieldLinkInfoBean getOppositeField(LocationType location, Element ef)
      throws Exception
   {
     return populateField(ef, new FieldLinkInfoBean(), location.getOpposite());
+  }
+
+  protected Object popolaValore(String key, Record r, Value v, FieldLinkInfoBean f)
+     throws Exception
+  {
+    Object rv;
+    if(f.adapter != null && (rv = f.adapter.masterValidaValore(key, r, v, f)) != null)
+      return rv;
+
+    return Utils.mapVillageToObject(v);
+  }
+
+  protected FieldLinkInfoBean findField(String nomeCampo, Collection<FieldLinkInfoBean> arFields)
+  {
+    for(FieldLinkInfoBean f : arFields)
+    {
+      if(isEqu(nomeCampo, f.field.first))
+        return f;
+    }
+    return null;
+  }
+
+  protected void caricaTipiColonne(Schema schema, Collection<FieldLinkInfoBean> arFields)
+     throws Exception
+  {
+    this.schema = schema;
+
+    for(FieldLinkInfoBean f : arFields)
+    {
+      if(!isOkStr(f.field.second))
+      {
+        f.field.second = findInSchema(f.field.first).type();
+      }
+    }
   }
 }

@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.commonlib5.lambda.LEU;
+import static org.commonlib5.lambda.LEU.fi;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
@@ -71,11 +71,11 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 
     if(isEquNocaseAny(name, "adapter", location + "-adapter"))
     {
-      if((table = setup.getAsString(location + "table")) == null)
+      if((table = setup.getAsString(location + "-table")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "table");
-      if((idfield = setup.getAsString(location + "id")) == null)
+      if((idfield = setup.getAsString(location + "-id")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "id");
-      if((codicefield = setup.getAsString(location + "codice")) == null)
+      if((codicefield = setup.getAsString(location + "-codice")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "codice");
     }
   }
@@ -85,14 +85,12 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    ASSERT(field.field.second != null, "field.foreignField.second != null");
-
     mapCodici.clear();
     if(lsRecs.isEmpty())
       return;
 
     String[] arallcodici = lsRecs.stream()
-       .map((r) -> (String) r.get(field.field.first))
+       .map((r) -> (String) r.get(field.shareFieldName))
        .filter((s) -> s != null)
        .sorted()
        .distinct()
@@ -170,7 +168,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
      throws Exception
   {
     if(v == null)
-      return 0;
+      v = record.get(f.shareFieldName);
 
     Object val = mapCodici.get(okStr(v));
     if(val != null)
@@ -188,7 +186,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
       return;
 
     int[] arallid = lsRecs.stream()
-       .mapToInt(LEU.rethrowFunctionInt((r) -> r.getValue(field.field.first).asInt()))
+       .mapToInt(fi((r) -> r.getValue(field.field.first).asInt()))
        .filter((i) -> i != 0)
        .sorted()
        .distinct()

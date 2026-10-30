@@ -1,31 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Il tipo dati (types) può essere una delle costanti indicate di seguito oppure il suo valore numerico.
-    BIT             =  -7;
-    TINYINT         =  -6;
-    SMALLINT        =   5;
-    INTEGER         =   4;
-    BIGINT          =  -5;
-    FLOAT           =   6;
-    REAL            =   7;
-    DOUBLE          =   8;
-    NUMERIC         =   2;
-    DECIMAL         =   3;
-    CHAR            =   1;
-    VARCHAR         =  12;
-    LONGVARCHAR     =  -1;
-    DATE            =  91;
-    TIME            =  92;
-    TIMESTAMP       =  93;
-    BINARY          =  -2;
-    VARBINARY       =  -3;
-    LONGVARBINARY   =  -4;
-    NULL            =   0;
-    BLOB            = 2004;
-    CLOB            = 2005;
-    BOOLEAN         =  16;
--->
-
 <rules>
   <rule name="setup" type="generic" application="test" target="all" merge="no">
     <data-pools>
@@ -51,7 +24,10 @@
             <local name="CODICE"/>
             <foreign name="CODICE"/>
           </field>
-          <field name="SITI_ID"/>
+          <field>
+            <local name="SITI_ID"/>
+            <foreign name="SITI_ID" adapter="getFieldMax"/>
+          </field>
           <field>
             <local name="DESCRIZIONE"/>
             <foreign name="DESCRIZIONE"/>
@@ -163,11 +139,14 @@
     </data-blocks>
 
     <delete-strategy name="statorec"/>
+    <!--
+    ESEMPIO DI FILTRO GENERICO PER TUTTI I DATA-BLOCKS
     <sql-filter>
       <fetch-keys>
         <sql><![CDATA[((STATO_REC IS NULL) OR (STATO_REC < 10))]]></sql>
       </fetch-keys>
       <compare-keys></compare-keys>
-    </sql-filter>
+    </sql-filte>
+    -->
   </rule>
 </rules>

@@ -164,6 +164,15 @@ public class Utils extends StringOper
     return new Pair<>(nome, tipo);
   }
 
+  public static String parseNameOnly(Element ef)
+     throws SyncSetupErrorException
+  {
+    if(ef == null)
+      return null;
+
+    return okStrNull(ef.getAttributeValue("name"));
+  }
+
   public static String getChildName(Element ef, String child)
   {
     Element e;
@@ -411,13 +420,13 @@ public class Utils extends StringOper
       Element fetch = ef.getChild("fetch-keys");
       if(fetch != null)
       {
-        fkd.timeLimitFetch = parse(fetch.getAttributeValue("time-limit-days"), fkd.timeLimitFetch);
+        fkd.setTimeLimitFetch(parse(fetch.getAttributeValue("time-limit-days"), fkd.getTimeLimitFetch()));
         List<Element> lsSQL = fetch.getChildren("sql");
         for(Element esq : lsSQL)
         {
           String tmp = okStr(esq.getText());
           if(!tmp.isEmpty())
-            fkd.sqlFilterFetch.add(tmp);
+            fkd.addSqlFilterFetch(tmp);
         }
       }
     }
@@ -426,82 +435,18 @@ public class Utils extends StringOper
       Element compare = ef.getChild("compare-keys");
       if(compare != null)
       {
-        fkd.timeLimitCompare = parse(compare.getAttributeValue("time-limit-days"), fkd.timeLimitCompare);
+        fkd.setTimeLimitCompare(parse(compare.getAttributeValue("time-limit-days"), fkd.getTimeLimitCompare()));
         List<Element> lsSQL = compare.getChildren("sql");
         for(Element esq : lsSQL)
         {
           String tmp = okStr(esq.getText());
           if(!tmp.isEmpty())
-            fkd.sqlFilterCompare.add(tmp);
+            fkd.addSqlFilterCompare(tmp);
         }
       }
     }
 
     return fkd;
-  }
-
-  public static FilterKeyData parseFilterKeyData(Map m)
-     throws SyncSetupErrorException
-  {
-    Map ef = (Map) m.get("sql-filter");
-    if(ef == null)
-      return null;
-
-    FilterKeyData fkd = new FilterKeyData();
-
-    {
-      Map fetch = (Map) ef.get("fetch-keys");
-      if(fetch != null)
-      {
-        fkd.timeLimitFetch = parse(fetch.get("time-limit-days"), fkd.timeLimitFetch);
-        List lsSQL = (List) fetch.get("sql");
-        for(Object esq : lsSQL)
-        {
-          String tmp = okStr(esq);
-          if(!tmp.isEmpty())
-            fkd.sqlFilterFetch.add(tmp);
-        }
-      }
-    }
-
-    {
-      Map compare = (Map) ef.get("compare-keys");
-      if(compare != null)
-      {
-        fkd.timeLimitCompare = parse(compare.get("time-limit-days"), fkd.timeLimitCompare);
-        List lsSQL = (List) compare.get("sql");
-        for(Object esq : lsSQL)
-        {
-          String tmp = okStr(esq);
-          if(!tmp.isEmpty())
-            fkd.sqlFilterCompare.add(tmp);
-        }
-      }
-    }
-
-    return fkd;
-  }
-
-  public static Map formatFilterKeyData(FilterKeyData fk, Map m)
-     throws SyncSetupErrorException
-  {
-    if(fk == null)
-      return m;
-
-    HashtableRpc mps = new HashtableRpc();
-    m.put("sql-filter", mps);
-
-    HashtableRpc fetch = new HashtableRpc();
-    fetch.put("time-limit-days", fk.timeLimitFetch);
-    fetch.put("sql", fk.sqlFilterFetch);
-    mps.put("fetch-keys", fetch);
-
-    HashtableRpc compare = new HashtableRpc();
-    compare.put("time-limit-days", fk.timeLimitCompare);
-    compare.put("sql", fk.sqlFilterCompare);
-    mps.put("compare-keys", compare);
-
-    return m;
   }
 
   public static String convertValue(Object valore, String tipo)

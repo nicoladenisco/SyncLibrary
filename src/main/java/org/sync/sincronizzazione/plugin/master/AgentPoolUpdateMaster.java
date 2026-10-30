@@ -76,13 +76,13 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
       return;
 
     if(dati.second != null && schema != null)
-      caricaTipiColonne(dati.second);
+      caricaTipiColonne(dati.second, arFields);
 
     // NOTA IMPORTANTE: il timestamp ultimo aggiornamento non viene passato
     // in quanto è responsabilità del poolElement stabilire quali record devono essere aggiornati
     compilaBloccoMaster(arKeys, parametri, dati.first,
        null, // vedi nota
-       timeStamp == null ? null : timeStamp.first,
+       timeStamp == null ? null : timeStamp,
        v, context);
   }
 
@@ -110,7 +110,7 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
       return;
 
     if(dati.second != null && schema != null)
-      caricaTipiColonne(dati.second);
+      caricaTipiColonne(dati.second, arFields);
 
     // se il poolElement non sa filtrare i records in base ai parametri, applichiamo un filtro a posteriori
     if(!fetchAllData && !pool.haveNativeFilter())

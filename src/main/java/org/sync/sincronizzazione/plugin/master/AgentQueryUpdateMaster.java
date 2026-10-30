@@ -95,17 +95,17 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 
     if(filter != null)
     {
-      if(filter.timeLimitCompare > 0)
+      if(filter.getTimeLimitCompare() > 0)
       {
         cal.setTime(new Date());
-        cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitCompare);
+        cal.add(Calendar.DAY_OF_YEAR, -filter.getTimeLimitCompare());
         tlCompare = cal.getTime();
       }
 
-      if(filter.timeLimitFetch > 0)
+      if(filter.getTimeLimitFetch() > 0)
       {
         cal.setTime(new Date());
-        cal.add(Calendar.DAY_OF_YEAR, -filter.timeLimitFetch);
+        cal.add(Calendar.DAY_OF_YEAR, -filter.getTimeLimitFetch());
         tlFetch = cal.getTime();
       }
     }
@@ -128,16 +128,15 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
     QueryParamsBean qc = (QueryParamsBean) qb.clone();
     if(oldTimestamp != null && !ignoreOldTimestamp)
     {
-      qc.addWhere(timeStamp.first + " >= ${oldTimestamp:ts}");
+      qc.addWhere(timeStamp + " >= ${oldTimestamp:ts}");
       qc.addValues("oldTimestamp", oldTimestamp);
     }
 
-    String sSQL = qc.makeSQLstring();
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, qc.getValuesMap(), databaseName);
+    List<Record> lsRecs = DbPeer.executeQuery(qc, databaseName);
     if(lsRecs.isEmpty())
       return;
 
-    compilaBloccoMaster(arKeys, parametri, lsRecs, oldTimestamp, timeStamp.first, v, context);
+    compilaBloccoMaster(arKeys, parametri, lsRecs, oldTimestamp, timeStamp, v, context);
   }
 
   @Override
@@ -171,8 +170,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
       }
     }
 
-    String sSQL = qc.makeSQLstring();
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, qc.getValuesMap(), databaseName);
+    List<Record> lsRecs = DbPeer.executeQuery(qc, databaseName);
     if(lsRecs.isEmpty())
       return;
 
@@ -198,7 +196,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
       throw new SyncSetupErrorException(String.format(
          "Query non eseguibile sul database %s.", databaseName));
 
-    caricaTipiColonne(schema);
+    caricaTipiColonne(schema, arFields);
 
     if(delStrategy != null)
       delStrategy.caricaTipiColonne(databaseName, tableName);

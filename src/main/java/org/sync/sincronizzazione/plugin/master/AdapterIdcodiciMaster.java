@@ -68,13 +68,13 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
     setup = Utils.parseParams(data);
     String name = data.getName();
 
-    if(isEquNocaseAny(name, "adapter", location + "adapter"))
+    if(isEquNocaseAny(name, "adapter", location + "-adapter"))
     {
-      if((table = setup.getAsString(location + "table")) == null)
+      if((table = setup.getAsString(location + "-table")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "table");
-      if((idfield = setup.getAsString(location + "id")) == null)
+      if((idfield = setup.getAsString(location + "-id")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "id");
-      if((codicefield = setup.getAsString(location + "codice")) == null)
+      if((codicefield = setup.getAsString(location + "-codice")) == null)
         throw new SyncSetupErrorException(0, "adapter/" + location + "codice");
     }
   }
