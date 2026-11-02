@@ -26,6 +26,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
+
+import org.commonlib5.utils.SimpleTimer;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -49,7 +51,7 @@ public class RuleRunnerTest
 
   @BeforeClass
   public static void setUpClass()
-     throws Exception
+    throws Exception
   {
     Database.addDatabaseInfo("test", DATABASE_DRIVER, DATABASE_URL + ";create=true", "", "");
     Database.setDefaultDB("test");
@@ -57,7 +59,7 @@ public class RuleRunnerTest
 
   @AfterClass
   public static void tearDownClass()
-     throws Exception
+    throws Exception
   {
   }
 
@@ -66,14 +68,14 @@ public class RuleRunnerTest
   {
     try
     {
-      try(Connection con = Database.getConnection())
+      try (Connection con = Database.getConnection())
       {
         List<String> allTables = Database.getAllTables(con);
-        if(!allTables.stream().anyMatch((s) -> "origin_siti".equalsIgnoreCase(s)))
+        if (!allTables.stream().anyMatch((s) -> "origin_siti".equalsIgnoreCase(s)))
           creaDatabaseTest(con);
       }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
       ex.printStackTrace();
     }
@@ -88,15 +90,15 @@ public class RuleRunnerTest
       {
         DriverManager.getConnection(DATABASE_URL + ";shutdown=true");
       }
-      catch(SQLException e)
+      catch (SQLException e)
       {
-        if(!"08006".equals(e.getSQLState()))
+        if (!"08006".equals(e.getSQLState()))
         {
           throw e;
         }
       }
     }
-    catch(Exception ex)
+    catch (Exception ex)
     {
       ex.printStackTrace();
     }
@@ -104,7 +106,7 @@ public class RuleRunnerTest
 
   @Test
   public void testDoRun()
-     throws Exception
+    throws Exception
   {
     System.out.println("ESEGUO test doRun");
 
@@ -121,10 +123,12 @@ public class RuleRunnerTest
   }
 
   private void creaDatabaseTest(Connection con)
-     throws Exception
+    throws Exception
   {
-    try(InputStream is = getClass().getResourceAsStream("/testdb.sql");
-       BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
+    SimpleTimer st = new SimpleTimer();
+
+    try (InputStream is = getClass().getResourceAsStream("/testdb.sql");
+      BufferedReader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)))
     {
       Database.executeSqlScriptByLine(con, r, false);
     }
@@ -134,5 +138,7 @@ public class RuleRunnerTest
     Database.executeFileCsvResource("origin_stampanti", "stampanti_id", "/stampanti.csv", con);
     Database.executeFileCsvResource("origin_tipietichette", "tipietichette_id", "/tipietichette.csv", con);
     Database.executeFileCsvResource("origin_zone", "zone_id", "/zone.csv", con);
+
+    System.out.println("Database test creato in " + st.getElapsed() + " millisecondi");
   }
 }
