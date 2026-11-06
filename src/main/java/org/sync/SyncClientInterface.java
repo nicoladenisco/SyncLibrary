@@ -35,9 +35,10 @@ public interface SyncClientInterface
    * @param application l'applicazione che richiede l'operazione
    * @param target il target specifico
    * @param context contesto da popolare con i risultati
+   * @return elemento XML con il setup della regola
    * @throws Exception
    */
-  void acquisiciStrategia(String application, String target, SyncContext context)
+  Element acquisiciStrategia(String application, String target, SyncContext context)
      throws Exception;
 
   /**

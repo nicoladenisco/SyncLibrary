@@ -44,7 +44,7 @@ public class SyncClientTransport implements SyncClientInterface
   }
 
   @Override
-  public void acquisiciStrategia(String application, String target, SyncContext context)
+  public Element acquisiciStrategia(String application, String target, SyncContext context)
      throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet.");
