@@ -20,7 +20,6 @@ package org.sync.sincronizzazione;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
@@ -30,7 +29,6 @@ import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.SyncPluginFactory;
-import org.sync.common.plugin.SyncRulePlugin;
 
 /**
  * Test sincronizzazione lato client.
@@ -41,7 +39,6 @@ public class SyncClientTest extends RuleRunner
 {
   protected Document doc = null;
   protected Configuration cfg = null;
-  protected HashMap<String, SyncRulePlugin> ruleMap = new HashMap<>();
 
   @Override
   public void init()
