@@ -96,21 +96,21 @@ public abstract class AbstractAgent extends AbstractPlugin
   public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public void aggiornaBlocco(List<String> parametri, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public void pianificaAggiornamento(List<String> aggiorna, List<String> vInfo, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   public Column findInSchema(String nomeColonna)

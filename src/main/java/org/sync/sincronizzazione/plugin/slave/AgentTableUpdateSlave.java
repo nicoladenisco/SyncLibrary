@@ -51,13 +51,13 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
 
     Element tables = data.getChild("tables");
     if(tables == null)
-      throw new SyncSetupErrorException(0, "tables");
+      SyncSetupErrorException.throwException(data, "tables");
 
     if((tblElement = tables.getChild(location.getFunction())) == null)
-      throw new SyncSetupErrorException(0, "tables/" + location);
+      SyncSetupErrorException.throwException(data, "tables", location);
 
     if((tableName = okStrNull(tblElement.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "tables/" + location + ":name");
+      SyncSetupErrorException.throwException(data, "tables", location, "name");
 
     if(correctTableName == null)
       correctTableName = tableName;

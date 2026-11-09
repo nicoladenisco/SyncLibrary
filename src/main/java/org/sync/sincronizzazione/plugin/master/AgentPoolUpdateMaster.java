@@ -47,16 +47,16 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
 
     Element tables = data.getChild("tables");
     if(tables == null)
-      throw new SyncSetupErrorException(0, "tables");
+      SyncSetupErrorException.throwException(data, "tables");
 
     if((poolElement = tables.getChild("pool")) == null)
-      throw new SyncSetupErrorException(0, "tables/pool");
+      SyncSetupErrorException.throwException(data, "tables/pool");
 
     if((poolName = okStrNull(poolElement.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "tables/pool:name");
+      SyncSetupErrorException.throwException(data, "tables/pool", location, "name");
 
     if((poolData = okStrNull(poolElement.getAttributeValue("data"))) == null)
-      throw new SyncSetupErrorException(0, "tables/pool:data");
+      SyncSetupErrorException.throwException(data, "tables/pool", location, "data");
   }
 
   @Override

@@ -7,10 +7,11 @@
  */
 package org.sync.common.plugin;
 
+import java.util.Arrays;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.commonlib5.utils.ArraySet;
 import org.commonlib5.utils.ClassOper;
 import org.commonlib5.utils.StringOper;
 import org.sync.sincronizzazione.RoleType;
@@ -26,8 +27,8 @@ public class SyncPluginFactory
   private static final Log log = LogFactory.getLog(SyncPluginFactory.class);
 
   private String basePath = null;
-  private String[] vPaths = null;
   private Configuration cfg = null;
+  private final ArraySet<String> vPaths = new ArraySet<>();
   private static final SyncPluginFactory theInstance = new SyncPluginFactory();
 
   private SyncPluginFactory()
@@ -43,7 +44,7 @@ public class SyncPluginFactory
   public void configure(Configuration cfg)
   {
     this.cfg = cfg;
-    vPaths = cfg.getStringArray("classpath");
+    vPaths.add("org.sync.sincronizzazione.plugin");
   }
 
   private String getSetupSegment(String type, RoleType role, String nome)
@@ -110,15 +111,16 @@ public class SyncPluginFactory
     try
     {
       Class cl;
+      String[] vvpaths = getBasePaths();
 
-      if((cl = ClassOper.loadClass(role + "." + className, basePath, vPaths)) != null)
-        return cl.newInstance();
-      if((cl = ClassOper.loadClass(className, basePath, vPaths)) != null)
-        return cl.newInstance();
+      if((cl = ClassOper.loadClass(role + "." + className, basePath, vvpaths)) != null)
+        return cl.getConstructor().newInstance();
+      if((cl = ClassOper.loadClass(className, basePath, vvpaths)) != null)
+        return cl.getConstructor().newInstance();
     }
     catch(Throwable t)
     {
-      log.error("", t);
+      log.error("Caricamento classe non possibile.", t);
     }
 
     throw new Exception(String.format("Classe %s non trovata o non istanziabile.", className));
@@ -130,7 +132,7 @@ public class SyncPluginFactory
    */
   public String[] getBasePaths()
   {
-    return vPaths;
+    return vPaths.toArray(String[]::new);
   }
 
   /**
@@ -139,7 +141,8 @@ public class SyncPluginFactory
    */
   public void setBasePaths(String[] vPaths)
   {
-    this.vPaths = vPaths;
+    this.vPaths.clear();
+    this.vPaths.addAll(Arrays.asList(vPaths));
   }
 
   /**
@@ -148,6 +151,6 @@ public class SyncPluginFactory
    */
   public void addBasePath(String basePath)
   {
-    vPaths = (String[]) ArrayUtils.add(vPaths, basePath);
+    vPaths.add(basePath);
   }
 }

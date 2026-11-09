@@ -49,14 +49,15 @@ public class AbstractPlugin extends StringOper
   @Override
   public RoleType getRole()
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return null;
   }
 
   @Override
   public void setXML(LocationType location, Element data)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   public void ASSERT(boolean test, String cause)
@@ -74,7 +75,7 @@ public class AbstractPlugin extends StringOper
    * Verifica che il file esista.
    *
    * @param toTest
-   * @throws java.lang.Exception
+   * @throws SyncErrorException
    */
   public void ASSERT_FILE(File toTest)
      throws SyncErrorException
@@ -93,7 +94,7 @@ public class AbstractPlugin extends StringOper
    * Verifica che la directory esista.
    *
    * @param toTest
-   * @throws java.lang.Exception
+   * @throws SyncErrorException
    */
   public void ASSERT_DIR(File toTest)
      throws SyncErrorException
@@ -113,7 +114,7 @@ public class AbstractPlugin extends StringOper
    * possibile creare files al suo interno.
    *
    * @param toTest
-   * @throws java.lang.Exception
+   * @throws SyncErrorException
    */
   public void ASSERT_DIR_WRITE(File toTest)
      throws SyncErrorException
@@ -133,6 +134,11 @@ public class AbstractPlugin extends StringOper
      throws SyncErrorException
   {
     throw new SyncErrorException(causa);
+  }
+
+  protected void notImplemented()
+  {
+    throw new UnsupportedOperationException(this.getClass() + "; motodo obbligatorio non implementato.");
   }
 
   @Override

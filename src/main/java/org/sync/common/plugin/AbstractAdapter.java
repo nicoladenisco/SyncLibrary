@@ -16,11 +16,11 @@ package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
 
 /**
  * Classe base di tutti gli adapter.
@@ -60,7 +60,7 @@ public class AbstractAdapter extends AbstractPlugin
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
@@ -68,14 +68,15 @@ public class AbstractAdapter extends AbstractPlugin
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public Object masterValidaValore(String key, Record r, Value v, FieldLinkInfoBean f)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return null;
   }
 
   @Override
@@ -83,7 +84,7 @@ public class AbstractAdapter extends AbstractPlugin
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
@@ -91,14 +92,15 @@ public class AbstractAdapter extends AbstractPlugin
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return null;
   }
 
   @Override

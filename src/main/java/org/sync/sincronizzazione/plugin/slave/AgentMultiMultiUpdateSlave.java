@@ -14,11 +14,6 @@
  */
 package org.sync.sincronizzazione.plugin.slave;
 
-import org.sync.common.SyncContext;
-import org.sync.db.DbPeer;
-import java.util.List;
-import java.util.Vector;
-
 /**
  * Adapter specializzato per una relazione molti a molti.
  * Le relazioni molti a molti sono ottenute attraverso una tabella
@@ -33,16 +28,17 @@ import java.util.Vector;
  */
 public class AgentMultiMultiUpdateSlave extends AgentCopyUpdateSlave
 {
-  @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
-     throws Exception
-  {
-    // cancella il contenuto attuale della tabella
-    String delSQL = "DELETE FROM " + tableName;
-    DbPeer.executeStatement(delSQL, databaseName);
-
-    Vector v = (Vector) context.getNotNull("records-data");
-    if(!v.isEmpty())
-      salvaTuttiRecords(v, context);
-  }
+// TODO: delete
+//  @Override
+//  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+//     throws Exception
+//  {
+//    // cancella il contenuto attuale della tabella
+//    String delSQL = "DELETE FROM " + tableName;
+//    DbPeer.executeStatement(delSQL, databaseName);
+//
+//    Vector v = (Vector) context.getNotNull("records-data");
+//    if(!v.isEmpty())
+//      salvaTuttiRecords(v, context);
+//  }
 }

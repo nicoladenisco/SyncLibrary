@@ -62,14 +62,14 @@ public class AbstractDelete extends AbstractPlugin
   public void cancellaRecordsPerDelete(List<String> lsKeys, Map<String, String> arForeignKeys, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public void cancellaRecordsPerUnknow(List<String> lsKeys, Map<String, String> arForeignKeys, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
@@ -79,14 +79,16 @@ public class AbstractDelete extends AbstractPlugin
      SyncContext context, Connection con)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return false;
   }
 
   @Override
   public boolean queryRecordDeleted(Record r, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return false;
   }
 
   protected String buildWhere(String key, Map<String, String> arForeignKeys, SyncContext context)

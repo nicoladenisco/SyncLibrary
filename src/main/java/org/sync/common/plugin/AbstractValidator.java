@@ -15,11 +15,11 @@
 package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
 import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.SyncContext;
 
 /**
  * Classe base di tutti i validatori.
@@ -47,41 +47,43 @@ public class AbstractValidator extends AbstractPlugin
   public void masterPreparaValidazione(List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public void masterFineValidazione(List<Record> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public int masterValidaRecord(String key, Record r, List<FieldLinkInfoBean> arFields)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return 0;
   }
 
   @Override
   public void slavePreparaValidazione(List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public void slaveFineValidazione(List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public int slaveValidaRecord(String key, Map record, List<FieldLinkInfoBean> arFields, Connection con)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return 0;
   }
 }

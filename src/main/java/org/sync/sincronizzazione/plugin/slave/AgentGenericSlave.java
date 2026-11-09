@@ -62,14 +62,14 @@ abstract public class AgentGenericSlave extends AbstractAgent
     this.data = data;
 
     if((dataBlockName = okStrNull(data.getAttributeValue("name"))) == null)
-      throw new SyncSetupErrorException(0, "name");
+      SyncSetupErrorException.throwException(data, "name", location, "name");
 
     databaseName = okStr(data.getAttributeValue("database-name"), getParentRule().getDatabaseName());
 
     Element fields, validators;
 
     if((fields = data.getChild("fields")) == null)
-      throw new SyncSetupErrorException(0, "fields");
+      SyncSetupErrorException.throwException(data, "fields", location);
 
     List<Element> lsFields = fields.getChildren("field");
     for(Element ef : lsFields)
@@ -110,6 +110,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
     isolateAllRecords = checkTrueFalse(data.getAttributeValue("isolateAllRecords"), false);
   }
 
+// TODO: delete
 //  private FieldLinkInfoBean populateField(Element ef, FieldLinkInfoBean fi, LocationType location)
 //     throws Exception
 //  {

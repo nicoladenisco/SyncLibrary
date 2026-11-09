@@ -52,12 +52,15 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
     super.setXML(location, data);
 
     sqlStatements = data.getChild("sql-statements");
-    List<Element> lsStatements = sqlStatements.getChildren("statement");
-    for(Element estat : lsStatements)
+    if(sqlStatements != null)
     {
-      String sql = okStrNull(estat.getText());
-      if(sql != null)
-        statements.add(sql);
+      List<Element> lsStatements = sqlStatements.getChildren("statement");
+      for(Element estat : lsStatements)
+      {
+        String sql = okStrNull(estat.getText());
+        if(sql != null)
+          statements.add(sql);
+      }
     }
 
     delStrategy = null;

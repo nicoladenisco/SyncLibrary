@@ -72,11 +72,11 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     if(isEquNocaseAny(name, "adapter", location + "-adapter"))
     {
       if((table = setup.getAsString(location + "-table")) == null)
-        throw new SyncSetupErrorException(0, "adapter/" + location + "table");
+        SyncSetupErrorException.throwException(data, "adapter", location, "table");
       if((idfield = setup.getAsString(location + "-id")) == null)
-        throw new SyncSetupErrorException(0, "adapter/" + location + "id");
+        SyncSetupErrorException.throwException(data, "adapter", location, "id");
       if((codicefield = setup.getAsString(location + "-codice")) == null)
-        throw new SyncSetupErrorException(0, "adapter/" + location + "codice");
+        SyncSetupErrorException.throwException(data, "adapter", location, "codice");
     }
   }
 

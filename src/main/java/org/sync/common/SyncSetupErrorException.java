@@ -14,6 +14,9 @@
  */
 package org.sync.common;
 
+import org.jdom2.Element;
+import org.sync.sincronizzazione.LocationType;
+
 /**
  * Errore nel setup di sincronizzazione.
  *
@@ -47,5 +50,26 @@ public class SyncSetupErrorException extends Exception
     }
 
     return "";
+  }
+
+  public static void throwException(Element data, String primoElemento)
+     throws SyncSetupErrorException
+  {
+    String parentName = data.getAttributeValue("name");
+    throw new SyncSetupErrorException(0, parentName + "/" + primoElemento);
+  }
+
+  public static void throwException(Element data, String primoElemento, LocationType location)
+     throws SyncSetupErrorException
+  {
+    String parentName = data.getAttributeValue("name");
+    throw new SyncSetupErrorException(0, parentName + "/" + primoElemento + "/" + location);
+  }
+
+  public static void throwException(Element data, String primoElemento, LocationType location, String attributo)
+     throws SyncSetupErrorException
+  {
+    String parentName = data.getAttributeValue("name");
+    throw new SyncSetupErrorException(0, parentName + "/" + primoElemento + "/" + location + ":" + attributo);
   }
 }

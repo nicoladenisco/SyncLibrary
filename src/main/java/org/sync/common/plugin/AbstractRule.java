@@ -14,11 +14,11 @@
  */
 package org.sync.common.plugin;
 
-import org.sync.common.FilterKeyData;
-import org.sync.common.SyncContext;
 import java.util.Date;
 import java.util.List;
 import org.commonlib5.utils.Pair;
+import org.sync.common.FilterKeyData;
+import org.sync.common.SyncContext;
 
 /**
  * Classe base di tutti i gestore di regole.
@@ -66,35 +66,37 @@ public class AbstractRule extends AbstractPlugin
   public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public void aggiornaBlocco(String nome, List<String> parametri, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public List<String> getListaBlocchi()
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return null;
   }
 
   @Override
   public void pianificaAggiornamento(String nome, List<String> aggiorna, List<String> vInfo, SyncContext context)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
   }
 
   @Override
   public SyncPoolPlugin getPool(String poolName)
      throws Exception
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    notImplemented();
+    return null;
   }
 
   @Override

@@ -54,10 +54,10 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 
     Element tables = data.getChild("tables");
     if(tables == null)
-      throw new SyncSetupErrorException(0, "tables");
+      SyncSetupErrorException.throwException(data, "tables");
 
     if((queryElement = tables.getChild("query-" + location)) == null)
-      throw new SyncSetupErrorException(0, "query-" + location);
+      SyncSetupErrorException.throwException(data, "tables/query", location);
 
     preparaLimitiDate();
 

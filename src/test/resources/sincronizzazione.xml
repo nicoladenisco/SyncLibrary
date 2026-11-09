@@ -128,7 +128,7 @@
           <field>
             <local name="codsta"/>
             <foreign name="ID_STAMPANTE_DEFAULT"/>
-            <foreign-adapter name="syncIdAttraversoCodici">
+            <foreign-adapter name="idcode">
               <param name="foreign-table">TARGET_STAMPANTI</param>
               <param name="foreign-id">STAMPANTI_ID</param>
               <param name="foreign-codice">CODICE</param>

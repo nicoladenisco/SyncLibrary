@@ -74,7 +74,7 @@ abstract public class AgentGenericMaster extends AbstractAgent
     Element fields, validators;
 
     if((fields = data.getChild("fields")) == null)
-      throw new SyncSetupErrorException(0, "fields");
+      SyncSetupErrorException.throwException(data, "agent", location, "fields");
 
     List<Element> lsFields = fields.getChildren("field");
     for(Element ef : lsFields)
