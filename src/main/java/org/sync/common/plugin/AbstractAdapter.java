@@ -22,6 +22,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.RecordDataMap;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Classe base di tutti gli adapter.
@@ -95,7 +96,7 @@ public class AbstractAdapter extends AbstractPlugin
   }
 
   @Override
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     notImplemented();

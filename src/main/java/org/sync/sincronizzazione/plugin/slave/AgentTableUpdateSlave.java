@@ -31,6 +31,7 @@ import org.sync.db.QueryParamsBean;
 import org.sync.db.SqlTransactionHelper;
 import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Adapter di sincronizzazione orientato alle tabelle.
@@ -506,18 +507,27 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
-      Object valore = r.get(f.field.first);
+      Object valoreSelect = r.get(f.field.first);
+      Object valoreInsert = valoreSelect;
+      Object valoreUpdate = valoreSelect;
 
-      Object rv;
-      if(f.adapter != null && (rv = f.adapter.slaveValidaValore(key, r, valore, f, con)) != null)
-        valore = rv;
+      if(f.adapter != null)
+      {
+        Object rv;
+        if((rv = f.adapter.slaveValidaValore(key, SqlSaveType.SELECT, r, valoreSelect, f, con)) != null)
+          valoreSelect = rv;
+        if((rv = f.adapter.slaveValidaValore(key, SqlSaveType.INSERT, r, valoreInsert, f, con)) != null)
+          valoreInsert = rv;
+        if((rv = f.adapter.slaveValidaValore(key, SqlSaveType.UPDATE, r, valoreUpdate, f, con)) != null)
+          valoreUpdate = rv;
+      }
 
       if(isSelect(f))
-        valoriSelect.put(f.field.first, valore);
+        valoriSelect.put(f.field.first, valoreSelect);
       else
-        valoriUpdate.put(f.field.first, valore);
+        valoriUpdate.put(f.field.first, valoreUpdate);
 
-      valoriInsert.put(f.field.first, valore);
+      valoriInsert.put(f.field.first, valoreInsert);
     }
 
     return true;

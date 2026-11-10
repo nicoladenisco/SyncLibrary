@@ -27,6 +27,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.sincronizzazione.LocationType;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Adapter per generazione valore computando il massimo di un campo.
@@ -85,7 +86,7 @@ public class AdapterNotNull extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     return okStr(v, nullValue);

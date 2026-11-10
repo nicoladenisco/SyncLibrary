@@ -26,6 +26,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
+import org.sync.sincronizzazione.SqlSaveType;
 import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
@@ -87,11 +88,16 @@ public class AdapterGetFieldMax extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
-    String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
-    List<Record> lsRecs = DbPeer.executeQuery(sSQL, con);
-    return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
+    if(st == SqlSaveType.INSERT)
+    {
+      String sSQL = "SELECT MAX(" + f.field.first + ") FROM " + tableName;
+      List<Record> lsRecs = DbPeer.executeQuery(sSQL, con);
+      return lsRecs.isEmpty() ? 1 : lsRecs.get(0).getValue(1).asLong() + 1;
+    }
+
+    return null;
   }
 }

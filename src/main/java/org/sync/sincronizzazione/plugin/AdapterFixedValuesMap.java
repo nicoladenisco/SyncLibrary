@@ -29,6 +29,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.sincronizzazione.LocationType;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Adapter per mappare valori fissi specificati nel file XML.
@@ -64,7 +65,7 @@ public class AdapterFixedValuesMap extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String _key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String _key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     String key = okStr(v);

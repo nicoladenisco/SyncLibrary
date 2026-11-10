@@ -22,6 +22,7 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.RecordDataMap;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Adapter per la modifica dei campi in casi speciali.
@@ -109,6 +110,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * Valida il valore di un campo dopo la lettura.
    * Generalmente implemetata solo lato slave.
    * @param key chiave di sincronizzazione del record
+   * @param st tipo di operazione per cui si richiede la validazione
    * @param record dati del record
    * @param v valore del campo
    * @param f descrittore del campo
@@ -116,7 +118,7 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @throws Exception
    * @return the java.lang.Object
    */
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception;
 
   /**

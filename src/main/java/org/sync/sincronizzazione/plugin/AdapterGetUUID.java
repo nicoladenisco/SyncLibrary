@@ -27,6 +27,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
+import org.sync.sincronizzazione.SqlSaveType;
 import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
@@ -68,8 +69,13 @@ public class AdapterGetUUID extends AbstractAdapter
   public Object masterValidaValore(String key, Record r, Value v, FieldLinkInfoBean f)
      throws Exception
   {
+    // scarta se uuid è valorizzato
+    if(isOkStr(v.getValue()))
+      return v.getValue();
+
     while(true)
     {
+      // verifica che lo UUID non esista gia
       UUID uuid = UUID.randomUUID();
       String randomUUIDString = uuid.toString();
       String sSQL
@@ -83,11 +89,16 @@ public class AdapterGetUUID extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
+    // scarta se uuid è valorizzato
+    if(isOkStr(v))
+      return v;
+
     while(true)
     {
+      // verifica che lo UUID non esista gia
       UUID uuid = UUID.randomUUID();
       String randomUUIDString = uuid.toString();
       String sSQL

@@ -29,6 +29,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.sincronizzazione.LocationType;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Adapter per limitare dimensioni delle stringhe.
@@ -97,7 +98,7 @@ public class AdapterMaxLength extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     return maxValue == 0 ? v : okStr(v, maxValue);

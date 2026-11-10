@@ -37,6 +37,7 @@ import org.sync.common.plugin.AbstractAgent;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
+import org.sync.sincronizzazione.SqlSaveType;
 
 /**
  * Adapter per mappare id attraverso i codici.
@@ -164,7 +165,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, SqlSaveType st, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     if(v == null)
