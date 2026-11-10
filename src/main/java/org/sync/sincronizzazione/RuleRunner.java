@@ -14,7 +14,6 @@
  */
 package org.sync.sincronizzazione;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -22,7 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.SimpleTimer;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
@@ -32,6 +30,7 @@ import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.common.plugin.SyncRulePlugin;
 import org.sync.db.Database;
@@ -134,7 +133,7 @@ public abstract class RuleRunner
       // crea un context locale per azzerare il context ad ogni iterazione
       SyncContext ctx = (SyncContext) context.clone();
 
-      List<Pair<String, Date>> parametri = new ArrayList<>();
+      RecordTimestampData parametri = new RecordTimestampData();
 
       // interroga il server per i candidati per l'aggiornamento
       RecordKeysData aggiorna = new RecordKeysData();
@@ -191,7 +190,7 @@ public abstract class RuleRunner
 
       // crea un context locale per azzerare il context ad ogni iterazione
       SyncContext ctx = (SyncContext) context.clone();
-      List<Pair<String, Date>> parametri = new ArrayList<>();
+      RecordTimestampData parametri = new RecordTimestampData();
 
       // prepera dati per l'interrogazione al server
       RecordKeysData aggiorna = new RecordKeysData();

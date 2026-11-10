@@ -21,9 +21,9 @@ import com.workingdogs.village.TableDataSet;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.*;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.db.Database;
 import org.sync.db.DatabaseException;
 import org.sync.db.DbPeer;
@@ -72,7 +72,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     String fkeys = join(arKeys.keySet().iterator(), ",", null);

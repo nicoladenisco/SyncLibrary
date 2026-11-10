@@ -19,7 +19,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration2.Configuration;
-import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.CaseInsensitiveMap;
 import org.sync.common.RecordKeysData;
@@ -28,6 +27,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractRule;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.common.plugin.SyncAgentPlugin;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.db.Database;
@@ -108,7 +108,7 @@ public class RuleSlave extends AbstractRule
   }
 
   @Override
-  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(String nome, RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     SyncAgentPlugin agent = agentMap.get(nome);

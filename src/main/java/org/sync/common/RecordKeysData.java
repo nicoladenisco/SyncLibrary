@@ -18,6 +18,7 @@
 package org.sync.common;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Definizione operazioni su records.
@@ -27,4 +28,17 @@ import java.util.ArrayList;
  */
 public class RecordKeysData extends ArrayList<String>
 {
+  public RecordKeysData()
+  {
+  }
+
+  public RecordKeysData(int initialCapacity)
+  {
+    super(initialCapacity);
+  }
+
+  public RecordKeysData(Collection<? extends String> c)
+  {
+    super(c);
+  }
 }

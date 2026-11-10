@@ -21,14 +21,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -38,6 +36,7 @@ import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.common.plugin.SyncPluginFactory;
 import org.sync.common.plugin.SyncRulePlugin;
 
@@ -114,7 +113,7 @@ public class SyncServerTest
   }
 
   public void verificaBlocco(String nomeRegola, String nome,
-     List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData kd, SyncContext context)
+     RecordTimestampData parametri, Date oldTimestamp, RecordKeysData kd, SyncContext context)
      throws Exception
   {
     SyncRulePlugin plugin = ruleMap.get(nomeRegola);

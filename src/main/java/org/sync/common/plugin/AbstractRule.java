@@ -65,7 +65,7 @@ public class AbstractRule extends AbstractPlugin
   }
 
   @Override
-  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(String nome, RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     notImplemented();

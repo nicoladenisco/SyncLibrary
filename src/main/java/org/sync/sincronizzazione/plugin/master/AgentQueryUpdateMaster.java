@@ -20,7 +20,6 @@ import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.commonlib5.utils.DateTime;
-import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringJoin;
 import org.jdom2.Element;
 import org.sync.SyncMacroResolver;
@@ -29,6 +28,7 @@ import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.db.Database;
 import org.sync.db.DbPeer;
 import org.sync.db.QueryParamsBean;
@@ -117,7 +117,7 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
+  public void verificaBlocco(RecordTimestampData parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
      throws Exception
   {
     if(!haveTs())

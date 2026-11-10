@@ -27,6 +27,7 @@ import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.common.plugin.SyncPoolPlugin;
 import org.sync.sincronizzazione.LocationType;
 
@@ -62,7 +63,7 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
+  public void verificaBlocco(RecordTimestampData parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
      throws Exception
   {
     SyncPoolPlugin pool = getParentRule().getPool(poolName);

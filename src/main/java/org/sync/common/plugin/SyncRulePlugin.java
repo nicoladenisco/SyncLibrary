@@ -88,7 +88,7 @@ public interface SyncRulePlugin extends SyncPlugin
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(String nome, RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception;
 
   /**

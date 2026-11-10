@@ -15,13 +15,12 @@
 package org.sync;
 
 import java.util.Date;
-import java.util.List;
 import org.apache.commons.configuration2.Configuration;
-import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
+import org.sync.common.plugin.RecordTimestampData;
 
 /**
  * Interfaccia per le funzioni di comunicazione con Applicazione.
@@ -93,7 +92,7 @@ public interface SyncClientInterface
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  void verificaBlocco(String nomeRegola, String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  void verificaBlocco(String nomeRegola, String nome, RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception;
 
   /**

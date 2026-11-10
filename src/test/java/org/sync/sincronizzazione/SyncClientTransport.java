@@ -18,14 +18,13 @@
 package org.sync.sincronizzazione;
 
 import java.util.Date;
-import java.util.List;
 import org.apache.commons.configuration2.Configuration;
-import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.SyncClientInterface;
 import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
+import org.sync.common.plugin.RecordTimestampData;
 
 /**
  * Trasporto informazioni fra client e server.
@@ -75,7 +74,7 @@ public class SyncClientTransport implements SyncClientInterface
   }
 
   @Override
-  public void verificaBlocco(String nomeRegola, String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(String nomeRegola, String nome, RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     server.verificaBlocco(nomeRegola, nome, parametri, oldTimestamp, keyData, context);

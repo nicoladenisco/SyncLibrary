@@ -18,6 +18,7 @@ import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -91,7 +92,7 @@ public abstract class AbstractAgent extends AbstractPlugin
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     notImplemented();
@@ -253,13 +254,12 @@ public abstract class AbstractAgent extends AbstractPlugin
    * @throws Exception
    */
   protected void compilaBloccoMaster(
-     ArrayMap<String, String> arKeys, List<Pair<String, Date>> parametri, List<Record> lsRecs,
+     ArrayMap<String, String> arKeys, RecordTimestampData parametri, List<Record> lsRecs,
      Date oldTimestamp, String timeStampField, RecordKeysData vResult, SyncContext context)
      throws Exception
   {
     Date ts;
     HashSet<String> allKeys = new HashSet<>();
-    Map<String, Date> parMap = Utils.cvtPair2Map(parametri, new CaseInsensitiveMap<>());
 
     for(Record r : lsRecs)
     {
@@ -275,7 +275,7 @@ public abstract class AbstractAgent extends AbstractPlugin
       String rv = null;
       allKeys.add(key);
 
-      if((ts = parMap.get(key)) == null)
+      if((ts = parametri.get(key)) == null)
       {
         // nuovo record lato caleido: non esiste in parametri
         if(!deleted)
@@ -304,7 +304,7 @@ public abstract class AbstractAgent extends AbstractPlugin
     }
 
     // segnala records non presenti nella equivalente tabella del master
-    for(Pair<String, Date> p : parametri)
+    for(Pair<String, Timestamp> p : parametri.getAsList())
     {
       if(!allKeys.contains(p.first))
         vResult.add(p.first + "/UNKNOW");
@@ -326,7 +326,7 @@ public abstract class AbstractAgent extends AbstractPlugin
    * @throws Exception
    */
   protected void compilaBloccoSlave(
-     ArrayMap<String, String> arKeys, List<Pair<String, Date>> parametri,
+     ArrayMap<String, String> arKeys, RecordTimestampData parametri,
      List<Record> lsRecs, Date oldTimestamp,
      String timeStampField, Map<String, Date> mapTimeStamps)
      throws Exception
@@ -351,7 +351,7 @@ public abstract class AbstractAgent extends AbstractPlugin
         if(mapTimeStamps != null)
           timestamp = mapTimeStamps.getOrDefault(key, FAR_DATE);
 
-        parametri.add(new Pair<>(key, timestamp));
+        parametri.put(key, timestamp);
       }
     }
     else
@@ -365,7 +365,7 @@ public abstract class AbstractAgent extends AbstractPlugin
         if(timestamp == null)
           timestamp = FAR_DATE;
 
-        parametri.add(new Pair<>(key, timestamp));
+        parametri.put(key, timestamp);
       }
     }
   }

@@ -75,7 +75,7 @@ public interface SyncAgentPlugin extends SyncPlugin
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception;
 
   /**

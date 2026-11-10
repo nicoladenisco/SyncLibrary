@@ -17,11 +17,11 @@ package org.sync.sincronizzazione.plugin.slave;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
+import org.sync.common.plugin.RecordTimestampData;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
@@ -75,7 +75,7 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
+  public void verificaBlocco(RecordTimestampData parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     // non fa nulla: come se la tabella slave fosse vuota
