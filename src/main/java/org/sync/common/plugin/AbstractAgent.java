@@ -193,7 +193,7 @@ public abstract class AbstractAgent extends AbstractPlugin
    * @return la chiave del record
    * @throws Exception
    */
-  protected String buildKey(Map record, ArrayMap<String, String> arKeys)
+  protected String buildKey(RecordDataMap record, ArrayMap<String, String> arKeys)
      throws Exception
   {
     ASSERT(arKeys != null && !arKeys.isEmpty(), "arKeys != null && !arKeys.isEmpty()");

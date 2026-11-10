@@ -56,7 +56,7 @@ public class RecordTimestampData extends ArrayMap<String, Timestamp>
     super(pairObjects);
   }
 
-  void put(String key, Date ts)
+  public void put(String key, Date ts)
   {
     super.put(key, new Timestamp(ts.getTime()));
   }
