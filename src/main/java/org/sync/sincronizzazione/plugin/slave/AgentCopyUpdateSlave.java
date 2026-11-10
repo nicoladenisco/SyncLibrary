@@ -17,9 +17,10 @@ package org.sync.sincronizzazione.plugin.slave;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Vector;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
@@ -74,7 +75,7 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     // non fa nulla: come se la tabella slave fosse vuota
@@ -82,10 +83,11 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
   }
 
   @Override
-  public void pianificaAggiornamento(List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(RecordKeysData vInfo, SyncContext context)
      throws Exception
   {
     int pos;
+    RecordKeysData aggiorna = new RecordKeysData();
 
     // analizza le chiavi del master in modo molto semplice (dovrebbero essere tutte NEW)
     // qui siamo interessati solo ai nuovi records: il contenuto attuale verrà cancellato
@@ -108,10 +110,13 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
         }
       }
     }
+
+    vInfo.clear();
+    vInfo.addAll(aggiorna);
   }
 
   @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     if(statements == null || statements.isEmpty())
@@ -130,8 +135,7 @@ public class AgentCopyUpdateSlave extends AgentTableUpdateSlave
       }
     }
 
-    Vector v = (Vector) context.getNotNull("records-data");
-    if(!v.isEmpty())
-      salvaTuttiRecords(v, context);
+    if(!lsRecs.isEmpty())
+      salvaTuttiRecords(lsRecs, context);
   }
 }

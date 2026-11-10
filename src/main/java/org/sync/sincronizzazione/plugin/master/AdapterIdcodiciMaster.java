@@ -17,7 +17,6 @@ package org.sync.sincronizzazione.plugin.master;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.configuration2.Configuration;
@@ -25,6 +24,7 @@ import org.commonlib5.lambda.LEU;
 import org.commonlib5.utils.ArrayOper;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
+import org.sync.common.CaseInsensitiveMap;
 import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
@@ -43,9 +43,9 @@ public class AdapterIdcodiciMaster extends AbstractAdapter
 {
   private Element data;
   private String table, idfield, codicefield;
-  private final Map<Integer, String> mapLocalId = new HashMap<>();
-  private final Map<Integer, String> mapSharedId = new HashMap<>();
-  private final Map<String, Integer> mapSharedCodice = new HashMap<>();
+  private final Map<Integer, String> mapLocalId = new CaseInsensitiveMap<>();
+  private final Map<Integer, String> mapSharedId = new CaseInsensitiveMap<>();
+  private final Map<String, Integer> mapSharedCodice = new CaseInsensitiveMap<>();
   private HashtableRpc setup;
 
   @Override

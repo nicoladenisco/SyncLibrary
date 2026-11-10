@@ -73,7 +73,11 @@ abstract public class AgentGenericSlave extends AbstractAgent
 
     List<Element> lsFields = fields.getChildren("field");
     for(Element ef : lsFields)
-      arFields.add(populateField(ef, new FieldLinkInfoBean(), location));
+    {
+      FieldLinkInfoBean field = populateField(ef, new FieldLinkInfoBean(), location);
+      if(field != null)
+        arFields.add(field);
+    }
 
     if((validators = data.getChild("validators")) != null)
     {
@@ -205,5 +209,4 @@ abstract public class AgentGenericSlave extends AbstractAgent
       }
     }
   }
-
 }

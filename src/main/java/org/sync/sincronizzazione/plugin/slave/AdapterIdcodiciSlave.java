@@ -18,14 +18,16 @@ import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import static org.commonlib5.lambda.LEU.fi;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
+import org.sync.common.CaseInsensitiveMap;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncIgnoreRecordException;
 import org.sync.common.SyncSetupErrorException;
@@ -50,9 +52,9 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 {
   private Element data;
   private String table, idfield, codicefield;
-  private final Map<String, Integer> mapCodici = new HashMap<>();
-  private final Map<Integer, String> mapSharedId = new HashMap<>();
-  private final Map<String, Integer> mapSharedCodice = new HashMap<>();
+  private final Map<String, Integer> mapCodici = new CaseInsensitiveMap<>();
+  private final Map<Integer, String> mapSharedId = new CaseInsensitiveMap<>();
+  private final Map<String, Integer> mapSharedCodice = new CaseInsensitiveMap<>();
   private HashtableRpc setup;
 
   @Override
@@ -81,8 +83,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
     mapCodici.clear();
@@ -156,15 +157,14 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   }
 
   @Override
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
     mapCodici.clear();
   }
 
   @Override
-  public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     if(v == null)

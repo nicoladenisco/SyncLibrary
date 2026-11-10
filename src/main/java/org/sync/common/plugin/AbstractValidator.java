@@ -17,8 +17,9 @@ package org.sync.common.plugin;
 import com.workingdogs.village.Record;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 
 /**
@@ -66,21 +67,21 @@ public class AbstractValidator extends AbstractPlugin
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     notImplemented();
   }
 
   @Override
-  public void slaveFineValidazione(List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     notImplemented();
   }
 
   @Override
-  public int slaveValidaRecord(String key, Map record, List<FieldLinkInfoBean> arFields, Connection con)
+  public int slaveValidaRecord(String key, RecordDataMap record, List<FieldLinkInfoBean> arFields, Connection con)
      throws Exception
   {
     notImplemented();

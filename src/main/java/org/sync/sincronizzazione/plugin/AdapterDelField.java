@@ -15,36 +15,62 @@
 package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
-import org.sync.common.plugin.AbstractAdapter;
 import java.sql.Connection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import static org.commonlib5.utils.StringOper.isEquNocase;
+import org.jdom2.Element;
+import org.sync.common.CaseInsensitiveMap;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
+import org.sync.common.SyncContext;
+import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractAdapter;
+import org.sync.sincronizzazione.LocationType;
 
 /**
- * Adapter per cancellazione logica Diamante.
+ * Adapter per cancellazione logica.
+ *
  * @author Nicola De Nisco
  */
 public class AdapterDelField extends AbstractAdapter
 {
   protected String tableName, dbName;
 
-  protected static final Map delFields = new HashMap();
-  protected static final Object DEL_VALUE = 1;
+  protected final Map delFields = new CaseInsensitiveMap();
+  protected Object delValue = 1;
+  private Map setup;
 
-  static
+  @Override
+  public void setXML(LocationType location, Element data)
+     throws Exception
   {
-    delFields.put("ANNULLATO", 10);
+    setup = Utils.parseParams(data);
+    commonSetup();
+  }
+
+  protected void commonSetup()
+  {
+    for(Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) setup.entrySet())
+    {
+      String key = entry.getKey();
+      String value = entry.getValue();
+
+      if(isEquNocase(key, "delval"))
+        delValue = value;
+      else
+        delFields.put(key, value);
+    }
   }
 
   @Override
-  public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     String delVal = okStr(delFields.get(f.field.first.toUpperCase()));
-    return delVal != null && isEquNocase(record.get(f.field.first), delVal) ? DEL_VALUE : null;
+    return delVal != null && isEquNocase(record.get(f.field.first), delVal) ? delValue : null;
   }
 
   @Override
@@ -62,15 +88,13 @@ public class AdapterDelField extends AbstractAdapter
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }

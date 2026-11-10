@@ -20,7 +20,6 @@ import com.workingdogs.village.Schema;
 import com.workingdogs.village.Value;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.Pair;
 import static org.commonlib5.utils.StringOper.isEqu;
 import static org.commonlib5.utils.StringOper.okStrNull;
-import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 import org.sync.common.*;
 import org.sync.sincronizzazione.LocationType;
@@ -93,21 +91,21 @@ public abstract class AbstractAgent extends AbstractPlugin
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     notImplemented();
   }
 
   @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     notImplemented();
   }
 
   @Override
-  public void pianificaAggiornamento(List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(RecordKeysData vInfo, SyncContext context)
      throws Exception
   {
     notImplemented();
@@ -256,12 +254,12 @@ public abstract class AbstractAgent extends AbstractPlugin
    */
   protected void compilaBloccoMaster(
      ArrayMap<String, String> arKeys, List<Pair<String, Date>> parametri, List<Record> lsRecs,
-     Date oldTimestamp, String timeStampField, VectorRpc vResult, SyncContext context)
+     Date oldTimestamp, String timeStampField, RecordKeysData vResult, SyncContext context)
      throws Exception
   {
     Date ts;
     HashSet<String> allKeys = new HashSet<>();
-    Map<String, Date> parMap = Utils.cvtPair2Map(parametri, new HashMap<>());
+    Map<String, Date> parMap = Utils.cvtPair2Map(parametri, new CaseInsensitiveMap<>());
 
     for(Record r : lsRecs)
     {
@@ -389,6 +387,10 @@ public abstract class AbstractAgent extends AbstractPlugin
   {
     populateFieldName(ef, fi, location);
 
+    // il campo può non esistere sul master o sullo slave
+    if(fi.field == null)
+      return null;
+
     fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
 
     fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
@@ -402,7 +404,10 @@ public abstract class AbstractAgent extends AbstractPlugin
          getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
       fi.adapter.setParentAgent(this);
       fi.adapter.setXML(location, fi.adapterElement);
-      fi.shareFieldName = getOppositeField(location, ef).field.first;
+
+      FieldLinkInfoBean oppositeField = getOppositeField(location, ef);
+      if(oppositeField != null)
+        fi.shareFieldName = oppositeField.field.first;
     }
 
     return fi;
@@ -449,14 +454,14 @@ public abstract class AbstractAgent extends AbstractPlugin
     return populateField(ef, new FieldLinkInfoBean(), location.getOpposite());
   }
 
-  protected Object popolaValore(String key, Record r, Value v, FieldLinkInfoBean f)
+  protected String popolaValore(String key, Record r, Value v, FieldLinkInfoBean f)
      throws Exception
   {
     Object rv;
     if(f.adapter != null && (rv = f.adapter.masterValidaValore(key, r, v, f)) != null)
-      return rv;
+      return rv.toString();
 
-    return Utils.mapVillageToObject(v);
+    return Utils.mapVillageToObject(v).toString();
   }
 
   protected FieldLinkInfoBean findField(String nomeCampo, Collection<FieldLinkInfoBean> arFields)

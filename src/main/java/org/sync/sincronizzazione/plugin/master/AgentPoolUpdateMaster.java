@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.commonlib5.utils.Pair;
-import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.SyncPoolPlugin;
@@ -49,7 +50,8 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
     if(tables == null)
       SyncSetupErrorException.throwException(data, "tables");
 
-    if((poolElement = tables.getChild("pool")) == null)
+    if((poolElement = tables.getChild("pool")) == null
+       && (poolElement = tables.getChild("pool-" + location)) == null)
       SyncSetupErrorException.throwException(data, "tables/pool");
 
     if((poolName = okStrNull(poolElement.getAttributeValue("name"))) == null)
@@ -60,12 +62,9 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
      throws Exception
   {
-    VectorRpc v = new VectorRpc();
-    context.put("records-data", v);
-
     SyncPoolPlugin pool = getParentRule().getPool(poolName);
     if(pool == null)
       die("Missing data pool for name " + poolName);
@@ -79,7 +78,8 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
       caricaTipiColonne(dati.second, arFields);
 
     // NOTA IMPORTANTE: il timestamp ultimo aggiornamento non viene passato
-    // in quanto è responsabilità del poolElement stabilire quali record devono essere aggiornati
+    // in quanto è responsabilità del poolElement stabilire quali record devono
+    // essere aggiornati
     compilaBloccoMaster(arKeys, parametri, dati.first,
        null, // vedi nota
        timeStamp == null ? null : timeStamp,
@@ -87,11 +87,9 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock v, SyncContext context)
      throws Exception
   {
-    VectorRpc v = new VectorRpc();
-    context.put("records-data", v);
     boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
 
     // estrae i soli campi significativi
@@ -112,7 +110,8 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
     if(dati.second != null && schema != null)
       caricaTipiColonne(dati.second, arFields);
 
-    // se il poolElement non sa filtrare i records in base ai parametri, applichiamo un filtro a posteriori
+    // se il poolElement non sa filtrare i records in base ai parametri, applichiamo
+    // un filtro a posteriori
     if(!fetchAllData && !pool.haveNativeFilter())
       lsRecs = filtraRecors(lsRecs, parametri, context);
 

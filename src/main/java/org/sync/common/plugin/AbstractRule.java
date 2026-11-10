@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.List;
 import org.commonlib5.utils.Pair;
 import org.sync.common.FilterKeyData;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 
 /**
@@ -63,14 +65,14 @@ public class AbstractRule extends AbstractPlugin
   }
 
   @Override
-  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     notImplemented();
   }
 
   @Override
-  public void aggiornaBlocco(String nome, List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(String nome, RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     notImplemented();
@@ -85,7 +87,7 @@ public class AbstractRule extends AbstractPlugin
   }
 
   @Override
-  public void pianificaAggiornamento(String nome, List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(String nome, RecordKeysData vInfo, SyncContext context)
      throws Exception
   {
     notImplemented();

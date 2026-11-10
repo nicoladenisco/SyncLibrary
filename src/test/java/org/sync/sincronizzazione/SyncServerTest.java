@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
@@ -33,6 +33,9 @@ import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.sync.common.CaseInsensitiveMap;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.SyncPluginFactory;
@@ -47,7 +50,7 @@ public class SyncServerTest
 {
   protected Document doc = null;
   protected Configuration cfg = null;
-  protected HashMap<String, SyncRulePlugin> ruleMap = new HashMap<>();
+  protected Map<String, SyncRulePlugin> ruleMap = new CaseInsensitiveMap<>();
 
   public void init()
      throws Exception
@@ -111,29 +114,29 @@ public class SyncServerTest
   }
 
   public void verificaBlocco(String nomeRegola, String nome,
-     List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+     List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData kd, SyncContext context)
      throws Exception
   {
     SyncRulePlugin plugin = ruleMap.get(nomeRegola);
     ASSERT(plugin != null, "plugin != null - " + nomeRegola);
-    plugin.verificaBlocco(nome, parametri, oldTimestamp, context);
+    plugin.verificaBlocco(nome, parametri, oldTimestamp, kd, context);
   }
 
-  public void aggiornaBlocco(String nomeRegola, String nome, List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(String nomeRegola, String nome, RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     SyncRulePlugin plugin = ruleMap.get(nomeRegola);
     ASSERT(plugin != null, "plugin != null - " + nomeRegola);
-    plugin.aggiornaBlocco(nome, parametri, context);
+    plugin.aggiornaBlocco(nome, parametri, lsRecs, context);
   }
 
   public void pianificaAggiornamento(String nomeRegola, String nome,
-     List<String> aggiorna, List<String> vInfo, SyncContext context)
+     RecordKeysData vInfo, SyncContext context)
      throws Exception
   {
     SyncRulePlugin plugin = ruleMap.get(nomeRegola);
     ASSERT(plugin != null, "plugin != null - " + nomeRegola);
-    plugin.pianificaAggiornamento(nome, aggiorna, vInfo, context);
+    plugin.pianificaAggiornamento(nome, vInfo, context);
   }
 
   public int inizioEsecuzioneRegola(String nomeRegola, SyncContext context)

@@ -15,11 +15,12 @@
 package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
+import org.sync.common.SyncContext;
 
 /**
  * Validatore per la modifica dei records prima della lettura o scrittura.
@@ -83,8 +84,7 @@ public interface SyncValidatorPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception;
 
   /**
@@ -95,8 +95,7 @@ public interface SyncValidatorPlugin extends SyncPlugin
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception;
 
   /**
@@ -109,6 +108,6 @@ public interface SyncValidatorPlugin extends SyncPlugin
    * @return 0=OK altrimenti blocca inserimento/aggiornamento record
    * @throws Exception
    */
-  public int slaveValidaRecord(String key, Map record, List<FieldLinkInfoBean> arFields, Connection con)
+  public int slaveValidaRecord(String key, RecordDataMap record, List<FieldLinkInfoBean> arFields, Connection con)
      throws Exception;
 }

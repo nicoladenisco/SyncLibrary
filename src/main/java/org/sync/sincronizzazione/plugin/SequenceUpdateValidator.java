@@ -17,9 +17,10 @@ package org.sync.sincronizzazione.plugin;
 import com.workingdogs.village.Record;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractValidator;
 import org.sync.db.DbPeer;
@@ -61,8 +62,7 @@ public class SequenceUpdateValidator extends AbstractValidator
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     this.tableName = ((AgentSharedGenericSlave) parentAgent).correctTableName;
@@ -82,7 +82,7 @@ public class SequenceUpdateValidator extends AbstractValidator
 
   @Override
   public void slaveFineValidazione(
-     List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+     RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     setSequence();
@@ -112,7 +112,7 @@ public class SequenceUpdateValidator extends AbstractValidator
   }
 
   @Override
-  public int slaveValidaRecord(String key, Map record, List<FieldLinkInfoBean> arFields, Connection con)
+  public int slaveValidaRecord(String key, RecordDataMap record, List<FieldLinkInfoBean> arFields, Connection con)
      throws Exception
   {
     return 0;

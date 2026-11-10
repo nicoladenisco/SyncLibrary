@@ -12,19 +12,22 @@
  *  Viale dei Tigli, 19
  *  Casalnuovo di Napoli (NA)
  */
-package org.sync.common.plugin;
+package org.sync.sincronizzazione.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
 import java.sql.Connection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jdom2.Element;
+import org.sync.common.CaseInsensitiveMap;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
+import org.sync.common.plugin.AbstractAdapter;
 import org.sync.sincronizzazione.LocationType;
 
 /**
@@ -35,7 +38,7 @@ import org.sync.sincronizzazione.LocationType;
 public class AdapterFixedValuesMap extends AbstractAdapter
 {
   protected String defaultValue = null;
-  protected Map<String, String> valuesMap = new HashMap<>();
+  protected Map<String, String> valuesMap = new CaseInsensitiveMap<>();
   private Map setup;
 
   @Override
@@ -61,7 +64,7 @@ public class AdapterFixedValuesMap extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String _key, Map record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String _key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     String key = okStr(v);
@@ -91,15 +94,13 @@ public class AdapterFixedValuesMap extends AbstractAdapter
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }

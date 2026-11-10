@@ -19,6 +19,7 @@ import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.sync.common.RecordDataMap;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.sincronizzazione.RoleType;
@@ -73,10 +74,7 @@ public class AbstractDelete extends AbstractPlugin
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, Date now,
-     String key, Map<String, String> arKeys,
-     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
-     SyncContext context, Connection con)
+  public boolean confermaValoriRecord(RecordDataMap r, Date now, String key, Map<String, String> arKeys, Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert, SyncContext context, Connection con)
      throws Exception
   {
     notImplemented();

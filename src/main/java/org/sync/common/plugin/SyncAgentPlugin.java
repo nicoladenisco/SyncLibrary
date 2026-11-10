@@ -14,11 +14,13 @@
  */
 package org.sync.common.plugin;
 
-import org.sync.common.FilterKeyData;
-import org.sync.common.SyncContext;
 import java.util.Date;
 import java.util.List;
 import org.commonlib5.utils.Pair;
+import org.sync.common.FilterKeyData;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
+import org.sync.common.SyncContext;
 
 /**
  * Interfaccia di un agent di sincronizzazione.
@@ -69,10 +71,11 @@ public interface SyncAgentPlugin extends SyncPlugin
    * Il server risponde con un elenco di chiavi primarie da aggiornare.
    * @param parametri parametri della richiesta: chiave/timestamp ultimo aggiornamento
    * @param oldTimestamp ultimo timestamp di una richiesta simile (può essere null)
+   * @param keyData dati di verifica fra client e server
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception;
 
   /**
@@ -80,20 +83,20 @@ public interface SyncAgentPlugin extends SyncPlugin
    * Per il blocco indicato e le chiavi primarie specificate nella richiesta,
    * estrae i record da aggiornare.
    * @param parametri parametri della richiesta: chiave dei records
+   * @param lsRecs lista dati records
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception;
 
   /**
    * Esamina vInfo e pianifica aggiornamento.
    * Questa funzione è generalmente implentata nello slave.
-   * @param aggiorna lista chiavi da recuperare; deve essere popolata
    * @param vInfo informazioni sui record richiesti (verificaBlocco)
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void pianificaAggiornamento(List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(RecordKeysData vInfo, SyncContext context)
      throws Exception;
 }

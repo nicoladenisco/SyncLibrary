@@ -72,7 +72,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     String fkeys = join(arKeys.keySet().iterator(), ",", null);
@@ -166,21 +166,21 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
   }
 
   @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
-    Vector v = (Vector) context.getNotNull("records-data");
-    if(!v.isEmpty())
-      salvaTuttiRecords(v, context);
+    if(!lsRecs.isEmpty())
+      salvaTuttiRecords(lsRecs, context);
   }
 
   @Override
-  public void pianificaAggiornamento(List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(RecordKeysData vInfo, SyncContext context)
      throws Exception
   {
     int pos;
     List<String> delete = new ArrayList<>();
     List<String> unknow = new ArrayList<>();
+    RecordKeysData aggiorna = new RecordKeysData();
 
     for(String s : vInfo)
     {
@@ -209,6 +209,9 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
         }
       }
     }
+
+    vInfo.clear();
+    vInfo.addAll(aggiorna);
 
     if(delStrategy == null)
       return;
@@ -260,7 +263,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  protected void salvaTuttiRecords(List<Map> lsRecs, SyncContext context)
+  protected void salvaTuttiRecords(RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     if(isolateAllRecords)
@@ -280,7 +283,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  protected void salvaTuttiRecordsInternal(List<Map> lsRecs, SyncContext context)
+  protected void salvaTuttiRecordsInternal(RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     prepareForSave(lsRecs, context);
@@ -290,7 +293,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       if(isolateRecord)
       {
         // salva i records isolando le eccezioni per ogni record
-        for(Map r : lsRecs)
+        for(RecordDataMap r : lsRecs)
         {
           try
           {
@@ -304,7 +307,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       }
       else
       {
-        for(Map r : lsRecs)
+        for(RecordDataMap r : lsRecs)
           salvaRecord(r, context);
       }
     }
@@ -321,7 +324,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context
    * @throws Exception
    */
-  protected void prepareForSave(List<Map> lsRecs, SyncContext context)
+  protected void prepareForSave(RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     if(recordValidator != null)
@@ -343,7 +346,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context
    * @throws Exception
    */
-  protected void clearForSave(List<Map> lsRecs, SyncContext context)
+  protected void clearForSave(RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     for(int i = 0; i < arFields.size(); i++)
@@ -365,7 +368,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * @param context the value of context
    * @throws Exception
    */
-  protected void salvaRecord(Map r, SyncContext context)
+  protected void salvaRecord(RecordDataMap r, SyncContext context)
      throws Exception
   {
     try(SqlTransactionHelper th = new SqlTransactionHelper(databaseName))
@@ -379,7 +382,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  protected void salvaRecord(Map r, SyncContext context, Connection con)
+  protected void salvaRecord(RecordDataMap r, SyncContext context, Connection con)
      throws Exception
   {
     try
@@ -390,9 +393,9 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
         if(recordValidator.slaveValidaRecord(null, r, arFields, con) != 0)
           return;
 
-      HashMap<String, Object> valoriUpdate = new HashMap<>();
-      HashMap<String, Object> valoriSelect = new HashMap<>();
-      HashMap<String, Object> valoriInsert = new HashMap<>();
+      Map<String, Object> valoriUpdate = new CaseInsensitiveMap<>();
+      Map<String, Object> valoriSelect = new CaseInsensitiveMap<>();
+      Map<String, Object> valoriInsert = new CaseInsensitiveMap<>();
 
       if(!preparaValoriRecord(r, null,
          valoriSelect, valoriUpdate, valoriInsert,
@@ -426,7 +429,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  protected void salvaRecordShared(Map r, SyncContext context, Connection con)
+  protected void salvaRecordShared(RecordDataMap r, SyncContext context, Connection con)
      throws Exception
   {
     if(arKeys.isEmpty())
@@ -442,9 +445,9 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
         if(recordValidator.slaveValidaRecord(key, r, arFields, con) != 0)
           return;
 
-      HashMap<String, Object> valoriUpdate = new HashMap<>();
-      HashMap<String, Object> valoriSelect = new HashMap<>();
-      HashMap<String, Object> valoriInsert = new HashMap<>();
+      Map<String, Object> valoriUpdate = new CaseInsensitiveMap<>();
+      Map<String, Object> valoriSelect = new CaseInsensitiveMap<>();
+      Map<String, Object> valoriInsert = new CaseInsensitiveMap<>();
 
       if(!haveAutoTs)
       {
@@ -493,7 +496,7 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
     }
   }
 
-  protected boolean preparaValoriRecord(Map r, String key,
+  protected boolean preparaValoriRecord(RecordDataMap r, String key,
      Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
      Connection con)
      throws Exception

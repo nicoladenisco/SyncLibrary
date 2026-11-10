@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
@@ -64,15 +66,13 @@ public class AdapterNotNull extends AbstractAdapter
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }
@@ -85,7 +85,7 @@ public class AdapterNotNull extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     return okStr(v, nullValue);

@@ -19,6 +19,8 @@ import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 
 /**
@@ -60,10 +62,11 @@ public interface SyncClientInterface
    * @param nomeRegola nome della regola di riferimento
    * @param nome nome del blocco
    * @param parametri parametri della richiesta: chiave dei records
+   * @param lsRecs lista dati records (il master la popola lo slave la usa)
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  void aggiornaBlocco(String nomeRegola, String nome, List<String> parametri, SyncContext context)
+  void aggiornaBlocco(String nomeRegola, String nome, RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception;
 
   /**
@@ -74,7 +77,7 @@ public interface SyncClientInterface
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  void pianificaAggiornamento(String nomeRegola, String nome, List<String> aggiorna, SyncContext context)
+  void pianificaAggiornamento(String nomeRegola, String nome, RecordKeysData aggiorna, SyncContext context)
      throws Exception;
 
   /**
@@ -86,10 +89,11 @@ public interface SyncClientInterface
    * @param nome nome del blocco
    * @param parametri parametri della richiesta: chiave/timestamp ultimo aggiornamento
    * @param oldTimestamp ultimo timestamp di una richiesta simile (può essere null)
+   * @param keyData dati di verifica fra client e server
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  void verificaBlocco(String nomeRegola, String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  void verificaBlocco(String nomeRegola, String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception;
 
   /**

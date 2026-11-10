@@ -18,9 +18,10 @@ import com.workingdogs.village.Record;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.commonlib5.utils.Pair;
-import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.db.Database;
@@ -68,12 +69,9 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
      throws Exception
   {
-    VectorRpc v = new VectorRpc();
-    context.put("records-data", v);
-
     List<Record> lsRecs = haveTs() ? queryWithTimestamp(oldTimestamp) : queryWithoutTimestamp();
 
     if(lsRecs.isEmpty())
@@ -136,11 +134,9 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock v, SyncContext context)
      throws Exception
   {
-    VectorRpc v = new VectorRpc();
-    context.put("records-data", v);
     boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
 
     // cut-off per lista parametri eccessivamente lunga
@@ -181,7 +177,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   }
 
   private void populateFetchAll(String fields,
-     List<FieldLinkInfoBean> arRealFields, VectorRpc v, SyncContext context)
+     List<FieldLinkInfoBean> arRealFields, RecordsDataBlock v, SyncContext context)
      throws Exception
   {
     List<Record> lsRecs = queryFetchAll(fields);
@@ -192,7 +188,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   }
 
   private void populateSingleKey(String fields,
-     List<String> parametri, List<FieldLinkInfoBean> arRealFields, VectorRpc v, SyncContext context)
+     List<String> parametri, List<FieldLinkInfoBean> arRealFields, RecordsDataBlock v, SyncContext context)
      throws Exception
   {
     List<Record> lsRecs = queryUnaChiave(fields, arKeys.getKeyByIndex(0), parametri);
@@ -237,7 +233,7 @@ public class AgentTableUpdateMaster extends AgentSharedGenericMaster
   }
 
   private void populateMultipleKey(String fields,
-     List<String> parametri, List<FieldLinkInfoBean> arRealFields, VectorRpc v, SyncContext context)
+     List<String> parametri, List<FieldLinkInfoBean> arRealFields, RecordsDataBlock v, SyncContext context)
      throws Exception
   {
     int pos;

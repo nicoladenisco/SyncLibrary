@@ -23,10 +23,10 @@ import com.workingdogs.village.Schema;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.Pair;
+import org.sync.common.CaseInsensitiveMap;
 
 /**
  * Bean per mantenere i parametri di una query.
@@ -38,7 +38,7 @@ public class QueryParamsBean implements Serializable, Cloneable
   private String select, from, where, orderby, groupby, having;
   private List<String> extraWhere = new ArrayList<>();
   private List<Object> substituctions = new ArrayList<>();
-  private Map<String, Object> valuesMap = new HashMap<>();
+  private Map<String, Object> valuesMap = new CaseInsensitiveMap<>();
 
   public QueryParamsBean()
   {
@@ -60,7 +60,7 @@ public class QueryParamsBean implements Serializable, Cloneable
     QueryParamsBean other = (QueryParamsBean) super.clone();
     other.extraWhere = new ArrayList<>(extraWhere);
     other.substituctions = new ArrayList<>(substituctions);
-    other.valuesMap = new HashMap<>(valuesMap);
+    other.valuesMap = new CaseInsensitiveMap<>(valuesMap);
     return other;
   }
 

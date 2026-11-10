@@ -18,9 +18,9 @@ import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
 import java.util.*;
 import org.commonlib5.utils.ArrayMap;
-import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.sincronizzazione.LocationType;
@@ -67,7 +67,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
   }
 
   @Override
-  protected HashtableRpc popolaRecord(Record r, List<FieldLinkInfoBean> arRealFields, HashtableRpc hr)
+  protected RecordDataMap popolaRecord(Record r, List<FieldLinkInfoBean> arRealFields, RecordDataMap hr)
      throws Exception
   {
     String key = buildKey(r, arKeys);

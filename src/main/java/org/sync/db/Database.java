@@ -45,6 +45,7 @@ import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.sync.common.CaseInsensitiveMap;
 
 /**
  * Interfaccia verso il database SQL.
@@ -57,15 +58,15 @@ public class Database
 
   private static String defaultDB = null;
   public static final int SB_SIZE = 8192;
-  private static final Map<String, DatabaseInfo> mapInfo = new HashMap<>();
+  private static final Map<String, DatabaseInfo> mapInfo = new CaseInsensitiveMap<>();
   //
   public static final String[] TABLES_FILTER = new String[]
   {
-      "TABLE"
+    "TABLE"
   };
   public static final String[] VIEWS_FILTER = new String[]
   {
-      "VIEW"
+    "VIEW"
   };
 
   public static String getDefaultDB()
@@ -85,23 +86,23 @@ public class Database
   }
 
   public static Connection getConnection()
-    throws DatabaseException
+     throws DatabaseException
   {
     return getConnection(defaultDB);
   }
 
   public static Connection getConnection(String dbName)
-    throws DatabaseException
+     throws DatabaseException
   {
     DatabaseInfo info = mapInfo.get(dbName);
-    if (info == null)
+    if(info == null)
       throw new DatabaseException(String.format("Database %s non registrato: rivedere setup.", dbName));
 
     try
     {
       return openDatabase(info);
     }
-    catch (Exception e)
+    catch(Exception e)
     {
       throw new DatabaseException(e);
     }
@@ -109,14 +110,14 @@ public class Database
 
   public static void closeConnection(Connection con)
   {
-    if (con == null)
+    if(con == null)
       return;
 
     try
     {
       con.close();
     }
-    catch (SQLException ex)
+    catch(SQLException ex)
     {
       log.error("", ex);
     }
@@ -124,8 +125,8 @@ public class Database
 
   /**
    * Aggiunge informazioni per un database.
-   * 
-   * @param dbName   nome di riferimento (come richiesto da operazioni)
+   *
+   * @param dbName nome di riferimento (come richiesto da operazioni)
    * @param driver
    * @param jdbcUrl
    * @param user
@@ -133,7 +134,7 @@ public class Database
    * @throws ClassNotFoundException
    */
   public static void addDatabaseInfo(String dbName, String driver, String jdbcUrl, String user, String password)
-    throws ClassNotFoundException
+     throws ClassNotFoundException
   {
     DatabaseInfo info = new DatabaseInfo();
     info.driver = driver;
@@ -145,13 +146,13 @@ public class Database
 
   /**
    * Aggiunge informazioni per un database.
-   * 
+   *
    * @param dbName nome di riferimento (come richiesto da operazioni)
    * @param info
    * @throws ClassNotFoundException
    */
   public static void addDatabaseInfo(String dbName, DatabaseInfo info)
-    throws ClassNotFoundException
+     throws ClassNotFoundException
   {
     Class.forName(info.driver);
     mapInfo.put(dbName, info);
@@ -160,8 +161,8 @@ public class Database
   /**
    * Aggiunge informazioni per un database.
    * Versione specifica per Diamante.
-   * 
-   * @param dbName       nome di riferimento (come richiesto da operazioni)
+   *
+   * @param dbName nome di riferimento (come richiesto da operazioni)
    * @param diaDatabase
    * @param diaIstanza
    * @param diaIndirizzo
@@ -171,14 +172,14 @@ public class Database
    * @throws ClassNotFoundException
    */
   public static void addDatabaseInfoDiamante(String dbName,
-    String diaDatabase, String diaIstanza, String diaIndirizzo, int diaPorta,
-    String user, String password)
-    throws ClassNotFoundException
+     String diaDatabase, String diaIstanza, String diaIndirizzo, int diaPorta,
+     String user, String password)
+     throws ClassNotFoundException
   {
     DatabaseInfo info = new DatabaseInfo();
     info.driver = "net.sourceforge.jtds.jdbc.Driver";
 
-    if (diaIstanza.isEmpty())
+    if(diaIstanza.isEmpty())
       info.jdbcUrl = "jdbc:jtds:sqlserver://" + diaIndirizzo + ":" + diaPorta + "/" + diaDatabase;
     else
       info.jdbcUrl = "jdbc:jtds:sqlserver://" + diaIndirizzo + ":" + diaPorta + "/" + diaDatabase + ";instance=" + diaIstanza;
@@ -192,12 +193,12 @@ public class Database
    * Legge settaggio database da file XML.
    * Se nessun database è marcato come database di default
    * imposta il default al primo dell'elenco.
-   * 
+   *
    * @param fxml file XML con il setup da leggere
    * @throws Exception
    */
   public static void readFromXML(File fxml)
-    throws Exception
+     throws Exception
   {
     log.info("Leggo settaggio db dal file " + fxml.getAbsolutePath());
     SAXBuilder builder = new SAXBuilder();
@@ -205,7 +206,7 @@ public class Database
     defaultDB = null;
 
     List<Element> lsdb = doc.getRootElement().getChildren("database");
-    for (Element e : lsdb)
+    for(Element e : lsdb)
     {
       String dbName = e.getAttributeValue("name");
       boolean defconn = StringOper.checkTrueFalse(e.getAttributeValue("default"), false);
@@ -216,18 +217,18 @@ public class Database
       info.user = e.getChildTextTrim("user");
       info.password = e.getChildTextTrim("password");
 
-      if (info.driver.isEmpty() || info.jdbcUrl.isEmpty())
+      if(info.driver.isEmpty() || info.jdbcUrl.isEmpty())
         throw new Exception("Manca driver o url nella dichiarazione di database.");
 
       addDatabaseInfo(dbName, info);
 
-      if (defconn || defaultDB == null)
+      if(defconn || defaultDB == null)
         defaultDB = dbName;
     }
   }
 
   private static Connection openDatabase(DatabaseInfo info)
-    throws Exception
+     throws Exception
   {
     return DriverManager.getConnection(info.jdbcUrl, info.user, info.password);
   }
@@ -239,21 +240,21 @@ public class Database
 
   /**
    * Lista delle viste di un database.
-   * 
+   *
    * @param con connessione al db
    * @return lista di tutte le viste presenti (schema di default)
    * @throws Exception
    */
   public static List<String> getAllViews(Connection con)
-    throws Exception
+     throws Exception
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> viewNames = new ArrayList<String>();
-    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, VIEWS_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(null, null, null, VIEWS_FILTER))
     {
-      while (rSet.next())
+      while(rSet.next())
       {
-        if (rSet.getString("TABLE_TYPE").equals("VIEW"))
+        if(rSet.getString("TABLE_TYPE").equals("VIEW"))
         {
           String tableName = rSet.getString("TABLE_NAME");
           viewNames.add(tableName);
@@ -266,25 +267,25 @@ public class Database
 
   /**
    * Lista delle tabelle di un database.
-   * 
+   *
    * @param con connessione al db
    * @return lista di tutte le tabelle presenti (schema di default)
    * @throws Exception
    */
   public static List<String> getAllTables(Connection con)
-    throws Exception
+     throws Exception
   {
     DatabaseMetaData databaseMetaData = con.getMetaData();
     ArrayList<String> tableNames = new ArrayList<>();
-    try (ResultSet rSet = databaseMetaData.getTables(null, null, null, TABLES_FILTER))
+    try(ResultSet rSet = databaseMetaData.getTables(null, null, null, TABLES_FILTER))
     {
-      while (rSet.next())
+      while(rSet.next())
       {
-        if (rSet.getString("TABLE_TYPE").equals("TABLE"))
+        if(rSet.getString("TABLE_TYPE").equals("TABLE"))
         {
           String schema = rSet.getString("TABLE_SCHEM");
           String tableName = rSet.getString("TABLE_NAME");
-          if (!isSchemaPublic(schema))
+          if(!isSchemaPublic(schema))
             tableNames.add(schema + "." + tableName);
           else
             tableNames.add(tableName);
@@ -298,15 +299,15 @@ public class Database
   /**
    * Ritorna il tipo per una colonna di tabella.
    * La ricerca del nome tabella e nome colonna è case insensitive.
-   * 
-   * @param con         connessione al db
+   *
+   * @param con connessione al db
    * @param nomeTabella nome della tabella (eventualmente con schema)
    * @param nomeColonna nome della colonna
    * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
    * @throws Exception
    */
   public static int getTipoColonna(Connection con, String nomeTabella, String nomeColonna)
-    throws Exception
+     throws Exception
   {
     Integer rv = scanTabelleColonne(con, nomeTabella, nomeColonna, Database::getTipoColonna);
     return rv == null ? 0 : rv;
@@ -315,14 +316,14 @@ public class Database
   /**
    * Ritorna i tipi delle colonne di una tabella.
    * La ricerca del nome tabella è case insensitive.
-   * 
-   * @param con         connessione al db
+   *
+   * @param con connessione al db
    * @param nomeTabella nome della tabella (eventualmente con schema)
    * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
    * @throws Exception
    */
   public static ArrayMap<String, Integer> getTipiColonne(Connection con, String nomeTabella)
-    throws Exception
+     throws Exception
   {
     return scanTabelleColonne(con, nomeTabella, null, Database::getTipiColonne);
   }
@@ -330,19 +331,19 @@ public class Database
   /**
    * Ritorna i tipi delle colonne di una query.
    *
-   * @param con   connessione al db
+   * @param con connessione al db
    * @param query query sul db
    * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
    * @throws Exception
    */
   public static ArrayMap<String, Integer> getTipiColonneQuery(Connection con, String query)
-    throws Exception
+     throws Exception
   {
     Schema sc = schemaQuery(con, query);
     int nc = sc.numberOfColumns();
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    for (int i = 1; i <= nc; i++)
+    for(int i = 1; i <= nc; i++)
     {
       Column c = sc.column(i);
       rv.add(new Pair<>(c.name(), c.typeEnum()));
@@ -354,14 +355,14 @@ public class Database
   /**
    * Ritorna le colonne della chiave primaria di una tabella.
    * La ricerca del nome tabella è case insensitive.
-   * 
-   * @param con         connessione al db
+   *
+   * @param con connessione al db
    * @param nomeTabella nome della tabella (eventualmente con schema)
    * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
    * @throws Exception
    */
   public static ArrayMap<String, Integer> getPrimaryKeys(Connection con, String nomeTabella)
-    throws Exception
+     throws Exception
   {
     return scanTabelleColonne(con, nomeTabella, null, Database::getPrimaryKeys);
   }
@@ -369,17 +370,17 @@ public class Database
   /**
    * Verifica esistenza tabella nel db.
    * La ricerca del nome tabella è case insensitive.
-   * 
-   * @param con         connessione al db
+   *
+   * @param con connessione al db
    * @param nomeTabella nome della tabella
    * @return vero se esiste
    * @throws Exception
    */
   public static boolean existTable(Connection con, String nomeTabella)
-    throws Exception
+     throws Exception
   {
     Boolean rv = scanTabelleColonne(con, nomeTabella, null,
-      (dbCon, nomeSchema1, nomeTabella1, nomeColonna1) -> Boolean.TRUE);
+       (dbCon, nomeSchema1, nomeTabella1, nomeColonna1) -> Boolean.TRUE);
     return rv == null ? false : rv;
   }
 
@@ -387,51 +388,51 @@ public class Database
   public interface ScanColumn<T>
   {
     public T scan(Connection con, String nomeSchema, String nomeTabella, String nomeColonna)
-      throws Exception;
+       throws Exception;
   }
 
   /**
    * Funzione generica di scansione colonne.
    * La ricerca del nome tabella è case insensitive.
-   * 
-   * @param <T>         il tipo tornato da sfun
-   * @param con         connessione al db
+   *
+   * @param <T> il tipo tornato da sfun
+   * @param con connessione al db
    * @param nomeTabella nome della tabella (eventualmente con schema)
    * @param nomeColonna nome della colonna
-   * @param sfun        funzione lambda per la scansione dei campi della tabella
-   *                    individuata
+   * @param sfun funzione lambda per la scansione dei campi della tabella
+   * individuata
    * @return int {@code =>} SQL type from java.sql.Types 0=non trovato
    * @throws Exception
    */
   public static <T> T scanTabelleColonne(Connection con, String nomeTabella, String nomeColonna, ScanColumn<T> sfun)
-    throws Exception
+     throws Exception
   {
     String nomeSchema = null;
     int pos = nomeTabella.indexOf('.');
-    if (pos != -1)
+    if(pos != -1)
     {
       nomeSchema = nomeTabella.substring(0, pos);
       nomeTabella = nomeTabella.substring(pos + 1);
     }
 
-    try (ResultSet rSet = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
+    try(ResultSet rSet = con.getMetaData().getTables(null, null, null, TABLES_FILTER))
     {
-      while (rSet.next())
+      while(rSet.next())
       {
-        if (rSet.getString("TABLE_TYPE").equals("TABLE"))
+        if(rSet.getString("TABLE_TYPE").equals("TABLE"))
         {
           String schema = rSet.getString("TABLE_SCHEM");
           String tableName = rSet.getString("TABLE_NAME");
 
-          if (nomeSchema == null && (schema == null || isSchemaPublic(schema)))
+          if(nomeSchema == null && (schema == null || isSchemaPublic(schema)))
           {
-            if (StringOper.isEquNocase(nomeTabella, tableName))
+            if(StringOper.isEquNocase(nomeTabella, tableName))
               return sfun.scan(con, schema, tableName, nomeColonna);
           }
           else
           {
-            if (StringOper.isEquNocase(nomeSchema, schema)
-              && StringOper.isEquNocase(nomeTabella, tableName))
+            if(StringOper.isEquNocase(nomeSchema, schema)
+               && StringOper.isEquNocase(nomeTabella, tableName))
               return sfun.scan(con, schema, tableName, nomeColonna);
           }
         }
@@ -444,7 +445,7 @@ public class Database
   /**
    * Ritorna vero se lo schema è lo schema di default.
    * In Postgres o Mysql si chiama public, in MSSql si chiama dbo, ecc.
-   * 
+   *
    * @param nomeSchema nome da testare
    * @return vero se è lo schema di default del db
    */
@@ -454,15 +455,15 @@ public class Database
   }
 
   public static Integer getTipoColonna(Connection con,
-    String nomeSchema, String nomeTabella, String nomeColonna)
-    throws SQLException
+     String nomeSchema, String nomeTabella, String nomeColonna)
+     throws SQLException
   {
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
-      while (rs.next())
+      while(rs.next())
       {
         String cn = rs.getString("COLUMN_NAME");
-        if (StringOper.isEquNocase(cn, nomeColonna))
+        if(StringOper.isEquNocase(cn, nomeColonna))
           return rs.getInt("DATA_TYPE");
       }
     }
@@ -470,14 +471,14 @@ public class Database
   }
 
   public static ArrayMap<String, Integer> getTipiColonne(Connection con,
-    String nomeSchema, String nomeTabella, String nomeColonna)
-    throws SQLException
+     String nomeSchema, String nomeTabella, String nomeColonna)
+     throws SQLException
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
+    try(ResultSet rs = con.getMetaData().getColumns(con.getCatalog(), nomeSchema, nomeTabella, null))
     {
-      while (rs.next())
+      while(rs.next())
       {
         String cn = rs.getString("COLUMN_NAME");
         int tipo = rs.getInt("DATA_TYPE");
@@ -489,14 +490,14 @@ public class Database
   }
 
   public static ArrayMap<String, Integer> getPrimaryKeys(Connection con,
-    String nomeSchema, String nomeTabella, String nomeColonna)
-    throws SQLException
+     String nomeSchema, String nomeTabella, String nomeColonna)
+     throws SQLException
   {
     ArrayMap<String, Integer> rv = new ArrayMap<>();
 
-    try (ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
+    try(ResultSet rs = con.getMetaData().getPrimaryKeys(con.getCatalog(), nomeSchema, nomeTabella))
     {
-      while (rs.next())
+      while(rs.next())
       {
         String cn = rs.getString("COLUMN_NAME");
         int seq = rs.getInt("KEY_SEQ");
@@ -509,15 +510,15 @@ public class Database
 
   /**
    * Verifica una colonna per tipo numerico.
-   * 
-   * @param con         connessione al db
+   *
+   * @param con connessione al db
    * @param nomeTabella nome della tabella (eventualmente con schema)
    * @param nomeColonna nome della colonna
    * @return vero se la colonna è numerica
    * @throws Exception
    */
   public static boolean isNumeric(Connection con, String nomeTabella, String nomeColonna)
-    throws Exception
+     throws Exception
   {
     int tipo = getTipoColonna(con, nomeTabella, nomeColonna);
     return isNumeric(tipo);
@@ -525,13 +526,13 @@ public class Database
 
   /**
    * Verifica per tipo numerico.
-   * 
+   *
    * @param sqlType tipo sql (Types)
    * @return vero se la colonna è numerica
    */
   public static boolean isNumeric(int sqlType)
   {
-    switch (sqlType)
+    switch(sqlType)
     {
       case Types.BIT:
       case Types.TINYINT:
@@ -551,7 +552,7 @@ public class Database
 
   public static boolean isString(int sqlType)
   {
-    switch (sqlType)
+    switch(sqlType)
     {
       case Types.LONGNVARCHAR:
       case Types.LONGVARCHAR:
@@ -566,7 +567,7 @@ public class Database
 
   public static boolean isDate(int sqlType)
   {
-    switch (sqlType)
+    switch(sqlType)
     {
       case Types.DATE:
       case Types.TIME:
@@ -579,7 +580,7 @@ public class Database
   }
 
   public static Schema schemaQuery(Connection con, String sSQL)
-    throws Exception
+     throws Exception
   {
     QueryDataSet qds = null;
     try
@@ -594,7 +595,7 @@ public class Database
   }
 
   public static Schema schemaTable(Connection con, String nomeTabella)
-    throws Exception
+     throws Exception
   {
     TableDataSet tds = null;
     try
@@ -609,18 +610,18 @@ public class Database
   }
 
   public static Schema schemaTable(String nomeDatabase, String nomeTabella)
-    throws Exception
+     throws Exception
   {
-    try (Connection con = getConnection(nomeDatabase))
+    try(Connection con = getConnection(nomeDatabase))
     {
       return schemaTable(con, nomeTabella);
     }
   }
 
   public static Schema schemaTable(String nomeTabella)
-    throws Exception
+     throws Exception
   {
-    try (Connection con = getConnection())
+    try(Connection con = getConnection())
     {
       return schemaTable(con, nomeTabella);
     }
@@ -631,31 +632,31 @@ public class Database
    * Ogni query viene riconosciuta dal terminatore ';'.
    * La lettura dello script avviene una linea per volta.
    * I commenti (--) vengono ignorati.
-   * 
-   * @param con          connessione al db
-   * @param r            reader da cui leggere lo script
+   *
+   * @param con connessione al db
+   * @param r reader da cui leggere lo script
    * @param ignoreErrors se vero log degli errori senza interruzione
    * @return numero di query eseguite
    * @throws Exception
    */
   public static int executeSqlScriptByLine(Connection con, BufferedReader r, boolean ignoreErrors)
-    throws Exception
+     throws Exception
   {
     int count = 0;
     StringBuilder sb = new StringBuilder(SB_SIZE);
     String s;
 
-    while ((s = r.readLine()) != null)
+    while((s = r.readLine()) != null)
     {
       s = s.trim();
 
-      if (s.isEmpty())
+      if(s.isEmpty())
         continue;
-      if (s.startsWith("--"))
+      if(s.startsWith("--"))
         continue;
 
       sb.append(s).append("\n");
-      if (s.endsWith(";"))
+      if(s.endsWith(";"))
       {
         count += executeBuffer(con, sb, ignoreErrors);
         sb.setLength(0);
@@ -669,23 +670,23 @@ public class Database
   }
 
   public static int executeBuffer(Connection con, StringBuilder sb, boolean ignoreErrors)
-    throws Exception
+     throws Exception
   {
     String sSQL = sb.toString().trim();
 
     // rimuove ';' finale: su alcuni db non � tollerato
-    if (sSQL.endsWith(";"))
+    if(sSQL.endsWith(";"))
       sSQL = sSQL.substring(0, sSQL.length() - 1);
 
-    if (!sSQL.isEmpty())
+    if(!sSQL.isEmpty())
     {
-      try (PreparedStatement ps = con.prepareStatement(sSQL))
+      try(PreparedStatement ps = con.prepareStatement(sSQL))
       {
         return ps.executeUpdate();
       }
-      catch (Exception ex)
+      catch(Exception ex)
       {
-        if (ignoreErrors)
+        if(ignoreErrors)
         {
           log.warn("Ignored SQL error: " + ex.getMessage());
         }
@@ -700,22 +701,22 @@ public class Database
   public static String purgeNome(String nomeCampo)
   {
     String s = StringOper.okStrNull(nomeCampo);
-    if (s == null)
+    if(s == null)
       throw new RuntimeException("Errore di sintassi: campo vuoto nell'header.");
 
-    if (s.startsWith("\""))
+    if(s.startsWith("\""))
     {
       s = s.substring(1);
-      if (s.endsWith("\""))
+      if(s.endsWith("\""))
         return s.substring(0, s.length() - 1);
 
       throw new RuntimeException("Errore di sintassi: campo " + nomeCampo + " errato nell'header.");
     }
 
-    if (s.startsWith("\'"))
+    if(s.startsWith("\'"))
     {
       s = s.substring(1);
-      if (s.endsWith("\'"))
+      if(s.endsWith("\'"))
         return s.substring(0, s.length() - 1);
 
       throw new RuntimeException("Errore di sintassi: campo " + nomeCampo + " errato nell'header.");
@@ -725,19 +726,19 @@ public class Database
   }
 
   public static void executeFileCsv(String tabella, String chiave, File csvFile, Connection con)
-    throws Exception
+     throws Exception
   {
-    try (Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
+    try(Reader in = new InputStreamReader(new FileInputStream(csvFile), "UTF-8"))
     {
       executeFileCsv(tabella, chiave, in, con);
     }
   }
 
   public static void executeFileCsvResource(String tabella, String chiave, String nomeRisorsa, Connection con)
-    throws Exception
+     throws Exception
   {
-    try (InputStream is = Database.class.getResourceAsStream(nomeRisorsa);
-      Reader in = new InputStreamReader(is, "UTF-8"))
+    try(InputStream is = Database.class.getResourceAsStream(nomeRisorsa);
+       Reader in = new InputStreamReader(is, "UTF-8"))
     {
       executeFileCsv(tabella, chiave, in, con);
     }
@@ -747,32 +748,32 @@ public class Database
    * Legge un file CSV e carica i dati nella tabella indicata.
    * La chiave primaria è prevista come unico campo.<br>
    * NON USER UN BUFFERD READER: il parser CSV ne crea uno interno ad hoc.
-   * 
+   *
    * @param tabella nome della tabella nel db
-   * @param chiave  la chiave primaria della tabella (UNICO CAMPO)
-   * @param in      reader per fornire il contenuto CSV
-   * @param con     connessione al db
+   * @param chiave la chiave primaria della tabella (UNICO CAMPO)
+   * @param in reader per fornire il contenuto CSV
+   * @param con connessione al db
    */
   public static void executeFileCsv(String tabella, String chiave, Reader in, Connection con)
-    throws Exception
+     throws Exception
   {
     CSVParser parser = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
     Map<String, Integer> headers = parser.getHeaderMap();
 
-    try (TableDataSet tds = new TableDataSet(con, tabella))
+    try(TableDataSet tds = new TableDataSet(con, tabella))
     {
-      for (CSVRecord csvRecord : parser)
+      for(CSVRecord csvRecord : parser)
       {
         String valoreChiave = manipolaCampo(StringOper.okStrNull(csvRecord.get(chiave)));
-        if (valoreChiave == null)
+        if(valoreChiave == null)
           throw new RuntimeException("Chiave primaria non definita nel record " + csvRecord.getRecordNumber());
 
         Record r = tds.fetchOneRecordOrNew(chiave + "=" + valoreChiave, true);
 
-        if (r.isNew())
+        if(r.isNew())
           r.setValue(chiave, valoreChiave);
 
-        for (Map.Entry<String, Integer> entry : headers.entrySet())
+        for(Map.Entry<String, Integer> entry : headers.entrySet())
         {
           String nomeCampo = purgeNome(entry.getKey());
           int indiceCampo = entry.getValue();
@@ -787,18 +788,18 @@ public class Database
   }
 
   public static String manipolaCampo(String valore)
-    throws Exception
+     throws Exception
   {
-    if (valore == null)
+    if(valore == null)
       return null;
 
-    if (valore.startsWith("\""))
+    if(valore.startsWith("\""))
       valore = valore.substring(1);
 
-    if (valore.endsWith("\""))
+    if(valore.endsWith("\""))
       valore = valore.substring(0, valore.length() - 1);
 
-    if (valore.equalsIgnoreCase("null"))
+    if(valore.equalsIgnoreCase("null"))
       return null;
 
     return valore;

@@ -138,7 +138,7 @@ public class AbstractPlugin extends StringOper
 
   protected void notImplemented()
   {
-    throw new UnsupportedOperationException(this.getClass() + "; motodo obbligatorio non implementato.");
+    throw new UnsupportedOperationException(this.getClass() + "; metodo obbligatorio non implementato.");
   }
 
   @Override

@@ -16,11 +16,12 @@ package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
-import org.sync.common.FieldLinkInfoBean;
-import org.sync.common.SyncContext;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
+import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
+import org.sync.common.SyncContext;
 
 /**
  * Adapter per la modifica dei campi in casi speciali.
@@ -44,8 +45,6 @@ public interface SyncAdapterPlugin extends SyncPlugin
   /**
    * Prepara validazione di un blocco di records.
    * Generalmente implemetata solo lato master.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName the value of dbName
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param field campo di interesse per questo adapter
@@ -59,8 +58,6 @@ public interface SyncAdapterPlugin extends SyncPlugin
   /**
    * Completa validazione di un blocco di records.
    * Generalmente implemetata solo lato master.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName the value of dbName
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param field campo di interesse per questo adapter
@@ -87,31 +84,25 @@ public interface SyncAdapterPlugin extends SyncPlugin
   /**
    * Prepara validazione di un blocco di records.
    * Generalmente implemetata solo lato slave.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param field campo di interesse per questo adapter
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
   /**
    * Completa validazione di un blocco di records.
    * Generalmente implemetata solo lato slave.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param lsRecs lista dei records in aggiornamento
    * @param arFields descrittori dei campi
    * @param field campo di interesse per questo adapter
    * @param context contesto dell'aggiornamento
    * @throws Exception
    */
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception;
 
   /**
@@ -125,14 +116,12 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * @throws Exception
    * @return the java.lang.Object
    */
-  public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception;
 
   /**
    * Conversione di valori shared.
    * Converte opportunamente i valori nei record quando questo adapter viene utilizzato per un campo shared.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param lsRecs lista dei records delle chiavi da scambiare con il master
    * @param field campo di interesse per questo adapter
    * @param context contesto dell'aggiornamento
@@ -145,8 +134,6 @@ public interface SyncAdapterPlugin extends SyncPlugin
   /**
    * Conversione di chiavi shared.
    * Durante la verifica le chiavi vanno opportunamente convertite da questo adapter.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param parametri array di chiavi da correggere
    * @param field campo di interesse per questo adapter
    * @param idxInKeys indice di questo campo all'interno delle chiavi
@@ -161,8 +148,6 @@ public interface SyncAdapterPlugin extends SyncPlugin
    * Conversione di valori shared.
    * Converte opportunamente i valori nei record quando questo adapter viene utilizzato per un campo shared.
    * Il frutto della conversione va conservato per chiamate a masterSharedConvertKeys.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param lsRecs lista dei records delle chiavi da scambiare con il master
    * @param field campo di interesse per questo adapter
    * @param context contesto dell'aggiornamento
@@ -175,8 +160,6 @@ public interface SyncAdapterPlugin extends SyncPlugin
   /**
    * Conversione di chiavi shared.
    * Durante la verifica le chiavi vanno opportunamente convertite da questo adapter.
-   * @param uniqueName nome della tabella di riferimento o altro elemento univoco
-   * @param dbName nome del database
    * @param parametri array di chiavi da correggere
    * @param field campo di interesse per questo adapter
    * @param idxInKeys indice di questo campo all'interno delle chiavi

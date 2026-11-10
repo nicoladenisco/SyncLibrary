@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.RecordDataMap;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAgent;
@@ -331,10 +332,7 @@ public class DeleteStrategyGeneric extends AbstractDelete
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, Date now,
-     String key, Map<String, String> arKeys,
-     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
-     SyncContext context, Connection con)
+  public boolean confermaValoriRecord(RecordDataMap r, Date now, String key, Map<String, String> arKeys, Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert, SyncContext context, Connection con)
      throws Exception
   {
     // reimposta lo stato_rec al valore di non cancellato

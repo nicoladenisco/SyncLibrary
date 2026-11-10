@@ -14,11 +14,13 @@
  */
 package org.sync.common.plugin;
 
-import org.sync.common.FilterKeyData;
-import org.sync.common.SyncContext;
 import java.util.Date;
 import java.util.List;
 import org.commonlib5.utils.Pair;
+import org.sync.common.FilterKeyData;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
+import org.sync.common.SyncContext;
 
 /**
  * Interfaccia di un plugin di sincronizzazione generico verso workstation di refertazione.
@@ -82,11 +84,11 @@ public interface SyncRulePlugin extends SyncPlugin
    * @param nome nome del blocco
    * @param parametri parametri della richiesta: chiave/timestamp ultimo aggiornamento
    * @param oldTimestamp ultimo timestamp di una richiesta simile (può essere null)
+   * @param keyData dati di verifica fra client e server
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void verificaBlocco(String nome,
-     List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception;
 
   /**
@@ -95,11 +97,11 @@ public interface SyncRulePlugin extends SyncPlugin
    * estrae i record da aggiornare.
    * @param nome nome del blocco
    * @param parametri parametri della richiesta: chiave dei records
+   * @param lsRecs lista dati records
    * @param context contesto da popolare con i risultati
    * @throws Exception
    */
-  public void aggiornaBlocco(String nome,
-     List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(String nome, RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception;
 
   /**
@@ -113,13 +115,11 @@ public interface SyncRulePlugin extends SyncPlugin
   /**
    * Pianifica aggiornamento richiesto.
    * @param nome
-   * @param aggiorna
    * @param vInfo
    * @param context
    * @throws Exception
    */
-  public void pianificaAggiornamento(String nome,
-     List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(String nome, RecordKeysData vInfo, SyncContext context)
      throws Exception;
 
   /**

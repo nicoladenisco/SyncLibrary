@@ -28,6 +28,8 @@ import org.commonlib5.utils.StringOper;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.sync.SyncClientInterface;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.plugin.SyncPluginFactory;
@@ -38,6 +40,8 @@ import org.sync.db.DbPeer;
 
 /**
  * Esecutore di regole di sincronizzazione.
+ * Questa classe va eseguita dal client che chiede di sincronizzarsi con un server.
+ * Il trasporto fra client e server avviene attraverso un implementazione di SyncClientInterface.
  *
  * @author Nicola De Nisco
  */
@@ -100,6 +104,10 @@ public abstract class RuleRunner
             break;
         }
       }
+      catch(Throwable t)
+      {
+        log.error("Errore fatale: fine operazioni in playRole.", t);
+      }
       finally
       {
         rule.endRumbleRule(context);
@@ -129,26 +137,23 @@ public abstract class RuleRunner
       List<Pair<String, Date>> parametri = new ArrayList<>();
 
       // interroga il server per i candidati per l'aggiornamento
-      client.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, ctx);
+      RecordKeysData aggiorna = new RecordKeysData();
+      client.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
       log.debug("Verifica slave richiede " + parametri.size() + " record.");
 
       // elabora dati dei candidati
-      rule.verificaBlocco(nomeBlocco, parametri, oldTimestamp, ctx);
+      rule.verificaBlocco(nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
       parametri.clear();
 
-      // recupera risposta del server
-      List<String> vInfo = (List<String>) ctx.get("records-data");
-      if(vInfo.isEmpty())
+      if(aggiorna.isEmpty())
       {
         log.debug("Verifica master non richiede record.");
         continue;
       }
 
-      ctx.remove("records-data");
-
       // pianifica la richiesta dati per l'aggiornamento
-      client.pianificaAggiornamento(nomeRegola, nomeBlocco, vInfo, ctx);
-      List<String> aggiorna = (List<String>) ctx.get("records-data");
+      client.pianificaAggiornamento(nomeRegola, nomeBlocco, aggiorna, ctx);
+
       if(aggiorna.isEmpty())
       {
         log.debug("Pianificazione slave non richiede record.");
@@ -156,16 +161,16 @@ public abstract class RuleRunner
       }
 
       // elabora i dati dei record da aggiornare
-      rule.aggiornaBlocco(nomeBlocco, aggiorna, ctx);
+      RecordsDataBlock lsRecs = new RecordsDataBlock();
+      rule.aggiornaBlocco(nomeBlocco, aggiorna, lsRecs, ctx);
 
-      List v = (List) context.get("records-data");
-      if(v == null)
+      if(lsRecs.isEmpty())
         log.debug("Il master ha prodotto i dati richiesti.");
       else
-        log.debug("Il master ha prodotto " + v.size() + " record.");
+        log.debug("Il master ha prodotto " + lsRecs.size() + " record.");
 
       // invia i dati al server per l'aggiornamento; i dati sono nel ctx
-      client.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, ctx);
+      client.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, lsRecs, ctx);
 
       log.debug("I dati prodotti dal master sono stati inviati.");
     }
@@ -186,31 +191,27 @@ public abstract class RuleRunner
 
       // crea un context locale per azzerare il context ad ogni iterazione
       SyncContext ctx = (SyncContext) context.clone();
-
-      List<String> aggiorna = new ArrayList<>();
       List<Pair<String, Date>> parametri = new ArrayList<>();
 
       // prepera dati per l'interrogazione al server
-      rule.verificaBlocco(nomeBlocco, parametri, null, ctx);
+      RecordKeysData aggiorna = new RecordKeysData();
+      rule.verificaBlocco(nomeBlocco, parametri, null, aggiorna, ctx);
       log.debug("Verifica slave sottopone " + parametri.size() + " record al master.");
 
       // interroga il server con i candidati per l'aggiornamento
-      client.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, ctx);
+      client.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
       parametri.clear();
 
-      // recupera risposta del server
-      List<String> vInfo = (List<String>) ctx.get("records-data");
-      ctx.remove("records-data");
-      if(vInfo.isEmpty())
+      if(aggiorna.isEmpty())
       {
         log.debug("Verifica master non richiede aggiornamento record.");
         continue;
       }
 
-      log.debug("Verifica master risponde con " + vInfo.size() + " record da aggiornare/inserire/cancellare.");
+      log.debug("Verifica master risponde con " + aggiorna.size() + " record da aggiornare/inserire/cancellare.");
 
       // pianifica la richiesta dati per l'aggiornamento
-      rule.pianificaAggiornamento(nomeBlocco, aggiorna, vInfo, ctx);
+      rule.pianificaAggiornamento(nomeBlocco, aggiorna, ctx);
 
       if(aggiorna.isEmpty())
       {
@@ -220,17 +221,17 @@ public abstract class RuleRunner
 
       log.debug("Pianificazione slave richiede " + aggiorna.size() + " record al master per aggiornare/inserire.");
 
-      // interroga il server per i dati dei record da aggiornare
-      client.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, ctx);
+      // interroga il client per i dati dei record da aggiornare
+      RecordsDataBlock lsRecs = new RecordsDataBlock();
+      client.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, lsRecs, ctx);
 
-      List v = (List) ctx.get("records-data");
-      if(v == null)
+      if(lsRecs.isEmpty())
         log.debug("Il master ha prodotto i dati richiesti ma nessun record è stato prodotto.");
       else
-        log.debug("Il master ha prodotto " + v.size() + " record per aggiornare/inserire.");
+        log.debug("Il master ha prodotto " + lsRecs.size() + " record per aggiornare/inserire.");
 
       // applica aggiornamento al data block; i dati sono nel ctx
-      rule.aggiornaBlocco(nomeBlocco, aggiorna, ctx);
+      rule.aggiornaBlocco(nomeBlocco, aggiorna, lsRecs, ctx);
 
       log.debug("I dati prodotti dal master sono stati salvati.");
     }

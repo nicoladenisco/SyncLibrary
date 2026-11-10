@@ -22,10 +22,11 @@ import java.util.stream.Collectors;
 import org.commonlib5.utils.DateTime;
 import org.commonlib5.utils.Pair;
 import org.commonlib5.utils.StringJoin;
-import org.commonlib5.xmlrpc.VectorRpc;
 import org.jdom2.Element;
 import org.sync.SyncMacroResolver;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.db.Database;
@@ -41,7 +42,7 @@ import org.sync.sincronizzazione.LocationType;
 public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
 {
   protected Element queryElement;
-  protected String tableName, databaseName;
+  protected String tableName;
   protected boolean ignoreOldTimestamp;
   protected final SyncMacroResolver resolver = new SyncMacroResolver();
   protected final QueryParamsBean qb = new QueryParamsBean();
@@ -116,12 +117,9 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData v, SyncContext context)
      throws Exception
   {
-    VectorRpc v = new VectorRpc();
-    context.put("records-data", v);
-
     if(!haveTs())
       return;
 
@@ -140,11 +138,9 @@ public class AgentQueryUpdateMaster extends AgentSharedGenericMaster
   }
 
   @Override
-  public void aggiornaBlocco(List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(RecordKeysData parametri, RecordsDataBlock v, SyncContext context)
      throws Exception
   {
-    VectorRpc v = new VectorRpc();
-    context.put("records-data", v);
     boolean fetchAllData = checkTrueFalse(context.get("fetch-all-data"), arKeys.isEmpty());
     QueryParamsBean qc = (QueryParamsBean) qb.clone();
 

@@ -23,7 +23,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.commonlib5.utils.ArrayMap;
@@ -45,7 +44,7 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   protected final ArrayMap<String, String> arKeys = new ArrayMap<>();
   protected boolean correct = false;
   public String correctTableName = null;
-  protected final Map<String, Date> mapTimeStamps = new HashMap<>();
+  protected final Map<String, Date> mapTimeStamps = new CaseInsensitiveMap<>();
   protected boolean keysHaveAdapter = false;
 
   @Override

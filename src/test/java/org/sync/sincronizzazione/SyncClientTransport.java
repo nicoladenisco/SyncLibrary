@@ -23,6 +23,8 @@ import org.apache.commons.configuration2.Configuration;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
 import org.sync.SyncClientInterface;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 
 /**
@@ -59,24 +61,24 @@ public class SyncClientTransport implements SyncClientInterface
   }
 
   @Override
-  public void aggiornaBlocco(String nomeRegola, String nome, List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(String nomeRegola, String nome, RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
-    server.aggiornaBlocco(nomeRegola, nome, parametri, context);
+    server.aggiornaBlocco(nomeRegola, nome, parametri, lsRecs, context);
   }
 
   @Override
-  public void pianificaAggiornamento(String nomeRegola, String nome, List<String> aggiorna, SyncContext context)
+  public void pianificaAggiornamento(String nomeRegola, String nome, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
-    server.pianificaAggiornamento(nomeRegola, nome, aggiorna, aggiorna, context);
+    server.pianificaAggiornamento(nomeRegola, nome, keyData, context);
   }
 
   @Override
-  public void verificaBlocco(String nomeRegola, String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(String nomeRegola, String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
-    server.verificaBlocco(nomeRegola, nome, parametri, oldTimestamp, context);
+    server.verificaBlocco(nomeRegola, nome, parametri, oldTimestamp, keyData, context);
   }
 
   @Override
@@ -96,6 +98,13 @@ public class SyncClientTransport implements SyncClientInterface
   @Override
   public Configuration getConfiguration()
   {
-    throw new UnsupportedOperationException("Not supported yet.");
+    try
+    {
+      return server.getConfiguration();
+    }
+    catch(Exception ex)
+    {
+      throw new RuntimeException(ex);
+    }
   }
 }

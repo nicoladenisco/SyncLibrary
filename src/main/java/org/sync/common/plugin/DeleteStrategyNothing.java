@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.jdom2.Element;
+import org.sync.common.RecordDataMap;
 import org.sync.common.SyncContext;
 import org.sync.sincronizzazione.LocationType;
 
@@ -49,10 +50,7 @@ public class DeleteStrategyNothing extends AbstractDelete
   }
 
   @Override
-  public boolean confermaValoriRecord(Map r, Date now,
-     String key, Map<String, String> arKeys,
-     Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
-     SyncContext context, Connection con)
+  public boolean confermaValoriRecord(RecordDataMap r, Date now, String key, Map<String, String> arKeys, Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert, SyncContext context, Connection con)
      throws Exception
   {
     return true;

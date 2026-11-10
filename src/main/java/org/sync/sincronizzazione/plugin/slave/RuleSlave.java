@@ -16,11 +16,14 @@ package org.sync.sincronizzazione.plugin.slave;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.configuration2.Configuration;
 import org.commonlib5.utils.Pair;
 import org.jdom2.Element;
+import org.sync.common.CaseInsensitiveMap;
+import org.sync.common.RecordKeysData;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.Utils;
@@ -40,7 +43,7 @@ import org.sync.sincronizzazione.RoleType;
 public class RuleSlave extends AbstractRule
 {
   protected Element rule, delStrategyElement;
-  protected HashMap<String, SyncAgentPlugin> agentMap = new HashMap<>();
+  protected Map<String, SyncAgentPlugin> agentMap = new CaseInsensitiveMap<>();
   protected ArrayList<String> arBlocchi = new ArrayList<>();
 
   @Override
@@ -105,27 +108,27 @@ public class RuleSlave extends AbstractRule
   }
 
   @Override
-  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, SyncContext context)
+  public void verificaBlocco(String nome, List<Pair<String, Date>> parametri, Date oldTimestamp, RecordKeysData keyData, SyncContext context)
      throws Exception
   {
     SyncAgentPlugin agent = agentMap.get(nome);
-    agent.verificaBlocco(parametri, oldTimestamp, context);
+    agent.verificaBlocco(parametri, oldTimestamp, keyData, context);
   }
 
   @Override
-  public void aggiornaBlocco(String nome, List<String> parametri, SyncContext context)
+  public void aggiornaBlocco(String nome, RecordKeysData parametri, RecordsDataBlock lsRecs, SyncContext context)
      throws Exception
   {
     SyncAgentPlugin agent = agentMap.get(nome);
-    agent.aggiornaBlocco(parametri, context);
+    agent.aggiornaBlocco(parametri, lsRecs, context);
   }
 
   @Override
-  public void pianificaAggiornamento(String nome, List<String> aggiorna, List<String> vInfo, SyncContext context)
+  public void pianificaAggiornamento(String nome, RecordKeysData vInfo, SyncContext context)
      throws Exception
   {
     SyncAgentPlugin agent = agentMap.get(nome);
-    agent.pianificaAggiornamento(aggiorna, vInfo, context);
+    agent.pianificaAggiornamento(vInfo, context);
   }
 
   @Override

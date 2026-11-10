@@ -18,12 +18,15 @@ import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractAdapter;
 import org.sync.db.DbPeer;
+import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
 import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
@@ -39,6 +42,12 @@ public class AdapterGetUUID extends AbstractAdapter
   protected String tableName, dbName;
 
   @Override
+  public void setXML(LocationType location, Element data)
+     throws Exception
+  {
+  }
+
+  @Override
   public void masterPreparaValidazione(List<Record> lsRecs,
      List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
@@ -48,8 +57,7 @@ public class AdapterGetUUID extends AbstractAdapter
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
     this.tableName = ((AgentSharedGenericSlave) parentAgent).correctTableName;
@@ -75,7 +83,7 @@ public class AdapterGetUUID extends AbstractAdapter
   }
 
   @Override
-  public Object slaveValidaValore(String key, Map record, Object v, FieldLinkInfoBean f, Connection con)
+  public Object slaveValidaValore(String key, RecordDataMap record, Object v, FieldLinkInfoBean f, Connection con)
      throws Exception
   {
     while(true)
@@ -100,8 +108,7 @@ public class AdapterGetUUID extends AbstractAdapter
   }
 
   @Override
-  public void slaveFineValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
+  public void slaveFineValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, FieldLinkInfoBean field, SyncContext context)
      throws Exception
   {
   }

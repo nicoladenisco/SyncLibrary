@@ -17,11 +17,12 @@ package org.sync.sincronizzazione.plugin.slave;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
 import org.sync.common.FieldFilterBean;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractValidator;
@@ -99,20 +100,20 @@ public class RecordFilterValidatorSlave extends AbstractValidator
 
   @Override
   public void slavePreparaValidazione(
-     List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+     RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
 
   @Override
   public void slaveFineValidazione(
-     List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+     RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
 
   @Override
-  public int slaveValidaRecord(String key, Map record, List<FieldLinkInfoBean> arFields, Connection con)
+  public int slaveValidaRecord(String key, RecordDataMap record, List<FieldLinkInfoBean> arFields, Connection con)
      throws Exception
   {
     for(FieldFilterBean fb : arFiltri)

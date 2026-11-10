@@ -18,7 +18,6 @@ import com.workingdogs.village.DataSetException;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Value;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -297,8 +296,8 @@ public class Utils extends StringOper
     return rv == null ? 0 : rv;
   }
 
-  public static Map<String, Integer> sqlStringTypeMap = new HashMap<>();
-  public static Map<Integer, String> sqlTypeStringMap = new HashMap<>();
+  public static Map<String, Integer> sqlStringTypeMap = new CaseInsensitiveMap<>();
+  public static Map<Integer, String> sqlTypeStringMap = new CaseInsensitiveMap<>();
 
   static
   {

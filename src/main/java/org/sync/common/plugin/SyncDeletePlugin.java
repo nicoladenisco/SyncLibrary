@@ -15,11 +15,12 @@
 package org.sync.common.plugin;
 
 import com.workingdogs.village.Record;
-import org.sync.common.SyncContext;
 import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import org.sync.common.RecordDataMap;
+import org.sync.common.SyncContext;
 
 /**
  * Interfaccia di un gestore di cancellazione record.
@@ -85,8 +86,8 @@ public interface SyncDeletePlugin extends SyncPlugin
    * @return vero per confermare salvataggio record
    * @throws Exception
    */
-  public boolean confermaValoriRecord(Map r, Date now,
-     String key, Map<String, String> arKeys,
+  public boolean confermaValoriRecord(RecordDataMap r,
+     Date now, String key, Map<String, String> arKeys,
      Map<String, Object> valoriSelect, Map<String, Object> valoriUpdate, Map<String, Object> valoriInsert,
      SyncContext context, Connection con)
      throws Exception;

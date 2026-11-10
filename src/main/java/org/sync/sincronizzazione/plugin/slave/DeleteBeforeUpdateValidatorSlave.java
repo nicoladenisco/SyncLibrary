@@ -17,15 +17,14 @@ package org.sync.sincronizzazione.plugin.slave;
 import com.workingdogs.village.Record;
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 import org.jdom2.Element;
 import org.sync.common.FieldLinkInfoBean;
+import org.sync.common.RecordDataMap;
+import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.plugin.AbstractValidator;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
-import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
-import org.sync.sincronizzazione.plugin.master.AgentSharedGenericMaster;
 
 /**
  * Cancella il contenuto di una tabella prima dell'inizio dell'aggiornamento.
@@ -53,13 +52,10 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
      List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
-    this.tableName = ((AgentSharedGenericMaster) parentAgent).correctTableName;
-    this.dbName = ((AgentGenericMaster) parentAgent).databaseName;
   }
 
   @Override
-  public void slavePreparaValidazione(List<Map> lsRecs,
-     List<FieldLinkInfoBean> arFields, SyncContext context)
+  public void slavePreparaValidazione(RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
     this.tableName = ((AgentSharedGenericSlave) parentAgent).correctTableName;
@@ -81,7 +77,7 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
 
   @Override
   public void slaveFineValidazione(
-     List<Map> lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
+     RecordsDataBlock lsRecs, List<FieldLinkInfoBean> arFields, SyncContext context)
      throws Exception
   {
   }
@@ -94,7 +90,7 @@ public class DeleteBeforeUpdateValidatorSlave extends AbstractValidator
   }
 
   @Override
-  public int slaveValidaRecord(String key, Map record, List<FieldLinkInfoBean> arFields, Connection con)
+  public int slaveValidaRecord(String key, RecordDataMap record, List<FieldLinkInfoBean> arFields, Connection con)
      throws Exception
   {
     return 0;
