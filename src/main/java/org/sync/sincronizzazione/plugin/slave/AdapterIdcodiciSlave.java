@@ -229,12 +229,18 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 
     for(String s : parametri)
     {
-      String[] ss = split(s, '^');
-      Integer value = mapSharedCodice.get(ss[idxInKeys]);
-      if(value != null)
+      if(s != null)
       {
-        ss[idxInKeys] = value.toString();
-        newparam.add(join(ss, '^'));
+        String[] ss = split(s, '^');
+        if(ss.length > idxInKeys)
+        {
+          Integer value = mapSharedCodice.get(ss[idxInKeys]);
+          if(value != null)
+          {
+            ss[idxInKeys] = value.toString();
+            newparam.add(join(ss, '^'));
+          }
+        }
       }
     }
 

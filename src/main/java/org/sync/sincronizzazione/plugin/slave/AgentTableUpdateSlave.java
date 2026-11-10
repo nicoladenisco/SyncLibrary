@@ -510,24 +510,41 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
       Object valoreSelect = r.get(f.field.first);
       Object valoreInsert = valoreSelect;
       Object valoreUpdate = valoreSelect;
+      boolean usaSelect = true, usaInsert = true, usaUpdate = true;
 
       if(f.adapter != null)
       {
         Object rv;
+
         if((rv = f.adapter.slaveValidaValore(key, SqlSaveType.SELECT, r, valoreSelect, f, con)) != null)
           valoreSelect = rv;
+        else
+          usaSelect = false;
+
         if((rv = f.adapter.slaveValidaValore(key, SqlSaveType.INSERT, r, valoreInsert, f, con)) != null)
           valoreInsert = rv;
+        else
+          usaInsert = false;
+
         if((rv = f.adapter.slaveValidaValore(key, SqlSaveType.UPDATE, r, valoreUpdate, f, con)) != null)
           valoreUpdate = rv;
+        else
+          usaUpdate = false;
       }
 
       if(isSelect(f))
-        valoriSelect.put(f.field.first, valoreSelect);
+      {
+        if(usaSelect)
+          valoriSelect.put(f.field.first, valoreSelect);
+      }
       else
-        valoriUpdate.put(f.field.first, valoreUpdate);
+      {
+        if(usaUpdate)
+          valoriUpdate.put(f.field.first, valoreUpdate);
+      }
 
-      valoriInsert.put(f.field.first, valoreInsert);
+      if(usaInsert)
+        valoriInsert.put(f.field.first, valoreInsert);
     }
 
     return true;

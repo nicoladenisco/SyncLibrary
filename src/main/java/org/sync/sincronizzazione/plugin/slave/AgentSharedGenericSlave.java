@@ -150,6 +150,9 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   protected String convertiChiave(String key, SyncContext context)
      throws Exception
   {
+    if(!isOkStr(key))
+      return null;
+
     List<String> lsKeys = new ArrayList<>(1);
     lsKeys.add(key);
 
