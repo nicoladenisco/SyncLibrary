@@ -1,4 +1,4 @@
-siti_id,codice,descrizione,stato_rec,id_user,id_ucrea,ult_modif,creazione
+siti_id,codice,ori_descrizione,stato_rec,id_user,id_ucrea,ult_modif,creazione
 0,0,Nessuno/indefinito,10,0,0,2024-10-16 15:08:24,2024-10-16 15:08:24
 1,CALEIDO,CALEIDO - Informatica Medica,0,0,0,2025-10-16 15:08:24,2024-10-16 15:08:24
 2,SITO1,SITO 1,0,0,0,2025-10-16 15:08:24,2024-10-16 15:08:24

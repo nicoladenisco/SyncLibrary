@@ -56,4 +56,19 @@ public enum RoleType
   {
     return role;
   }
+
+  public RoleType getOpposite()
+  {
+    switch(this)
+    {
+      case MASTER:
+        return SLAVE;
+
+      case SLAVE:
+        return MASTER;
+
+      default:
+        throw new IllegalArgumentException("Valore non definito: " + this);
+    }
+  }
 }

@@ -50,7 +50,7 @@ public abstract class RuleRunner
   private static final Log log = LogFactory.getLog(RuleRunner.class);
   //
   protected Date oldTimestamp;
-  protected SyncClientInterface client;
+  protected SyncClientInterface remote;
   protected boolean initalized = false;
 
   protected void init()
@@ -73,7 +73,7 @@ public abstract class RuleRunner
   {
     try
     {
-      this.client = client;
+      this.remote = client;
 
       init();
       SyncContext context = new SyncContext();
@@ -132,13 +132,12 @@ public abstract class RuleRunner
 
       // crea un context locale per azzerare il context ad ogni iterazione
       SyncContext ctx = (SyncContext) context.clone();
-
       RecordTimestampData parametri = new RecordTimestampData();
+      RecordKeysData aggiorna = new RecordKeysData();
 
       // interroga il server per i candidati per l'aggiornamento
-      RecordKeysData aggiorna = new RecordKeysData();
-      client.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
-      log.debug("Verifica slave richiede " + parametri.size() + " record.");
+      remote.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
+      debugLog(nomeBlocco, "Verifica slave richiede %d record.", parametri.size());
 
       // elabora dati dei candidati
       rule.verificaBlocco(nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
@@ -146,16 +145,16 @@ public abstract class RuleRunner
 
       if(aggiorna.isEmpty())
       {
-        log.debug("Verifica master non richiede record.");
+        debugLog(nomeBlocco, "Verifica master non richiede record.");
         continue;
       }
 
       // pianifica la richiesta dati per l'aggiornamento
-      client.pianificaAggiornamento(nomeRegola, nomeBlocco, aggiorna, ctx);
+      remote.pianificaAggiornamento(nomeRegola, nomeBlocco, aggiorna, ctx);
 
       if(aggiorna.isEmpty())
       {
-        log.debug("Pianificazione slave non richiede record.");
+        debugLog(nomeBlocco, "Pianificazione slave non richiede record.");
         continue;
       }
 
@@ -164,14 +163,13 @@ public abstract class RuleRunner
       rule.aggiornaBlocco(nomeBlocco, aggiorna, lsRecs, ctx);
 
       if(lsRecs.isEmpty())
-        log.debug("Il master ha prodotto i dati richiesti.");
+        debugLog(nomeBlocco, "Il master ha prodotto i dati richiesti.");
       else
-        log.debug("Il master ha prodotto " + lsRecs.size() + " record.");
+        debugLog(nomeBlocco, "Il master ha prodotto %d record.", lsRecs.size());
 
-      // invia i dati al server per l'aggiornamento; i dati sono nel ctx
-      client.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, lsRecs, ctx);
-
-      log.debug("I dati prodotti dal master sono stati inviati.");
+      // invia i dati al server per l'aggiornamento
+      remote.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, lsRecs, ctx);
+      debugLog(nomeBlocco, "I dati prodotti dal master sono stati inviati.");
     }
 
     log.info("Fine esecuzione regola master " + nomeRegola + ". Eseguita in " + st.getElapsed() + " millisecondi.");
@@ -191,51 +189,59 @@ public abstract class RuleRunner
       // crea un context locale per azzerare il context ad ogni iterazione
       SyncContext ctx = (SyncContext) context.clone();
       RecordTimestampData parametri = new RecordTimestampData();
+      RecordKeysData aggiorna = new RecordKeysData();
 
       // prepera dati per l'interrogazione al server
-      RecordKeysData aggiorna = new RecordKeysData();
       rule.verificaBlocco(nomeBlocco, parametri, null, aggiorna, ctx);
-      log.debug("Verifica slave sottopone " + parametri.size() + " record al master.");
+      debugLog(nomeBlocco, "Verifica slave sottopone %d record al master.", parametri.size());
 
       // interroga il server con i candidati per l'aggiornamento
-      client.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
+      remote.verificaBlocco(nomeRegola, nomeBlocco, parametri, oldTimestamp, aggiorna, ctx);
       parametri.clear();
 
       if(aggiorna.isEmpty())
       {
-        log.debug("Verifica master non richiede aggiornamento record.");
+        debugLog(nomeBlocco, "Verifica master non richiede aggiornamento record.");
         continue;
       }
 
-      log.debug("Verifica master risponde con " + aggiorna.size() + " record da aggiornare/inserire/cancellare.");
+      debugLog(nomeBlocco, "Verifica master risponde con %d record da aggiornare/inserire/cancellare.", aggiorna.size());
 
       // pianifica la richiesta dati per l'aggiornamento
       rule.pianificaAggiornamento(nomeBlocco, aggiorna, ctx);
 
       if(aggiorna.isEmpty())
       {
-        log.debug("Pianificazione slave non richiede record.");
+        debugLog(nomeBlocco, "Pianificazione slave non richiede record.");
         continue;
       }
 
-      log.debug("Pianificazione slave richiede " + aggiorna.size() + " record al master per aggiornare/inserire.");
+      debugLog(nomeBlocco, "Pianificazione slave richiede %d record al master per aggiornare/inserire.", aggiorna.size());
 
-      // interroga il client per i dati dei record da aggiornare
+      // interroga il remote per i dati dei record da aggiornare
       RecordsDataBlock lsRecs = new RecordsDataBlock();
-      client.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, lsRecs, ctx);
+      remote.aggiornaBlocco(nomeRegola, nomeBlocco, aggiorna, lsRecs, ctx);
 
       if(lsRecs.isEmpty())
-        log.debug("Il master ha prodotto i dati richiesti ma nessun record è stato prodotto.");
+        debugLog(nomeBlocco, "Il master ha prodotto i dati richiesti ma nessun record è stato prodotto.");
       else
-        log.debug("Il master ha prodotto " + lsRecs.size() + " record per aggiornare/inserire.");
+        debugLog(nomeBlocco, "Il master ha prodotto %d record per aggiornare/inserire.", lsRecs.size());
 
       // applica aggiornamento al data block; i dati sono nel ctx
       rule.aggiornaBlocco(nomeBlocco, aggiorna, lsRecs, ctx);
-
-      log.debug("I dati prodotti dal master sono stati salvati.");
+      debugLog(nomeBlocco, "I dati prodotti dal master sono stati salvati.");
     }
 
     log.info("Fine esecuzione regola slave " + nomeRegola + ". Eseguita in " + st.getElapsed() + " millisecondi.");
+  }
+
+  private void debugLog(String nomeBlocco, String fmt, Object... args)
+  {
+    if(log.isDebugEnabled())
+    {
+      String msg = String.format(fmt, args);
+      log.debug(nomeBlocco + " : " + msg);
+    }
   }
 
   protected void creaTabellaSupporto(String dbName)

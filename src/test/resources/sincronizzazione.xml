@@ -29,8 +29,8 @@
             <foreign-adapter name="fieldMax"/>
           </field>
           <field>
-            <local name="DESCRIZIONE"/>
-            <foreign name="DESCRIZIONE"/>
+            <local name="ORI_DESCRIZIONE"/>
+            <foreign name="TAR_DESCRIZIONE"/>
           </field>
         </fields>
       </data>

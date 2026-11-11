@@ -28,9 +28,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.commonlib5.lambda.LEU;
+import static org.commonlib5.lambda.LEU.f;
 import org.commonlib5.utils.ArrayMap;
 import org.commonlib5.utils.StringOper;
 
@@ -60,9 +62,9 @@ public class DbPeer
   public static boolean debug = false;
 
   public static void throwTorqueException(Exception e)
-    throws DatabaseException
+     throws DatabaseException
   {
-    if (e instanceof DatabaseException)
+    if(e instanceof DatabaseException)
     {
       throw (DatabaseException) e;
     }
@@ -77,27 +79,27 @@ public class DbPeer
    * rows. Village throws an Exception when multiple rows are
    * deleted.
    *
-   * @param con    A Connection.
-   * @param table  The table to delete records from.
+   * @param con A Connection.
+   * @param table The table to delete records from.
    * @param column The column in the where clause.
-   * @param value  The value of the column.
+   * @param value The value of the column.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static void deleteAll(
-    Connection con,
-    String table,
-    String column,
-    int value)
-    throws DatabaseException
+     Connection con,
+     String table,
+     String column,
+     int value)
+     throws DatabaseException
   {
     StringBuilder query = new StringBuilder();
     query.append("DELETE FROM ")
-      .append(table)
-      .append(" WHERE ")
-      .append(column)
-      .append(" = ")
-      .append(value);
+       .append(table)
+       .append(" WHERE ")
+       .append(column)
+       .append(" = ")
+       .append(value);
 
     executeStatement(query.toString(), con);
   }
@@ -108,14 +110,14 @@ public class DbPeer
    * deleted. This method attempts to get the default database from
    * the pool.
    *
-   * @param table  The table to delete records from.
+   * @param table The table to delete records from.
    * @param column The column in the where clause.
-   * @param value  The value of the column.
+   * @param value The value of the column.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static void deleteAll(String table, String column, int value)
-    throws DatabaseException
+     throws DatabaseException
   {
     Connection con = null;
     try
@@ -138,10 +140,10 @@ public class DbPeer
    * @param queryString A String with the sql statement to execute.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(String queryString)
-    throws DatabaseException
+     throws DatabaseException
   {
     return executeQuery(queryString, Database.getDefaultDB());
   }
@@ -152,13 +154,13 @@ public class DbPeer
    * executeStatement for update, insert, and delete operations.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param dbName      The database to connect to.
+   * @param dbName The database to connect to.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(String queryString, String dbName)
-    throws DatabaseException
+     throws DatabaseException
   {
     return executeQuery(queryString, Collections.EMPTY_MAP, dbName);
   }
@@ -168,14 +170,14 @@ public class DbPeer
    * method should be used for select statements only. Use
    * executeStatement for update, insert, and delete operations.
    *
-   * @param qb     parametri della query
+   * @param qb parametri della query
    * @param dbName The database to connect to.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(QueryParamsBean qb, String dbName)
-    throws DatabaseException
+     throws DatabaseException
   {
     return executeQuery(qb.makeSQLstring(), qb.getValuesMap(), dbName);
   }
@@ -184,15 +186,15 @@ public class DbPeer
    * Method for performing a SELECT. Returns all results.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param con         A Connection.
+   * @param con A Connection.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(
-    String queryString,
-    Connection con)
-    throws DatabaseException
+     String queryString,
+     Connection con)
+     throws DatabaseException
   {
     return executeQuery(queryString, Collections.EMPTY_MAP, con);
   }
@@ -201,17 +203,17 @@ public class DbPeer
    * Method for performing a SELECT.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param values      mappa sostituzioni per macro
-   * @param dbName      The database to connect to.
+   * @param values mappa sostituzioni per macro
+   * @param dbName The database to connect to.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(
-    String queryString,
-    Map<String, ? extends Object> values,
-    String dbName)
-    throws DatabaseException
+     String queryString,
+     Map<String, ? extends Object> values,
+     String dbName)
+     throws DatabaseException
   {
     Connection con = null;
     List results = null;
@@ -232,23 +234,23 @@ public class DbPeer
    * Method for performing a SELECT. Returns all results.
    *
    * @param queryString A String with the sql statement to execute.
-   * @param values      mappa sostituzioni per macro
-   * @param con         A Connection.
+   * @param values mappa sostituzioni per macro
+   * @param con A Connection.
    * @return List of Record objects.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> executeQuery(
-    String queryString,
-    Map<String, ? extends Object> values,
-    Connection con)
-    throws DatabaseException
+     String queryString,
+     Map<String, ? extends Object> values,
+     Connection con)
+     throws DatabaseException
   {
-    try (QueryDataSetMacro qds = new QueryDataSetMacro(con, queryString, values))
+    try(QueryDataSetMacro qds = new QueryDataSetMacro(con, queryString, values))
     {
       return qds.fetchAllRecords();
     }
-    catch (Exception e)
+    catch(Exception e)
     {
       log.error(queryString);
       throwTorqueException(e);
@@ -264,10 +266,10 @@ public class DbPeer
    * @param qds the QueryDataSet
    * @return a List of Record objects
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> getSelectResults(QueryDataSet qds)
-    throws DatabaseException
+     throws DatabaseException
   {
     return getSelectResults(qds, 0, -1, false);
   }
@@ -277,14 +279,14 @@ public class DbPeer
    * objects. Used for functionality like util.LargeSelect.
    *
    * @see #getSelectResults(QueryDataSet, int, int, boolean)
-   * @param qds          the QueryDataSet
+   * @param qds the QueryDataSet
    * @param singleRecord
    * @return a List of Record objects
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> getSelectResults(QueryDataSet qds, boolean singleRecord)
-    throws DatabaseException
+     throws DatabaseException
   {
     return getSelectResults(qds, 0, -1, singleRecord);
   }
@@ -295,21 +297,21 @@ public class DbPeer
    * functionality like util.LargeSelect.
    *
    * @see #getSelectResults(QueryDataSet, int, int, boolean)
-   * @param qds             the QueryDataSet
+   * @param qds the QueryDataSet
    * @param numberOfResults
    * @param singleRecord
    * @return a List of Record objects
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static List<Record> getSelectResults(
-    QueryDataSet qds,
-    int numberOfResults,
-    boolean singleRecord)
-    throws DatabaseException
+     QueryDataSet qds,
+     int numberOfResults,
+     boolean singleRecord)
+     throws DatabaseException
   {
     List<Record> results = null;
-    if (numberOfResults != 0)
+    if(numberOfResults != 0)
     {
       results = getSelectResults(qds, 0, numberOfResults, singleRecord);
     }
@@ -321,28 +323,28 @@ public class DbPeer
    * of Record objects. Starting at record start. Used for
    * functionality like util.LargeSelect.
    *
-   * @param qds             The <code>QueryDataSet</code> to extract results
-   *                        from.
-   * @param start           The index from which to start retrieving
-   *                        <code>Record</code> objects from the data set.
+   * @param qds The <code>QueryDataSet</code> to extract results
+   * from.
+   * @param start The index from which to start retrieving
+   * <code>Record</code> objects from the data set.
    * @param numberOfResults The number of results to return (or
-   *                        <code> -1</code> for all results).
-   * @param singleRecord    Whether or not we want to select only a
-   *                        single record.
+   * <code> -1</code> for all results).
+   * @param singleRecord Whether or not we want to select only a
+   * single record.
    * @return A <code>List</code> of <code>Record</code> objects.
    * @throws DatabaseException If any <code>Exception</code> occurs.
    */
   public static List<Record> getSelectResults(
-    QueryDataSet qds,
-    int start,
-    int numberOfResults,
-    boolean singleRecord)
-    throws DatabaseException
+     QueryDataSet qds,
+     int start,
+     int numberOfResults,
+     boolean singleRecord)
+     throws DatabaseException
   {
     List<Record> results = null;
     try
     {
-      if (numberOfResults < 0)
+      if(numberOfResults < 0)
       {
         results = new ArrayList<>();
         qds.fetchRecords();
@@ -356,24 +358,24 @@ public class DbPeer
       int startRecord = 0;
 
       // Offset the correct number of records
-      if (start > 0 && numberOfResults <= 0)
+      if(start > 0 && numberOfResults <= 0)
       {
         startRecord = start;
       }
 
       // Return a List of Record objects.
-      for (int i = startRecord; i < qds.size(); i++)
+      for(int i = startRecord; i < qds.size(); i++)
       {
         Record rec = qds.getRecord(i);
         results.add(rec);
       }
 
-      if (results.size() > 1 && singleRecord)
+      if(results.size() > 1 && singleRecord)
       {
         handleMultipleRecords(qds);
       }
     }
-    catch (Exception e)
+    catch(Exception e)
     {
       throwTorqueException(e);
     }
@@ -388,10 +390,10 @@ public class DbPeer
    * @param statementString A String with the sql statement to execute.
    * @return The number of rows affected.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static int executeStatement(String statementString)
-    throws DatabaseException
+     throws DatabaseException
   {
     return executeStatement(statementString, Database.getDefaultDB());
   }
@@ -402,15 +404,15 @@ public class DbPeer
    * statements. Use executeQuery() for selects.
    *
    * @param statementString A String with the sql statement to execute.
-   * @param dbName          Name of database to connect to.
+   * @param dbName Name of database to connect to.
    * @return The number of rows affected.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a DatabaseException.
+   * rethrown wrapped into a DatabaseException.
    */
   public static int executeStatement(String statementString, String dbName)
-    throws DatabaseException
+     throws DatabaseException
   {
-    if (simulazione)
+    if(simulazione)
     {
       log.info(statementString);
       return 0;
@@ -436,42 +438,42 @@ public class DbPeer
    * statements. Use executeQuery() for selects.
    *
    * @param statementString A String with the sql statement to execute.
-   * @param con             A Connection.
+   * @param con A Connection.
    * @return The number of rows affected.
    * @throws DatabaseException Any exceptions caught during processing will be
-   *                           rethrown wrapped into a
-   *                           DatabaseException.
+   * rethrown wrapped into a
+   * DatabaseException.
    */
   public static int executeStatement(String statementString, Connection con)
-    throws DatabaseException
+     throws DatabaseException
   {
-    if (simulazione)
+    if(simulazione)
     {
       log.info(statementString);
       return 0;
     }
 
-    try (Statement statement = con.createStatement())
+    try(Statement statement = con.createStatement())
     {
-      if (debug)
+      if(debug)
         log.debug(statementString);
 
       return statement.executeUpdate(statementString);
     }
-    catch (SQLException e)
+    catch(SQLException e)
     {
       throw new DatabaseException(e);
     }
   }
 
   public static int createTimestampTable(String statementString)
-    throws DatabaseException
+     throws DatabaseException
   {
     return createTimestampTable(statementString, Database.getDefaultDB());
   }
 
   public static int createTimestampTable(String statementString, String dbName)
-    throws DatabaseException
+     throws DatabaseException
   {
     Connection con = null;
     int rowCount = -1;
@@ -480,11 +482,11 @@ public class DbPeer
     {
       dbName = StringOper.isOkStr(dbName) ? dbName : Database.getDefaultDB();
       con = Database.getConnection(dbName);
-      try (Statement statement = con.createStatement())
+      try(Statement statement = con.createStatement())
       {
         rowCount = statement.executeUpdate(statementString);
       }
-      catch (SQLException e)
+      catch(SQLException e)
       {
         throw new DatabaseException(e);
       }
@@ -508,14 +510,14 @@ public class DbPeer
    * @throws DatabaseException Couldn't handle multiple records.
    */
   protected static void handleMultipleRecords(DataSet ds)
-    throws DatabaseException
+     throws DatabaseException
   {
     throw new DatabaseException("Criteria expected single Record and "
-      + "Multiple Records were selected");
+       + "Multiple Records were selected");
   }
 
   public static ArrayMap<String, Integer> getTipiColonne(String nomeTabella, String dbName)
-    throws Exception
+     throws Exception
   {
     Connection con = null;
     ArrayMap<String, Integer> rv = null;
@@ -532,7 +534,7 @@ public class DbPeer
   }
 
   public static ArrayMap<String, Integer> getTipiColonne(String nomeTabella)
-    throws Exception
+     throws Exception
   {
     return getTipiColonne(nomeTabella, Database.getDefaultDB());
   }
@@ -540,14 +542,14 @@ public class DbPeer
   /**
    * Verifica esistenza tabella nel db.
    * La ricerca del nome tabella è case insensitive.
-   * 
+   *
    * @param nomeTabella nome della tabella
-   * @param dbName      nome del database
+   * @param dbName nome del database
    * @return vero se esiste
    * @throws Exception
    */
   public static boolean existTable(String nomeTabella, String dbName)
-    throws Exception
+     throws Exception
   {
     Connection con = null;
     boolean rv = false;
@@ -566,30 +568,30 @@ public class DbPeer
   /**
    * Verifica esistenza tabella nel db.
    * La ricerca del nome tabella è case insensitive.
-   * 
+   *
    * @param nomeTabella nome della tabella
    * @return vero se esiste
    * @throws Exception
    */
   public static boolean existTable(String nomeTabella)
-    throws Exception
+     throws Exception
   {
     return existTable(nomeTabella, Database.getDefaultDB());
   }
 
   public static int executeStatement(String sSQL, final List<Object> replacements)
-    throws Exception
+     throws Exception
   {
-    try (Connection con = Database.getConnection())
+    try(Connection con = Database.getConnection())
     {
       return executeStatement(sSQL, replacements, con);
     }
   }
 
   public static int executeStatement(String sSQL, final List<Object> replacements, Connection con)
-    throws Exception
+     throws Exception
   {
-    try (PreparedStatement st = con.prepareStatement(sSQL))
+    try(PreparedStatement st = con.prepareStatement(sSQL))
     {
       setPreparedStatementReplacements(st, replacements, 0);
       return st.executeUpdate();
@@ -600,43 +602,43 @@ public class DbPeer
    * Sets the prepared statement replacements into a query, possibly
    * modifying the type if required by DB Drivers.
    *
-   * @param statement    the statement to set the parameters in, not null.
+   * @param statement the statement to set the parameters in, not null.
    * @param replacements the replacements to set, not null.
-   * @param offset       the offset on the parameters, 0 for no offset.
+   * @param offset the offset on the parameters, 0 for no offset.
    *
    * @return the parameters set.
    *
    * @throws SQLException if setting the parameter fails.
    */
   public static List<Object> setPreparedStatementReplacements(
-    final PreparedStatement statement,
-    final List<Object> replacements,
-    final int offset)
-    throws SQLException
+     final PreparedStatement statement,
+     final List<Object> replacements,
+     final int offset)
+     throws SQLException
   {
     List<Object> result = new ArrayList<>(replacements.size());
     int i = 1 + offset;
-    for (Object param : replacements)
+    for(Object param : replacements)
     {
-      if (param instanceof java.sql.Timestamp)
+      if(param instanceof java.sql.Timestamp)
       {
         statement.setTimestamp(i, (java.sql.Timestamp) param);
         result.add(param);
       }
-      else if (param instanceof java.sql.Date)
+      else if(param instanceof java.sql.Date)
       {
         statement.setDate(i, (java.sql.Date) param);
         result.add(param);
       }
-      else if (param instanceof java.sql.Time)
+      else if(param instanceof java.sql.Time)
       {
         statement.setTime(i, (java.sql.Time) param);
         result.add(param);
       }
-      else if (param instanceof java.util.Date)
+      else if(param instanceof java.util.Date)
       {
         java.sql.Timestamp sqlDate = new java.sql.Timestamp(
-          ((java.util.Date) param).getTime());
+           ((java.util.Date) param).getTime());
         statement.setTimestamp(i, sqlDate);
         result.add(sqlDate);
       }
@@ -646,42 +648,42 @@ public class DbPeer
       // statement.setBigDecimal(i, bigDecimal);
       // result.add(bigDecimal);
       // }
-      else if (param instanceof Integer)
+      else if(param instanceof Integer)
       {
         statement.setInt(i, ((Integer) param).intValue());
         result.add(param);
       }
-      else if (param instanceof Long)
+      else if(param instanceof Long)
       {
         statement.setLong(i, ((Long) param).longValue());
         result.add(param);
       }
-      else if (param instanceof BigDecimal)
+      else if(param instanceof BigDecimal)
       {
         statement.setBigDecimal(i, (BigDecimal) param);
         result.add(param);
       }
-      else if (param instanceof Boolean)
+      else if(param instanceof Boolean)
       {
         statement.setBoolean(i, ((Boolean) param).booleanValue());
         result.add(param);
       }
-      else if (param instanceof Short)
+      else if(param instanceof Short)
       {
         statement.setShort(i, ((Short) param).shortValue());
         result.add(param);
       }
-      else if (param instanceof Byte)
+      else if(param instanceof Byte)
       {
         statement.setByte(i, ((Byte) param).byteValue());
         result.add(param);
       }
-      else if (param instanceof Float)
+      else if(param instanceof Float)
       {
         statement.setFloat(i, ((Float) param).floatValue());
         result.add(param);
       }
-      else if (param instanceof Double)
+      else if(param instanceof Double)
       {
         statement.setDouble(i, ((Double) param).doubleValue());
         result.add(param);
@@ -698,27 +700,53 @@ public class DbPeer
 
   /**
    * Estrazione di interi da una collezioni di oggetti.
-   * 
+   *
    * @param <T>
    * @param objs collezione di oggetti
-   * @param fun  espressione lambda per l'estrazione interi
+   * @param fun espressione lambda per l'estrazione interi
    * @return array di interi senza duplicazioni e senza 0
    * @throws java.lang.Exception
    */
   public static <T> int[] extractIntArray(Collection<T> objs,
-    LEU.ToIntFunction_WithExceptions<T, Exception> fun)
-    throws Exception
+     LEU.ToIntFunction_WithExceptions<T, Exception> fun)
+     throws Exception
   {
     return objs.stream()
-      .mapToInt(LEU.rethrowFunctionInt(fun))
-      .filter((i) -> i != 0)
-      .distinct()
-      .sorted()
-      .toArray();
+       .mapToInt(LEU.rethrowFunctionInt(fun))
+       .filter((i) -> i != 0)
+       .distinct()
+       .sorted()
+       .toArray();
   }
 
   public static java.sql.Timestamp currentTimestamp()
   {
     return new java.sql.Timestamp(System.currentTimeMillis());
+  }
+
+  /**
+   * Ritorna una mappa codice/id per una generica tabella.
+   * @param tabella
+   * @param campoID
+   * @param campoCodice
+   * @param where opzionale può essere null
+   * @param con
+   * @return mappa codice/id
+   * @throws Exception
+   */
+  public static Map<String, Integer> getCodiceMap(String tabella, String campoID, String campoCodice, String where, Connection con)
+     throws Exception
+  {
+    String sSQL
+       = "SELECT " + campoID + "," + campoCodice
+       + "  FROM " + tabella;
+
+    if(where != null)
+      sSQL += " WHERE " + where;
+
+    List<Record> lsRecs = QueryDataSet.fetchAllRecords(con, sSQL);
+
+    return lsRecs.stream()
+       .collect(Collectors.toMap(f((r) -> r.getValue(2).asOkString()), f((r) -> r.getValue(1).asInt())));
   }
 }

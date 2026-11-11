@@ -31,7 +31,7 @@ import org.sync.common.SyncContext;
 import org.sync.common.plugin.SyncPluginFactory;
 
 /**
- * Test sincronizzazione lato client.
+ * Test sincronizzazione lato remote.
  *
  * @author Nicola De Nisco
  */
@@ -78,7 +78,7 @@ public class SyncClientTest extends RuleRunner
   {
     Element e = findPlugin(nomeRegola, doc);
 
-    // nel test il server è master il client è slave
+    // nel test il server è master il remote è slave
     context.put("rule-name", nomeRegola);
     context.put("your-role", "slave");
     context.put("rule-type", "generic");

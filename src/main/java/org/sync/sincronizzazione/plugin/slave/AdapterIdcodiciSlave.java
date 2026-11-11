@@ -16,6 +16,7 @@ package org.sync.sincronizzazione.plugin.slave;
 
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
+import com.workingdogs.village.Schema;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -33,7 +34,7 @@ import org.sync.common.SyncIgnoreRecordException;
 import org.sync.common.SyncSetupErrorException;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
-import org.sync.common.plugin.AbstractAgent;
+import org.sync.db.Database;
 import org.sync.db.DbPeer;
 import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
@@ -57,6 +58,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   private final Map<Integer, String> mapSharedId = new CaseInsensitiveMap<>();
   private final Map<String, Integer> mapSharedCodice = new CaseInsensitiveMap<>();
   private HashtableRpc setup;
+  private Schema tblSchema;
 
   @Override
   public RoleType getRole()
@@ -102,7 +104,12 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
       return;
 
     // recupera info colonna dallo schema
-    Column col = ((AbstractAgent) parentAgent).getSchema().column(codicefield);
+    if(tblSchema == null)
+    {
+      String dbName = ((AgentGenericSlave) parentAgent).databaseName;
+      tblSchema = Database.schemaTable(dbName, table);
+    }
+    Column col = tblSchema.column(codicefield);
 
     List<Record> lsr = fetchData(col.isNumericValue(), arallcodici);
 
@@ -232,7 +239,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
       if(s != null)
       {
         String[] ss = split(s, '^');
-        if(ss.length > idxInKeys)
+        if(idxInKeys < ss.length)
         {
           Integer value = mapSharedCodice.get(ss[idxInKeys]);
           if(value != null)

@@ -132,7 +132,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
 //      fi.adapter = SyncPluginFactory.getInstance().buildAdapter(
 //         getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
 //      fi.adapter.setXML(location, fi.adapterElement);
-//      fi.shareFieldName = getOppositeField(location, ef).field.first;
+//      fi.shareFieldName = getOppositeFieldName(location, ef).field.first;
 //    }
 //
 //    return fi;
@@ -169,7 +169,7 @@ abstract public class AgentGenericSlave extends AbstractAgent
 //    fi.shareFieldName = fi.field.first;
 //  }
 //
-//  private FieldLinkInfoBean getOppositeField(LocationType location, Element ef)
+//  private FieldLinkInfoBean getOppositeFieldName(LocationType location, Element ef)
 //     throws Exception
 //  {
 //    return populateField(ef, new FieldLinkInfoBean(), location.getOpposite());

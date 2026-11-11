@@ -27,7 +27,7 @@ import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.common.plugin.AbstractAdapter;
-import org.sync.db.Database;
+import org.sync.common.plugin.AbstractAgent;
 import org.sync.sincronizzazione.LocationType;
 import org.sync.sincronizzazione.RoleType;
 import org.sync.sincronizzazione.SqlSaveType;
@@ -50,11 +50,6 @@ public class AdapterGetFieldSequence extends AbstractAdapter
      throws Exception
   {
     setup = Utils.parseParams(data);
-    commonSetup();
-  }
-
-  protected void commonSetup()
-  {
     sequenceName = setup.getAsString("sequenceName");
   }
 
@@ -75,7 +70,7 @@ public class AdapterGetFieldSequence extends AbstractAdapter
     {
       // utilizza la regola di default di postgres per i campi serial
       // ad esempio stp.branche_branche_id_seq
-      Schema st = Database.schemaTable(dbName, tableName);
+      Schema st = ((AbstractAgent) parentAgent).getSchema();
       List<Column> primaryKeys = st.getPrimaryKeys();
 
       if(primaryKeys.size() == 1)

@@ -31,6 +31,7 @@ import static org.commonlib5.utils.StringOper.okStrNull;
 import org.jdom2.Element;
 import org.sync.common.*;
 import org.sync.sincronizzazione.LocationType;
+import org.sync.sincronizzazione.RoleType;
 
 /**
  * Classe base di tutti gli agent.
@@ -391,6 +392,7 @@ public abstract class AbstractAgent extends AbstractPlugin
     if(fi.field == null)
       return null;
 
+    impostaSharedName(fi, location, ef);
     fi.adapterElement = Utils.getChildTestName(ef, location + "-adapter");
 
     fi.shared = checkTrueFalse(ef.getAttributeValue("shared"), false);
@@ -404,24 +406,34 @@ public abstract class AbstractAgent extends AbstractPlugin
          getRole(), okStr(fi.adapterElement.getAttributeValue("name")));
       fi.adapter.setParentAgent(this);
       fi.adapter.setXML(location, fi.adapterElement);
-
-      FieldLinkInfoBean oppositeField = getOppositeField(location, ef);
-      if(oppositeField != null)
-        fi.shareFieldName = oppositeField.field.first;
     }
 
     return fi;
   }
 
-  protected void populateFieldName(Element ef, FieldLinkInfoBean fi, LocationType location)
-     throws SyncSetupErrorException
+  protected void impostaSharedName(FieldLinkInfoBean fi, LocationType location, Element ef)
+     throws Exception
   {
-    populateFieldName2(ef, fi, location);
-    if(fi.field != null && fi.shareFieldName == null)
+    // questo è il nome per le map di scambio dati: viene usato il nome dello slave
+    if(getRole() == RoleType.SLAVE)
+    {
+      // per lo slave è il nome del campo
       fi.shareFieldName = fi.field.first;
+    }
+    else
+    {
+      // per il master recupera il nome dallo slave;
+      // solo se il campo esiste solo sul master allora usa il nome del master
+      // un caso speciale usato solo per passare un campo ad un adapter
+      FieldLinkInfoBean oppositeField = getOppositeFieldName(location, ef);
+      if(oppositeField.field != null)
+        fi.shareFieldName = oppositeField.field.first;
+      else
+        fi.shareFieldName = fi.field.first;
+    }
   }
 
-  private void populateFieldName2(Element ef, FieldLinkInfoBean fi, LocationType location)
+  protected void populateFieldName(Element ef, FieldLinkInfoBean fi, LocationType location)
      throws SyncSetupErrorException
   {
     Pair<String, String> uniquename = Utils.parseNameTypeIgnore(ef.getChild("name"));
@@ -448,10 +460,12 @@ public abstract class AbstractAgent extends AbstractPlugin
     fi.field = Utils.parseNameTypeIgnore(ef.getChild(location.getFunction()));
   }
 
-  protected FieldLinkInfoBean getOppositeField(LocationType location, Element ef)
+  protected FieldLinkInfoBean getOppositeFieldName(LocationType location, Element ef)
      throws Exception
   {
-    return populateField(ef, new FieldLinkInfoBean(), location.getOpposite());
+    FieldLinkInfoBean fi = new FieldLinkInfoBean();
+    populateFieldName(ef, fi, location.getOpposite());
+    return fi;
   }
 
   protected String popolaValore(String key, Record r, Value v, FieldLinkInfoBean f)

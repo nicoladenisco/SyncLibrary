@@ -3,7 +3,7 @@ CREATE TABLE origin_siti
 (
     siti_id integer NOT NULL,
     codice character varying(255)  NOT NULL,
-    descrizione character varying(255)  NOT NULL,
+    ori_descrizione character varying(255)  NOT NULL,
     stato_rec integer DEFAULT 0,
     id_user integer DEFAULT 0,
     id_ucrea integer DEFAULT 0,
@@ -17,7 +17,7 @@ CREATE TABLE target_siti
 (
     siti_id integer NOT NULL,
     codice character varying(255)  NOT NULL,
-    descrizione character varying(255)  NOT NULL,
+    tar_descrizione character varying(255)  NOT NULL,
     stato_rec integer DEFAULT 0,
     id_user integer DEFAULT 0,
     id_ucrea integer DEFAULT 0,

@@ -323,19 +323,35 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * Inizializza validatori e adapter per le successive operazioni di salvataggio record.
    * @param lsRecs
    * @param context
-   * @throws Exception
    */
   protected void prepareForSave(RecordsDataBlock lsRecs, SyncContext context)
-     throws Exception
   {
     if(recordValidator != null)
-      recordValidator.slavePreparaValidazione(lsRecs, arFields, context);
+    {
+      try
+      {
+        recordValidator.slavePreparaValidazione(lsRecs, arFields, context);
+      }
+      catch(Exception ex)
+      {
+        log.error("Errore inzio validazione recordValidator ", ex);
+      }
+    }
 
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
       if(f.adapter != null)
-        f.adapter.slavePreparaValidazione(lsRecs, arFields, f, context);
+      {
+        try
+        {
+          f.adapter.slavePreparaValidazione(lsRecs, arFields, f, context);
+        }
+        catch(Exception ex)
+        {
+          log.error("Errore inizio validazione adapter " + f.adapterName, ex);
+        }
+      }
     }
   }
 
@@ -345,20 +361,36 @@ public class AgentTableUpdateSlave extends AgentSharedGenericSlave
    * Qui vengono rilasciate eventuali risorse accumulate prima e durante il salvataggio.
    * @param lsRecs
    * @param context
-   * @throws Exception
    */
   protected void clearForSave(RecordsDataBlock lsRecs, SyncContext context)
-     throws Exception
   {
     for(int i = 0; i < arFields.size(); i++)
     {
       FieldLinkInfoBean f = arFields.get(i);
       if(f.adapter != null)
-        f.adapter.slaveFineValidazione(lsRecs, arFields, f, context);
+      {
+        try
+        {
+          f.adapter.slaveFineValidazione(lsRecs, arFields, f, context);
+        }
+        catch(Exception ex)
+        {
+          log.error("Errore fine validazione adapter " + f.adapterName, ex);
+        }
+      }
     }
 
     if(recordValidator != null)
-      recordValidator.slaveFineValidazione(lsRecs, arFields, context);
+    {
+      try
+      {
+        recordValidator.slaveFineValidazione(lsRecs, arFields, context);
+      }
+      catch(Exception ex)
+      {
+        log.error("Errore fine validazione recordValidator ", ex);
+      }
+    }
   }
 
   /**
