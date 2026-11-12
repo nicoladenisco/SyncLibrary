@@ -83,7 +83,7 @@ public class AgentSharedGenericMaster extends AgentGenericMaster
         continue;
 
       // attenzione: salva il valore con il nome remoto del campo
-      hr.put(f.shareFieldName, popolaValore(key, r, valore, f));
+      hr.put(f, popolaValore(key, r, valore, f));
     }
 
     return hr;

@@ -94,7 +94,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
       return;
 
     String[] arallcodici = lsRecs.stream()
-       .map((r) -> (String) r.get(field.shareFieldName))
+       .map((r) -> (String) r.get(field))
        .filter((s) -> s != null)
        .sorted()
        .distinct()
@@ -176,7 +176,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
      throws Exception
   {
     if(v == null)
-      v = record.get(f.shareFieldName);
+      v = record.get(f);
 
     Object val = mapCodici.get(okStr(v));
     if(val != null)

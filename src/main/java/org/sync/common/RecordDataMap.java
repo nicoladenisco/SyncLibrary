@@ -34,4 +34,14 @@ public class RecordDataMap extends CaseInsensitiveMap<String, String>
   {
     super(m);
   }
+
+  public void put(FieldLinkInfoBean f, String value)
+  {
+    super.put(f.shareFieldName, value);
+  }
+
+  public String get(FieldLinkInfoBean f)
+  {
+    return super.get(f.shareFieldName);
+  }
 }

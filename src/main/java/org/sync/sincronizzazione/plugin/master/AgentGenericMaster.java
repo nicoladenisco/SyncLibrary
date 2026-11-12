@@ -184,7 +184,7 @@ abstract public class AgentGenericMaster extends AbstractAgent
         continue;
 
       // attenzione: salva il valore con il nome remoto del campo
-      hr.put(f.shareFieldName, popolaValore(null, r, valore, f));
+      hr.put(f, popolaValore(null, r, valore, f));
     }
 
     return hr;

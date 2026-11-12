@@ -17,10 +17,9 @@ package org.sync.sincronizzazione.plugin.slave;
 import com.workingdogs.village.Column;
 import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
+import com.workingdogs.village.TableDataSet;
 import com.workingdogs.village.VillageUtils;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -105,38 +104,24 @@ public class AgentSharedGenericSlave extends AgentGenericSlave
   }
 
   protected boolean updateCalTimestamp(String key, Date now, Connection con)
-     throws SQLException
+     throws Exception
   {
     // aggiornamento tabella dei timestamp; ATTENZIONE: la tabella esiste solo sul db principale
-    String sSQL = ""
-       + "UPDATE " + RuleRunner.SYNC_TIMESTAMP_TABLE + " \n"
-       + "   SET LAST_UPDATE=? \n"
-       + " WHERE TABLE_NAME=? \n"
-       + "   AND SHARED_KEY=? \n";
-
-    try(PreparedStatement stmt = con.prepareStatement(sSQL))
+    try(TableDataSet tds = new TableDataSet(con, RuleRunner.SYNC_TIMESTAMP_TABLE))
     {
-      stmt.setTimestamp(1, VillageUtils.cvtTimestamp(now));
-      stmt.setString(2, correctTableName);
-      stmt.setString(3, key);
-      if(stmt.executeUpdate() > 0)
-        return true;
+      Record r = tds.fetchOneRecordOrNew("TABLE_NAME=? AND SHARED_KEY=?", true, correctTableName, key);
+
+      if(r.isNew())
+      {
+        r.setValue("TABLE_NAME", correctTableName);
+        r.setValue("SHARED_KEY", key);
+      }
+
+      r.setValue("LAST_UPDATE", VillageUtils.cvtTimestamp(now));
+      r.save();
     }
 
-    sSQL = ""
-       + "INSERT INTO " + RuleRunner.SYNC_TIMESTAMP_TABLE + "(TABLE_NAME, SHARED_KEY, LAST_UPDATE)\n"
-       + " VALUES(?,?,?)\n";
-
-    try(PreparedStatement stmt = con.prepareStatement(sSQL))
-    {
-      stmt.setString(1, correctTableName);
-      stmt.setString(2, key);
-      stmt.setTimestamp(3, VillageUtils.cvtTimestamp(now));
-      if(stmt.executeUpdate() > 0)
-        return true;
-    }
-
-    return false;
+    return true;
   }
 
   /**
