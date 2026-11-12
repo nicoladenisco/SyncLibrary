@@ -70,7 +70,10 @@ public class CustomDataPoolMaster extends AbstractDataPool
       throw new SyncSetupErrorException(0, "pool:classname");
 
     Class cls = ClassOper.loadClass(className, basePath, vPaths);
-    worker = (SyncPoolPlugin) cls.newInstance();
+    if(cls == null)
+      throw new SyncSetupErrorException("Custom data pool " + className + " non trovato.");
+
+    worker = (SyncPoolPlugin) cls.getConstructor().newInstance();
     worker.setParentRule(parentRule);
     worker.configure(cfg);
     worker.setXML(location, data);
