@@ -138,7 +138,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
         if((val = parse(codice, 0)) != 0)
           lsCodici.add(val);
       }
-      join = join(lsCodici.iterator(), ',');
+      join = joinNumber(lsCodici);
     }
     else
     {
@@ -148,7 +148,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
         if(isOkStr(codice))
           lsCodici.add(codice);
       }
-      join = join(lsCodici.iterator(), ',', '\'');
+      join = joinString(lsCodici);
     }
 
     if(isOkStr(join))

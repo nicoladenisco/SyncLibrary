@@ -15,6 +15,7 @@
 package org.sync.common.plugin;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Date;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.logging.Log;
@@ -146,5 +147,15 @@ public class AbstractPlugin extends StringOper
      throws CloneNotSupportedException
   {
     return super.clone();
+  }
+
+  public String joinString(Collection<String> tojoin)
+  {
+    return join(tojoin.iterator(), ',', '\'');
+  }
+
+  public String joinNumber(Collection<? extends Number> tojoin)
+  {
+    return join(tojoin.iterator(), ',');
   }
 }
