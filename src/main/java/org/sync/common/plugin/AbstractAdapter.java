@@ -22,7 +22,12 @@ import org.sync.common.FieldLinkInfoBean;
 import org.sync.common.RecordDataMap;
 import org.sync.common.RecordsDataBlock;
 import org.sync.common.SyncContext;
+import org.sync.sincronizzazione.RoleType;
 import org.sync.sincronizzazione.SqlSaveType;
+import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import org.sync.sincronizzazione.plugin.master.AgentTableUpdateMaster;
+import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
+import org.sync.sincronizzazione.plugin.slave.AgentTableUpdateSlave;
 
 /**
  * Classe base di tutti gli adapter.
@@ -34,6 +39,16 @@ public class AbstractAdapter extends AbstractPlugin
 {
   protected SyncAgentPlugin parentAgent;
   protected SyncDeletePlugin delStrategy;
+
+  @Override
+  public RoleType getRole()
+  {
+    if(parentAgent == null)
+      return super.getRole();
+
+    // per default eredita il ruolo dall'agent che lo sta usando
+    return parentAgent.getRole();
+  }
 
   @Override
   public SyncAgentPlugin getParentAgent()
@@ -55,6 +70,26 @@ public class AbstractAdapter extends AbstractPlugin
   public void setDelStrategy(SyncDeletePlugin delStrategy)
   {
     this.delStrategy = delStrategy;
+  }
+
+  public String getParentTableName()
+  {
+    if(parentAgent instanceof AgentTableUpdateSlave)
+      return ((AgentTableUpdateSlave) parentAgent).correctTableName;
+    if(parentAgent instanceof AgentTableUpdateMaster)
+      return ((AgentTableUpdateMaster) parentAgent).correctTableName;
+
+    throw new IllegalArgumentException("parentAgent not an instance of AgentTableUpdate");
+  }
+
+  public String getParentDatabaseName()
+  {
+    if(parentAgent instanceof AgentTableUpdateSlave)
+      return ((AgentGenericSlave) parentAgent).databaseName;
+    if(parentAgent instanceof AgentTableUpdateMaster)
+      return ((AgentGenericMaster) parentAgent).databaseName;
+
+    throw new IllegalArgumentException("parentAgent not an instance of AgentGeneric");
   }
 
   @Override

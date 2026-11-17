@@ -19,9 +19,12 @@ import com.workingdogs.village.Record;
 import com.workingdogs.village.Schema;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.apache.commons.configuration2.Configuration;
 import static org.commonlib5.lambda.LEU.fi;
 import org.commonlib5.xmlrpc.HashtableRpc;
 import org.jdom2.Element;
@@ -57,6 +60,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   private final Map<String, Integer> mapCodici = new CaseInsensitiveMap<>();
   private final Map<Integer, String> mapSharedId = new CaseInsensitiveMap<>();
   private final Map<String, Integer> mapSharedCodice = new CaseInsensitiveMap<>();
+  private final Set<String> codesToZero = new HashSet<>();
   private HashtableRpc setup;
   private Schema tblSchema;
 
@@ -64,6 +68,20 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
   public RoleType getRole()
   {
     return RoleType.SLAVE;
+  }
+
+  @Override
+  public void configure(Configuration cfg)
+     throws Exception
+  {
+    super.configure(cfg);
+
+    codesToZero.add("");
+    codesToZero.add("NES");
+    codesToZero.add("NESS");
+    String[] codesToZeroTmp = cfg.getStringArray("codesToZero");
+    if(codesToZeroTmp != null && codesToZeroTmp.length > 0)
+      codesToZero.addAll(Arrays.asList(codesToZeroTmp));
   }
 
   @Override
@@ -106,11 +124,11 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     // recupera info colonna dallo schema
     if(tblSchema == null)
     {
-      String dbName = ((AgentGenericSlave) parentAgent).databaseName;
+      String dbName = getParentDatabaseName();
       tblSchema = Database.schemaTable(dbName, table);
     }
-    Column col = tblSchema.column(codicefield);
 
+    Column col = tblSchema.column(codicefield);
     List<Record> lsr = fetchData(col.isNumericValue(), arallcodici);
 
     if(lsr != null)
@@ -158,7 +176,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
          + "  FROM " + table
          + " WHERE " + codicefield + " IN (" + join + ")";
 
-      return DbPeer.executeQuery(sSQL, getDbname());
+      return DbPeer.executeQuery(sSQL, getParentDatabaseName());
     }
 
     return null;
@@ -181,6 +199,10 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
     Object val = mapCodici.get(okStr(v));
     if(val != null)
       return val;
+
+    // codici equiparati al record 0
+    if(v != null && codesToZero.contains(v.toString()))
+      return 0;
 
     throw new SyncIgnoreRecordException("External Referenced Key Violated " + f.field.first + "=" + v);
   }
@@ -207,7 +229,7 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
        = "SELECT " + idfield + "," + codicefield
        + "  FROM " + table
        + " WHERE " + idfield + " IN (" + join(arallid, ',') + ")";
-    List<Record> lsr = DbPeer.executeQuery(sSQL, getDbname());
+    List<Record> lsr = DbPeer.executeQuery(sSQL, getParentDatabaseName());
 
     // carica tutti i codici per gli ID richiesti
     for(Record r : lsr)
@@ -253,10 +275,5 @@ public class AdapterIdcodiciSlave extends AbstractAdapter
 
     parametri.clear();
     parametri.addAll(newparam);
-  }
-
-  private String getDbname()
-  {
-    return ((AgentGenericSlave) parentAgent).databaseName;
   }
 }

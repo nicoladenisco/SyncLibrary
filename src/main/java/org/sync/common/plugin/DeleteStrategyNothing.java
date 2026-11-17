@@ -26,6 +26,7 @@ import org.sync.sincronizzazione.LocationType;
 
 /**
  * Plugin per logica di cancellazione di default.
+ * Non fa assolutamente nulla.
  *
  * @author Nicola De Nisco
  */

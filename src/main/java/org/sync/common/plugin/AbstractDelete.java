@@ -23,6 +23,10 @@ import org.sync.common.RecordDataMap;
 import org.sync.common.SyncContext;
 import org.sync.common.Utils;
 import org.sync.sincronizzazione.RoleType;
+import org.sync.sincronizzazione.plugin.master.AgentGenericMaster;
+import org.sync.sincronizzazione.plugin.master.AgentTableUpdateMaster;
+import org.sync.sincronizzazione.plugin.slave.AgentGenericSlave;
+import org.sync.sincronizzazione.plugin.slave.AgentTableUpdateSlave;
 
 /**
  * Classe base dei gestori di cancellazione.
@@ -51,6 +55,26 @@ public class AbstractDelete extends AbstractPlugin
   {
     // la cancellazione avviene solo lato slave
     return RoleType.SLAVE;
+  }
+
+  public String getParentTableName()
+  {
+    if(parentAgent instanceof AgentTableUpdateSlave)
+      return ((AgentTableUpdateSlave) parentAgent).correctTableName;
+    if(parentAgent instanceof AgentTableUpdateMaster)
+      return ((AgentTableUpdateMaster) parentAgent).correctTableName;
+
+    throw new IllegalArgumentException("parentAgent not an instance of AgentTableUpdate");
+  }
+
+  public String getParentDatabaseName()
+  {
+    if(parentAgent instanceof AgentTableUpdateSlave)
+      return ((AgentGenericSlave) parentAgent).databaseName;
+    if(parentAgent instanceof AgentTableUpdateMaster)
+      return ((AgentGenericMaster) parentAgent).databaseName;
+
+    throw new IllegalArgumentException("parentAgent not an instance of AgentGeneric");
   }
 
   @Override

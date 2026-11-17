@@ -16,7 +16,6 @@ package org.sync.common.plugin;
 
 import java.util.Date;
 import java.util.List;
-import org.commonlib5.utils.Pair;
 import org.sync.common.FilterKeyData;
 import org.sync.common.RecordKeysData;
 import org.sync.common.RecordsDataBlock;

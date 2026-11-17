@@ -72,11 +72,14 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
 
     Pair<List<Record>, Schema> dati = pool.getDatiVerifica(dataBlockName, poolData,
        oldTimestamp, arFields, (Map<String, String>) context.get("extraFilter"));
-    if(dati.first.isEmpty())
+    if(dati == null || dati.first == null || dati.first.isEmpty())
       return;
 
-    if(dati.second != null && schema != null)
+    if(dati.second != null && schema == null)
+    {
+      schema = dati.second;
       caricaTipiColonne(dati.second, arFields);
+    }
 
     // NOTA IMPORTANTE: il timestamp ultimo aggiornamento non viene passato
     // in quanto è responsabilità del poolElement stabilire quali record devono
@@ -104,15 +107,18 @@ public class AgentPoolUpdateMaster extends AgentSharedGenericMaster
 
     Pair<List<Record>, Schema> dati = pool.getDatiAggiorna(dataBlockName, poolData, arKeys,
        fetchAllData ? null : parametri, arFields, (Map<String, String>) context.get("extraFilter"));
-    List<Record> lsRecs = dati.first;
-    if(lsRecs.isEmpty())
+    if(dati == null || dati.first == null || dati.first.isEmpty())
       return;
 
-    if(dati.second != null && schema != null)
+    if(dati.second != null && schema == null)
+    {
+      schema = dati.second;
       caricaTipiColonne(dati.second, arFields);
+    }
 
     // se il poolElement non sa filtrare i records in base ai parametri, applichiamo
     // un filtro a posteriori
+    List<Record> lsRecs = dati.first;
     if(!fetchAllData && !pool.haveNativeFilter())
       lsRecs = filtraRecors(lsRecs, parametri, context);
 
